@@ -12,40 +12,41 @@ import {
   Divider,
   Tooltip,
 } from "antd";
-import { DeleteOutlined, PlusSquareTwoTone } from "@ant-design/icons";
+import {
+  DeleteOutlined,
+  PlusSquareTwoTone,
+  PlusCircleOutlined,
+} from "@ant-design/icons";
+import { useDispatch } from "react-redux";
+import { createSectionInPost } from "../../../../_actions/post_actions";
+
 //Section will make an axious get request to get his lists..
 
 export default function Section(props) {
   let initLists = props.section.lists ? props.section.lists : [];
   const [section, setSection] = useState({});
+  const [post, setPost] = useState();
   const [lists, setLists] = useState(initLists);
   const [showComponent, setShowComponent] = useState(true);
+  const dispatch = useDispatch();
 
   const sectionId = props.section._id;
-  const postId = props.section.inPost;
+  useEffect(() => {
+    setPost(props.post);
+  }, [props]);
 
-  // useEffect(() => {
+  const createSection = () => {
+    const variables = {
+      title: "",
+      order: props.index + 1, //We will insert the new section beneath this one..
+      postId: post._id,
+    };
 
-  //   const variables = { postId: postId, sectionId: sectionId };
-
-  //   axios.post("/api/blog/getSection", variables).then((response) => {
-  //     if (response.data.post) {
-  //       if (response.data.post) {
-  //         setSection(
-  //           response.data.post.sections.find(
-  //             (section) => (section._id = sectionId)
-  //           )
-  //         );
-  //         setLists(section.lists);
-  //       }
-  //     } else {
-  //       alert("Error Retrieving Sections");
-  //     }
-  //   });
-  // }, []);
+    dispatch(createSectionInPost(variables));
+  };
 
   const removeSection = () => {
-    const variables = { postId: postId, sectionId: sectionId };
+    const variables = { postId: post._id, sectionId: sectionId };
     console.log(variables.postId + "-T-T-T-T" + variables.sectionId);
     axios.post("/api/blog/removeSection", variables).then((response) => {
       console.log(response.status);
@@ -55,7 +56,7 @@ export default function Section(props) {
 
   const createList = () => {
     const variables = {
-      postId: postId,
+      postId: post._id,
       sectionId: sectionId,
       order: lists.length,
       cards: [],
@@ -84,6 +85,16 @@ export default function Section(props) {
               icon={<DeleteOutlined />}
               onClick={() => {
                 removeSection();
+              }}
+            />
+          </Tooltip>
+          <Tooltip title="Add Section">
+            <Button
+              type="primary"
+              shape="circle"
+              icon={<PlusCircleOutlined />}
+              onClick={() => {
+                createSection();
               }}
             />
           </Tooltip>

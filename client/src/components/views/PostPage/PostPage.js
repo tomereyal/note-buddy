@@ -4,41 +4,43 @@ import Section from "./Sections/Section";
 import PostHeader from "./Sections/PostHeader";
 import { Card, Avatar, Col, Typography, Row, Button, Tooltip } from "antd";
 import { PlusCircleOutlined } from "@ant-design/icons";
+import { useSelector } from "react-redux";
 
 const { Title } = Typography;
 
-export default function PostPage(props) {
+function PostPage(props) {
   // PostPage is called in app.js in its own route component like this:
   //<Route exact path={./this files location} component ={PostPage}></Route>
   //https://reactrouter.com/web/api/Route/component
   // Now this component has access to all the route props (match, location and history).
-  const [post, setPost] = useState({});
+
+  const posts = useSelector((state) => state.posts);
+  const user = useSelector((state) => state.user);
+  // const post = posts.find((post) => post._id == postId);
+  const [post, setPost] = useState(null);
   const [sections, setSections] = useState([]);
-  // const parentRef = useRef(null);
-  // console.log(`parentRef`, parentRef);
   const container = useRef(null);
-  const postId = props.match.params.postId;
 
   useEffect(() => {
-    /*Axios will post a request to the path "/api/blog/getPost"
-    The express middleware will catch this request and find the "/api/blog/" usecase I wrote,
-    then it will enter the blog.js module I wrote and try to find the "/getPost" usecase
-    and its middleware function.
-    */
-    const variables = { postId: postId };
+    console.log(`I the child also rerendered`);
+    if (props.match) {
+      const postId = props.match.params.postId;
 
-    axios.post("/api/blog/getPost", variables).then((response) => {
-      if (response.data.post) {
-        if (response.data.post) {
-          setPost(response.data.post);
-          setSections(response.data.post.sections);
-        }
-      } else {
-        alert("Error Retrieving Post");
+      if (!post && posts) {
+        setPost(
+          posts.find((post) => {
+            return post._id == postId;
+          })
+        );
       }
-    });
-  }, []);
+    } else setPost({ ...props.post });
 
+    console.log(`myPost`);
+  }, [props]);
+  //to make child rerender on change in parent, we will pass parent props to child
+  //and put [props] as the childs eseEffect dependency
+
+  console.log(`post`, post);
   const createSection = () => {
     const variables = {
       inPost: post._id,
@@ -69,8 +71,6 @@ export default function PostPage(props) {
         ref={container}
       >
         <PostHeader post={post} container={container.current}></PostHeader>
-
-        {/* <Title level={2}>{post.writer.name}'s Post</Title>
         <br />
         <div
           style={{
@@ -79,10 +79,9 @@ export default function PostPage(props) {
             flexDirection: "column",
           }}
         >
-          <Title level={4}>{post.createdAt}</Title>
           <br />
           <div dangerouslySetInnerHTML={{ __html: post.content }} />
-        </div> */}
+        </div>
         <Tooltip title="Add Section">
           <Button
             type="primary"
@@ -93,8 +92,15 @@ export default function PostPage(props) {
             }}
           />
         </Tooltip>
-        {sections.map((section, index) => {
-          return <Section key={index} section={section}></Section>;
+        {post.sections.map((section, index) => {
+          return (
+            <Section
+              key={index}
+              section={section}
+              post={post}
+              index={index}
+            ></Section>
+          );
         })}
       </div>
     );
@@ -102,3 +108,5 @@ export default function PostPage(props) {
     return <div style={{ width: "80%", margin: "3rem auto" }}>loading..</div>;
   }
 }
+
+export default PostPage;

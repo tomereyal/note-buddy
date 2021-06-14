@@ -1,5 +1,13 @@
 import * as api from "../api";
-import { FETCH_ALL_FOLDERS, CREATE_FOLDER, DELETE_FOLDER,MOVE_TO_TRASH_FOLDER } from "./types";
+import {
+  FETCH_ALL_FOLDERS,
+  CREATE_FOLDER,
+  DELETE_FOLDER,
+  MOVE_TO_TRASH_FOLDER,
+  CREATE_POST_IN_FOLDER,
+  DELETE_POST_FROM_FOLDER,
+  ADD_POST_TO_FOLDER,
+} from "./types";
 import { message } from "antd";
 
 export const getFolders = () => async (dispatch) => {
@@ -30,6 +38,39 @@ export const deleteFolder = (folderId) => async (dispatch) => {
     dispatch({ type: DELETE_FOLDER, payload: folderId });
     dispatch({ type: MOVE_TO_TRASH_FOLDER, payload: folderId });
     message.success("Folder was deleted");
+  } catch (error) {
+    console.log(error.message);
+  }
+};
+
+export const createPostInFolder =
+  (variables, post, folder) => async (dispatch) => {
+    try {
+      if (!post) {
+        const { data } = await api.createPostInFolderApi(variables);
+        console.log(`data`, data);
+        const folder = data;
+      }
+      //we want to return the updated folder to reducer to update app folders state;
+      dispatch({ type: CREATE_POST_IN_FOLDER, payload: folder });
+    } catch (error) {}
+  };
+
+export const addPostToFolder = (post, folderId) => async (dispatch) => {
+  try {
+    const { data } = await api.addPostToFolder(post, folderId);
+    dispatch({ type: ADD_POST_TO_FOLDER, payload: data });
+  } catch (error) {}
+};
+
+export const deletePostFromFolder = (variables) => async (dispatch) => {
+  try {
+    const { data } = await api.deletePostFromFolder(variables);
+    console.log(`data`, data);
+    dispatch({ type: DELETE_POST_FROM_FOLDER, payload: data });
+    if (data.success) {
+      message.success("Post was removed from folder");
+    }
   } catch (error) {
     console.log(error.message);
   }

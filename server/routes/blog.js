@@ -42,11 +42,19 @@ router.post("/uploadfiles", (req, res) => {
 });
 
 router.post("/createPost", (req, res) => {
-  let blog = new Blog({
-    content: req.body.content,
-    writer: req.body.writer,
-    sections: [],
+  let defaultCard = new Card({ content: null });
+  let defaultList = new List({
+    cards: [defaultCard],
   });
+  let defaultSection = new Section({
+    lists: [defaultList],
+  });
+  let blog = new Blog({
+    name: req.body.name,
+    writer: req.body.writer,
+    sections: [defaultSection],
+  });
+  console.log(blog);
   blog.save((err, postInfo) => {
     if (err) return res.json({ success: false, err });
     return res.status(200).json({ success: true, postInfo });
@@ -57,16 +65,30 @@ router.post("/createPost", (req, res) => {
   //ALWAYS search Folder collection for "all blogs" folder and add it there.
 });
 
+// router.delete("/deletePost/:postId", (req, res) => {
+//   console.log(req.params.postId);
+//   Blog.deleteOne({ _id: req.params.postId }, (result) => {
+//     if (result) {
+//       console.log(`database response:`, result);
+//     }
+//   });
+
 router.delete("/deletePost/:postId", (req, res) => {
   console.log(req.params.postId);
-  Blog.findByIdAndRemove({ _id: req.params.postId }).then(
-    (result) => {
-      console.log(result);
-    },
-    (reason) => {
-      console.log(reason);
-    }
-  );
+  const postId = req.params.postId;
+
+  Blog.findOneAndDelete({ _id: postId }, function (err) {
+    if (err) console.log(err);
+    console.log("Successful deletion");
+  });
+  // .then(
+  //   (result) => {
+  //     console.log(`database response:`, result);
+  //   },
+  //   (reason) => {
+  //     console.log(reason);
+  //   }
+  // );
 });
 
 router.get("/fetchPosts", (req, res) => {
@@ -94,20 +116,6 @@ router.post("/getPost", (req, res) => {
       if (err) return res.status(400).send(err);
       res.status(200).json({ success: true, post });
     });
-});
-
-router.post("/getSection", (req, res) => {
-  const postId = req.body.postId;
-  const sectionId = req.body.sectionId;
-  Blog.findById(postId, function (err, post) {
-    if (err) {
-      console.log(err);
-    }
-    let queriedSection = post.sections.id(sectionId);
-
-    if (err) return res.json({ success: false, err });
-    res.status(200).json(queriedSection);
-  });
 });
 
 router.post("/getList", (req, res) => {
@@ -138,6 +146,24 @@ router.post("/createSection", (req, res) => {
           title: req.body.title,
           order: req.body.order,
         },
+      },
+    },
+    { new: true },
+    (err, updatedPost) => {
+      if (err) return res.json({ success: false, err });
+      res.status(200).json(updatedPost);
+    }
+  );
+});
+router.post("/createSectionInPost", (req, res) => {
+  const variables = req.body;
+  const { postId, title, order } = variables;
+  const newSection = new Section({ title, order });
+  Blog.findOneAndUpdate(
+    { _id: postId },
+    {
+      $push: {
+        sections: { $each: [newSection], $position: order },
       },
     },
     { new: true },

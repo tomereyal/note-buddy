@@ -1,5 +1,6 @@
 import React from "react";
 import { PageHeader, Button, Menu, Typography, Tag, Affix } from "antd";
+import { SettingOutlined } from "@ant-design/icons";
 // const { Title } = Typography;
 
 export default function PostHeader(props) {
@@ -10,7 +11,7 @@ export default function PostHeader(props) {
     <Affix offsetTop={HEIGHT_OF_NAVBAR}>
       <PageHeader
         ghost={false}
-        title={`${post.writer.name}'s Post`}
+        title={`${post.name}`}
         onBack={() => {
           window.history.back();
         }}
@@ -18,9 +19,7 @@ export default function PostHeader(props) {
         subTitle={`${post.createdAt}`}
         extra={[
           <Button key="2">Action</Button>,
-          <Button key="1" type="primary">
-            Action
-          </Button>,
+          <Button icon={<SettingOutlined />} key="1" type="primary" />,
         ]}
       ></PageHeader>
     </Affix>
