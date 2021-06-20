@@ -40,13 +40,15 @@ export default function (folders = [], action) {
       });
 
     case ADD_POST_TO_FOLDER:
+      const updatedFolder = action.payload.folder;
       return folders.map((folder) => {
-        return folder._id == action.payload._id ? action.payload : folder;
+        return folder._id == updatedFolder._id ? updatedFolder : folder;
       });
 
     case DELETE_POST_FROM_FOLDER:
+      const newFolder = action.payload.folder;
       return folders.map((folder) => {
-        return folder._id == action.payload._id ? action.payload : folder;
+        return folder._id == newFolder._id ? newFolder : folder;
       });
 
     default:

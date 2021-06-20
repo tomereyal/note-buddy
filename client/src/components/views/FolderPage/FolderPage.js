@@ -1,22 +1,22 @@
 import React, { useEffect, useState } from "react";
-import { Route, Switch, withRouter } from "react-router-dom";
+import {
+  Route,
+  Switch,
+  withRouter,
+  Link,
+  useRouteMatch,
+} from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import axios from "axios";
 import {
   createFolder,
   deleteFolder,
   deletePostFromFolder,
-  addPostToFolder,
 } from "../../../_actions/folder_actions";
 
-import {
-  createPostInFolderApi,
-  createPostInServer,
-} from "../../../api/index.js";
-import { FOLDER_SERVER } from "../../Config.js";
 import { deletePost, createPost } from "../../../_actions/post_actions";
 import FolderSubmenu from "./sections/FolderSubmenu";
 import PostPage from "../PostPage/PostPage";
+import Apple from "./Apple";
 import Auth from "../../../hoc/auth";
 import { Layout, Row, Menu, Button, Dropdown, Input, Spin } from "antd";
 
@@ -33,24 +33,22 @@ const { Content, Footer, Sider } = Layout;
 const { SubMenu } = Menu;
 
 export default function FolderPage(props) {
-  const [blog, setBlog] = useState({});
   const folders = useSelector((state) => state.folders);
   const posts = useSelector((state) => state.posts);
   const user = useSelector((state) => state.user);
   const [selectedFolder, setSelectedFolder] = useState(
     folders ? folders[0] : null
   );
-
-  const [content, setContent] = useState(folders ? folders[0] : null);
+  const [content, setContent] = useState(null);
   const [selectedPost, setSelectedPost] = useState(null);
   const [showFolderInput, setShowFolderInput] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [openKeys, setOpenKeys] = useState(["sub1"]);
   const dispatch = useDispatch();
 
-  useEffect(() => {
-    console.log(`I rerendered`);
-  }, [selectedFolder, selectedPost, content]);
+  let { path, url } = useRouteMatch();
+
+  useEffect(() => {}, [dispatch, posts]);
 
   const newFolderHandler = (folderName) => {
     // if (user.userData && !user.userData.isAuth) {
@@ -74,26 +72,6 @@ export default function FolderPage(props) {
     dispatch(deleteFolder(folder._id));
   };
 
-  const addPost = async () => {
-    const postVariables = {
-      writer: selectedFolder.writer,
-      name: `Post-${selectedFolder.name}-${selectedFolder.blogs.length}`,
-    };
-
-    const folderId = selectedFolder._id;
-    const { data } = await createPostInServer(postVariables);
-    console.log(`data`, data);
-    const newPost = data.postInfo;
-    dispatch(createPost(null, newPost));
-
-    dispatch(addPostToFolder({ post: newPost, folderId }));
-    const postId = newPost._id;
-
-    // setTimeout(() => {
-    //   props.history.push(`/post/${postId}`);
-
-    // }, 1000);
-  };
   const rootSubmenuKeys = [];
 
   const renderFolders = folders.map((folder, index) => {
@@ -128,14 +106,12 @@ export default function FolderPage(props) {
           }
           title={folder.name}
           onTitleClick={() => {
-            console.log(`folder`, folder);
             //or should i use react router and reroute
+            props.history.push(`${url}/${folder._id}`);
             setSelectedFolder(folder);
-            setContent(<PostsPage folder={folder} />);
+            // setContent(<PostsPage folder={folder} />);
           }}
-          onTitleMouseEnter={() => {
-            console.log("show edit buttons");
-          }}
+          onTitleMouseEnter={() => {}}
         >
           {folder.blogs &&
             folder.blogs.map((blog, blogIndex) => {
@@ -144,27 +120,24 @@ export default function FolderPage(props) {
                   key={`folder${index}sub${blogIndex}`}
                   title={blog.name}
                   onClick={() => {
-                    console.log(`show blog:`, blog);
                     setSelectedPost(blog);
-
-                    setContent(<PostPage post={blog} />);
+                    props.history.push(`${url}/post/${blog._id}`);
+                    // props.history.push(`/folders/post/${blog._id}`);
+                    // setContent(<PostPage postId={blog._id} />);
                   }}
-                  icon={
-                    <EditOutlined
-                      onClick={() => {
-                        props.history.push(`/post/${blog._id}`);
-                      }}
-                    />
-                  }
+                  icon={<EditOutlined onClick={() => {}} />}
                 >
                   <DeleteOutlined
-                    onClick={() => {
+                    style={{ zindex: "5", color: "red" }}
+                    onClick={(e) => {
+                      // e.preventDefault();
                       const variables = {
                         postId: blog._id,
                         folderId: folder._id,
                       };
-                      dispatch(deletePost(blog._id));
                       dispatch(deletePostFromFolder(variables));
+                      dispatch(deletePost(blog._id));
+                      setContent(<PostsPage folder={folder} />);
                     }}
                   />
                   {blog.name}
@@ -236,6 +209,9 @@ export default function FolderPage(props) {
               onOpenChange={onOpenChange}
               mode="inline"
             >
+              {/* <Button>
+                <Link to="/folders/apple">apple</Link>
+              </Button> */}
               {renderFolders}
               {showFolderInput && (
                 <Input
@@ -255,7 +231,21 @@ export default function FolderPage(props) {
           </Sider>
         </Dropdown>
       )}
-      <Layout>{content}</Layout>
+      <Layout>
+        {/* <Apple></Apple> */}
+        <Switch>
+          <Route
+            exact
+            path={`${path}/post/:postId`}
+            children={<PostPage />}
+          ></Route>
+          <Route
+            exact
+            path={`${path}/:folderId`}
+            children={<PostsPage />}
+          ></Route>
+        </Switch>
+      </Layout>
     </Layout>
   );
 }

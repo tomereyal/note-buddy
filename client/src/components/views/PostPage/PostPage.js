@@ -1,12 +1,13 @@
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
-import Section from "./Sections/Section";
+import Section from "./Sections/NoteSection/Section.js";
 import PostHeader from "./Sections/PostHeader";
 import { Card, Avatar, Col, Typography, Row, Button, Tooltip } from "antd";
 import { PlusCircleOutlined } from "@ant-design/icons";
 import { useSelector } from "react-redux";
+import { useParams } from "react-router-dom";
 
-const { Title } = Typography;
+const { Text } = Typography;
 
 function PostPage(props) {
   // PostPage is called in app.js in its own route component like this:
@@ -14,33 +15,43 @@ function PostPage(props) {
   //https://reactrouter.com/web/api/Route/component
   // Now this component has access to all the route props (match, location and history).
 
+  const { postId } = useParams();
   const posts = useSelector((state) => state.posts);
-  const user = useSelector((state) => state.user);
-  // const post = posts.find((post) => post._id == postId);
-  const [post, setPost] = useState(null);
+  const initPost = posts.find((post) => {
+    return post._id == postId;
+  });
+  const [post, setPost] = useState(initPost);
   const [sections, setSections] = useState([]);
-  const container = useRef(null);
+
+  const container = useRef(initPost);
+
+  // function getInitPost(props) {
+  //   if (props.match) {
+  //     const postId = props.post ? props.post._id : props.match.params.postId;
+  //     if (posts) {
+  //       return posts.find((post) => {
+  //         return post._id == postId;
+  //       });
+  //     }
+  //   } else {
+  //     return posts.find((post) => {
+  //       return post._id == props.postId;
+  //     });
+  //   }
+  // }
 
   useEffect(() => {
-    console.log(`I the child also rerendered`);
-    if (props.match) {
-      const postId = props.match.params.postId;
-
-      if (!post && posts) {
-        setPost(
-          posts.find((post) => {
-            return post._id == postId;
-          })
-        );
-      }
-    } else setPost({ ...props.post });
-
-    console.log(`myPost`);
-  }, [props]);
+    if (props) {
+      setPost(() => {
+        return posts.find((post) => {
+          return post._id == postId;
+        });
+      });
+    }
+  }, [props, posts]);
   //to make child rerender on change in parent, we will pass parent props to child
-  //and put [props] as the childs eseEffect dependency
+  //and put [props] as the childs useEffect dependency
 
-  console.log(`post`, post);
   const createSection = () => {
     const variables = {
       inPost: post._id,
@@ -71,33 +82,14 @@ function PostPage(props) {
         ref={container}
       >
         <PostHeader post={post} container={container.current}></PostHeader>
-        <br />
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            flexDirection: "column",
-          }}
-        >
-          <br />
-          <div dangerouslySetInnerHTML={{ __html: post.content }} />
-        </div>
-        <Tooltip title="Add Section">
-          <Button
-            type="primary"
-            shape="circle"
-            icon={<PlusCircleOutlined />}
-            onClick={() => {
-              createSection();
-            }}
-          />
-        </Tooltip>
-        {post.sections.map((section, index) => {
+
+        {post.sections.map((section, index, sections) => {
           return (
             <Section
-              key={index}
+              key={section._id}
               section={section}
-              post={post}
+              sectionsLength={sections.length}
+              postId={post._id}
               index={index}
             ></Section>
           );

@@ -10,7 +10,7 @@ const { Blog } = require("../models/Blog");
 router.post("/createFolder", (req, res) => {
   const { body } = req;
   const { name, writer } = body;
-  const folder = new Folder({ name, writer });
+  const folder = new Folder({ name, writer, blogs: [] });
   console.log(folder);
   folder.save((err, folderInfo) => {
     if (err) return res.json({ success: false, err });
@@ -35,31 +35,35 @@ router.post("/createPostInFolder", (req, res) => {
 });
 router.post("/addPostToFolder", (req, res) => {
   const { body } = req;
-  const { post, folderId } = body;
-  console.log(`post`, post);
+  const { postId, folderId } = body;
+  console.log(`postId`, postId);
   console.log(`folderId`, folderId);
-  const blog = new Blog({
-    _id: post._id,
-    content: null,
-    writer: post.writer,
-    name: post.name,
-    sections:post.sections,
-    createdAt: post.createdAt,
-  });
+  // const blog = new Blog({
+  //   _id: post._id,
+  //   content: null,
+  //   writer: post.writer,
+  //   name: post.name,
+  //   sections:post.sections,
+  //   createdAt: post.createdAt,
+  // });
   Folder.findByIdAndUpdate(
-    { _id: folderId },
-    { $push: { blogs: blog } },
-    { new: true },
-    (err, updatedFolder) => {
-      if (err) return res.json({ success: false, err });
-      return res.status(200).json(updatedFolder);
-    }
-  );
+    folderId,
+    { $push: { blogs: postId } },
+    { new: true }
+  )
+    .populate("blogs")
+    .exec((err, folder) => {
+      if (err) return res.status(400).send(err);
+      res.status(200).json({ success: true, folder });
+    });
 });
 
 router.get("/fetchFolders", (req, res) => {
+  // req.session.cats = ["bluecat"];
+
   Folder.find()
-    .populate("writer")
+    .populate("writer") // populate the writer
+    .populate("blogs") //  populate the blogs
     .exec((err, folders) => {
       if (err) return res.status(400).send(err);
       res.status(200).json({ success: true, folders });
@@ -81,18 +85,23 @@ router.delete("/deleteFolder/:folderId", (req, res) => {
 router.post("/deletePostFromFolder", (req, res) => {
   const { body } = req;
   const { postId, folderId } = body;
-
+  // Folder.findOne({ _id: folderId }, function (err, folder) {
+  //   folder.blogs.remove({ _id: postId });
+  //   folder.save((err, result) => {
+  //     if (err) return res.json({ success: false, err });
+  //     res.status(200).json(result);
+  //   });
+  // });
   Folder.findByIdAndUpdate(
-    { _id: folderId },
-    {
-      $pull: { blogs: { _id: postId } },
-    },
-    { new: true },
-    (err, updatedFolder) => {
-      if (err) return res.json({ success: false, err });
-      return res.status(200).json(updatedFolder);
-    }
-  );
+    folderId,
+    { $pull: { blogs: postId } },
+    { new: true }
+  )
+    .populate("blogs")
+    .exec((err, folder) => {
+      if (err) return res.status(400).send(err);
+      res.status(200).json({ success: true, folder });
+    });
 });
 
 module.exports = router;

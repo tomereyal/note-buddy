@@ -14,6 +14,7 @@ router.get("/auth", auth, (req, res) => {
     isAdmin: req.user.role === 0 ? false : true,
     isAuth: true,
     email: req.user.email,
+
     name: req.user.name,
     lastname: req.user.lastname,
     role: req.user.role,
@@ -29,15 +30,6 @@ router.post("/register", (req, res) => {
       success: true,
     });
   });
-  // const recentFolder = new Folder({ name: "recent", blogs: [], writer: user });
-  // recentFolder.save((err, doc) => {
-  //   if (err) return res.json({ success: false, err });
-  //   return res.status(200).json({
-  //     success: true,
-  //   });
-  // });
-
-  //add .then function and create default folders for user ("recent", "all-blogs")
 });
 
 router.post("/login", (req, res) => {

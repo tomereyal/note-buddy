@@ -1,5 +1,13 @@
 import axios from "axios";
-import { LOGIN_USER, REGISTER_USER, AUTH_USER, LOGOUT_USER } from "./types";
+import * as api from "../api";
+
+import {
+  LOGIN_USER,
+  REGISTER_USER,
+  AUTH_USER,
+  LOGOUT_USER,
+  GET_USER_SETTINGS,
+} from "./types";
 import { USER_SERVER } from "../components/Config.js";
 
 export function registerUser(dataToSubmit) {
@@ -47,3 +55,11 @@ export function logoutUser() {
   };
 }
 
+export const getUserSettings = (variables) => async (dispatch) => {
+  try {
+    const { data } = await api.getUserSettings(variables);
+    dispatch({ type: GET_USER_SETTINGS, payload: data });
+  } catch (error) {
+    console.log(error.message);
+  }
+};

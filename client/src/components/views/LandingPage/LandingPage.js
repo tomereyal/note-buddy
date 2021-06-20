@@ -20,7 +20,7 @@ function LandingPage() {
           }}
           style={{ fontSize: "2rem" }}
         >
-          Let's Start Coding!
+          Let's Start Coding! (click to check state)
         </span>
         <Button
           onClick={() => {

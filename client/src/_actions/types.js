@@ -5,6 +5,7 @@ export const LOGIN_USER = "login_user";
 export const REGISTER_USER = "register_user";
 export const AUTH_USER = "auth_user";
 export const LOGOUT_USER = "logout_user";
+export const GET_USER_SETTINGS = "GET_USER_SETTINGS";
 //-----------------------------------------
 
 //=========================================
@@ -13,7 +14,18 @@ export const LOGOUT_USER = "logout_user";
 export const FETCH_ALL_POSTS = "FETCH_ALL_POSTS";
 export const DELETE_POST = "DELETE_POST";
 export const CREATE_POST = "CREATE_POST";
+export const SET_POST_TITLE = "SET_POST_TITLE";
 export const CREATE_SECTION_IN_POST = "CREATE_SECTION_IN_POST";
+export const REMOVE_SECTION_FROM_POST = "REMOVE_SECTION_FROM_POST";
+export const SET_SECTION_BGC = "SET_SECTION_BGC";
+export const SET_SECTION_PATTERN = "SET_SECTION_PATTERN";
+export const SET_SECTION_TITLE = "SET_SECTION_TITLE";
+export const CREATE_LIST_IN_SECTION = "CREATE_LIST_IN_SECTION";
+export const REMOVE_LIST_FROM_SECTION = "REMOVE_LIST_FROM_SECTION";
+export const SET_LIST_TITLE = "SET_LIST_TITLE";
+export const CREATE_CARD_IN_LIST = "CREATE_CARD_IN_LIST";
+export const REMOVE_CARD_FROM_LIST = "REMOVE_CARD_FROM_LIST";
+export const EDIT_NOTE = "EDIT_NOTE";
 //-----------------------------------------
 
 //=========================================
@@ -25,7 +37,11 @@ export const DELETE_FOLDER = "DELETE_FOLDER";
 export const CREATE_POST_IN_FOLDER = "CREATE_POST_IN_FOLDER";
 export const DELETE_POST_FROM_FOLDER = "DELETE_POST_FROM_FOLDER";
 export const ADD_POST_TO_FOLDER = "ADD_POST_TO_FOLDER";
-
-// export const RENAME_FOLDER = "RENAME_FOLDER";
 export const MOVE_TO_TRASH_FOLDER = "MOVE_TO_TRASH_FOLDER";
+//-----------------------------------------
+
+//=========================================
+//                _SETTINGS
+//=========================================
+export const SET_GENERAL_CONFIG = "SET_GENERAL_CONFIG";
 //-----------------------------------------

@@ -1,14 +1,11 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 const moment = require("moment");
-
+// require("./Card");
 const cardSchema = mongoose.Schema(
   {
-    // inPost: { type: Schema.Types.ObjectId, ref: "Blog" },
-    // inSection: { type: Schema.Types.ObjectId, ref: "Section" },
-    // inList: { type: Schema.Types.ObjectId, ref: "List" },
     order: { type: Number, default: 0 },
-    content: { type: [Schema.Types.Mixed] },
+    content: { type: [Schema.Types.Mixed], default: [] },
     tags: { type: [Schema.Types.Mixed], default: [] },
   },
   { timestamps: true }
@@ -18,6 +15,7 @@ const listSchema = mongoose.Schema(
   {
     // inPost: { type: Schema.Types.ObjectId, ref: "Blog" },
     // inSection: { type: Schema.Types.ObjectId, ref: "Section" },
+    title: { type: String, default: "New list" },
     order: { type: Number, default: 0 },
     cards: { type: [cardSchema], default: [] },
   },
@@ -28,6 +26,8 @@ const sectionSchema = mongoose.Schema(
   {
     // inPost: { type: Schema.Types.ObjectId, ref: "Blog" },
     title: { type: String, default: "" },
+    backgroundColor: { type: String, default: "#fff" },
+    backgroundPattern: { type: String, default: "" },
     order: { type: Number, default: 0 },
     lists: { type: [listSchema], default: [] },
   },

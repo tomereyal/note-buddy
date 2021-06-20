@@ -1,5 +1,6 @@
 //---------REACT-AND-HOOKS-IMPORTS----------------------//
 import React, { useEffect, useMemo, useState, useCallback } from "react";
+import { useDispatch } from "react-redux";
 //---------SLATE-EDITOR-IMPORTS----------------------//
 import { createEditor } from "slate";
 // Import the Slate components and React plugin.
@@ -26,8 +27,14 @@ import EditorSelector from "./sections/EditorSelector";
 import EditorTag from "./sections/EditorTag";
 //--------SERVER-RELATED-IMPORTS-----------------------//
 import axios from "axios";
+import { editNote } from "../../_actions/post_actions";
 
-export default function SlateEditor({ card }) {
+//------THIRD-PARTY-COMPONENTS-------------------------//
+
+import { Modal } from "antd";
+//-----------------------------------------------------//
+
+export default function SlateEditor(props) {
   const { withImages, withSteps, withEditableVoids } = EditorPlugins;
   const editor = useMemo(
     () =>
@@ -36,18 +43,21 @@ export default function SlateEditor({ card }) {
       ),
     []
   );
-  console.log(`card.content`, card.content);
-  let initContent = card.content
-    ? card.content
-    : [
-        {
-          type: "paragraph",
-          children: [{ text: "A line of text in a paragraph." }],
-        },
-      ];
+  const { card, listId, sectionId, postId, order } = props;
 
+  let initContent =
+    card.content.length > 0
+      ? card.content
+      : [
+          {
+            type: "paragraph",
+            children: [{ text: "A line of text in a paragraph." }],
+          },
+        ];
   const [value, setValue] = useState(initContent);
   const [tags, setTags] = useState(card.tags);
+
+  const dispatch = useDispatch();
 
   const renderElement = useCallback((props) => {
     switch (props.element.type) {
@@ -78,15 +88,20 @@ export default function SlateEditor({ card }) {
   const saveNote = () => {
     console.log(`value to be saved`, value);
     console.log(`tags to be saved`, tags);
-    const variables = {
-      postId: card.inPost,
-      sectionId: card.inSection,
-      listId: card.inList,
-      cardId: card._id,
-      content: value,
-      tags: tags,
-    };
 
+    const variables = {
+      postId: postId,
+      sectionId: sectionId,
+      listId: listId,
+      cardId: card._id,
+      editArr: [
+        { editType: "content", editValue: value },
+        { editType: "tags", editValue: tags },
+      ],
+      // content: value,
+      // tags: tags,
+    };
+    dispatch(editNote(variables));
     axios.post("/api/blog/editNote", variables).then((result) => {
       if (result.status === 200) {
         console.log("edit request was successful");
@@ -204,9 +219,22 @@ const DefaultElement = (props) => {
 const Image = ({ attributes, children, element }) => {
   const selected = useSelected();
   const focused = useFocused();
+  const [isModalVisible, setIsModalVisible] = useState(false);
+
+  const showModal = () => {
+    setIsModalVisible(true);
+  };
+
+  const handleOk = () => {
+    setIsModalVisible(false);
+  };
+
+  const handleCancel = () => {
+    setIsModalVisible(false);
+  };
   return (
     <div {...attributes}>
-      <div contentEditable={false}>
+      <div contentEditable={false} style={{ width: "200px" }}>
         <img
           src={element.url}
           className={css`
@@ -215,7 +243,25 @@ const Image = ({ attributes, children, element }) => {
             max-height: 20em;
             box-shadow: ${selected && focused ? "0 0 0 3px #B4D5FF" : "none"};
           `}
+          onClick={showModal}
         />
+        <Modal
+          title="Basic Modal"
+          visible={isModalVisible}
+          onOk={handleOk}
+          onCancel={handleCancel}
+        >
+          <p>Some contents...</p>
+          <img
+            src={element.url}
+            className={css`
+              display: block;
+              max-width: 100%;
+              max-height: 20em;
+              box-shadow: ${selected && focused ? "0 0 0 3px #B4D5FF" : "none"};
+            `}
+          />
+        </Modal>
       </div>
       {children}
     </div>

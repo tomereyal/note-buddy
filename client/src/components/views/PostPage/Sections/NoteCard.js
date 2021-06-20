@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import {
   Avatar,
@@ -10,32 +10,44 @@ import {
   Dropdown,
 } from "antd";
 import { DeleteFilled } from "@ant-design/icons";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 import SlateEditor from "../../../editor/SlateEditor";
+import {
+  createCardInList,
+  removeCardFromList,
+} from "../../../../_actions/post_actions";
+import session from "express-session";
 
 export default function NoteCard(props) {
+  const dispatch = useDispatch();
+  const { postId, sectionId, listId, index } = props;
   const [card, setCard] = useState(props.card ? props.card : {});
   const [isShown, setIsShown] = useState(true);
-
+  const posts = useSelector((state) => state.posts);
   //removing the event listener when card unmounts..
-
-  const removeCard = (cardId) => {
+  useEffect(() => {}, [props]);
+  const createCard = () => {
     const variables = {
-      postId: card.inPost,
-      sectionId: card.inSection,
-      listId: card.inList,
-      cardId: cardId,
+      postId,
+      sectionId,
+      listId,
+      order: index,
+      content: [],
+      tags: [],
     };
-    axios.post("/api/blog/removeCard", variables).then((response) => {
-      if (response.status === 200) {
-        const updatedList = response.data.sections
-          .find((section) => section._id === card.inSection)
-          .lists.find((list) => list._id === card.inList);
-        console.log(updatedList);
-        props.setList(updatedList);
-      }
-    });
+
+    dispatch(createCardInList(variables));
+  };
+
+  const removeCard = () => {
+    const variables = {
+      postId,
+      sectionId,
+      listId,
+      cardId: card._id,
+    };
+    dispatch(removeCardFromList(variables));
   };
 
   const menu = (
@@ -49,10 +61,8 @@ export default function NoteCard(props) {
             size="small"
             id={card._id}
             icon={<DeleteFilled />}
-            onClick={({ target }) => {
-              console.log(card._id);
-              console.log(`target`, target.id);
-              removeCard(target.id);
+            onClick={() => {
+              removeCard();
             }}
           />
         </Tooltip>
@@ -67,9 +77,10 @@ export default function NoteCard(props) {
       <Dropdown id={card._id} overlay={menu} trigger={["contextMenu"]}>
         <div
           style={{
-            textAlign: "center",
+            // textAlign: "center",
             minHeight: "50px",
             minWidth: "100%",
+
             // backgroundColor: "lightblue",
           }}
           onDoubleClick={(e) => {
@@ -78,8 +89,20 @@ export default function NoteCard(props) {
           id={card._id}
         >
           {" "}
-          <Card style={{ width: "100%" }} hoverable={true}>
-            <SlateEditor card={card}></SlateEditor>
+          <Card
+            bodyStyle={{ padding: "2px" }}
+            style={{ width: "100%" }}
+            hoverable={true}
+          >
+            <SlateEditor
+              card={card}
+              listId={listId}
+              sectionId={sectionId}
+              postId={postId}
+              order={index}
+              key={card._id}
+              style={{ width: "100%" }}
+            ></SlateEditor>
           </Card>
         </div>
       </Dropdown>

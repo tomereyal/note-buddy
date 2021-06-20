@@ -56,16 +56,19 @@ export const createPostInFolder =
     } catch (error) {}
   };
 
-export const addPostToFolder = (post, folderId) => async (dispatch) => {
+export const addPostToFolder = (variables) => async (dispatch) => {
   try {
-    const { data } = await api.addPostToFolder(post, folderId);
+    const res = await api.addPostToFolder(variables);
+    const { data } = res;
     dispatch({ type: ADD_POST_TO_FOLDER, payload: data });
   } catch (error) {}
 };
 
 export const deletePostFromFolder = (variables) => async (dispatch) => {
   try {
-    const { data } = await api.deletePostFromFolder(variables);
+    const res = await api.deletePostFromFolder(variables);
+    const { data } = res;
+    console.log(`res`, res);
     console.log(`data`, data);
     dispatch({ type: DELETE_POST_FROM_FOLDER, payload: data });
     if (data.success) {

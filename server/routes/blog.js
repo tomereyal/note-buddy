@@ -42,12 +42,14 @@ router.post("/uploadfiles", (req, res) => {
 });
 
 router.post("/createPost", (req, res) => {
-  let defaultCard = new Card({ content: null });
+  let defaultCard = new Card({});
   let defaultList = new List({
+    title: "new list",
     cards: [defaultCard],
   });
   let defaultSection = new Section({
     lists: [defaultList],
+    title: "Section 1",
   });
   let blog = new Blog({
     name: req.body.name,
@@ -64,14 +66,6 @@ router.post("/createPost", (req, res) => {
   //ALWAYS search Folder collection for "recent" folder and add it there.
   //ALWAYS search Folder collection for "all blogs" folder and add it there.
 });
-
-// router.delete("/deletePost/:postId", (req, res) => {
-//   console.log(req.params.postId);
-//   Blog.deleteOne({ _id: req.params.postId }, (result) => {
-//     if (result) {
-//       console.log(`database response:`, result);
-//     }
-//   });
 
 router.delete("/deletePost/:postId", (req, res) => {
   console.log(req.params.postId);
@@ -118,6 +112,20 @@ router.post("/getPost", (req, res) => {
     });
 });
 
+router.post("/setPostTitle", (req, res) => {
+  const { postId, newTitle } = req.body;
+  Blog.findById(postId, function (err, post) {
+    if (err) {
+      console.log(err);
+    }
+    post.name = newTitle;
+    post.save((err, result) => {
+      if (err) return res.json({ success: false, err });
+      res.status(200).json(result);
+    });
+  });
+});
+
 router.post("/getList", (req, res) => {
   const postId = req.body.postId;
   const sectionId = req.body.sectionId;
@@ -135,30 +143,24 @@ router.post("/getList", (req, res) => {
   });
 });
 
-router.post("/createSection", (req, res) => {
-  const postId = req.body.inPost;
-  Blog.findOneAndUpdate(
-    { _id: postId },
-    {
-      $push: {
-        sections: {
-          inPost: postId,
-          title: req.body.title,
-          order: req.body.order,
-        },
-      },
-    },
-    { new: true },
-    (err, updatedPost) => {
-      if (err) return res.json({ success: false, err });
-      res.status(200).json(updatedPost);
-    }
-  );
-});
 router.post("/createSectionInPost", (req, res) => {
   const variables = req.body;
-  const { postId, title, order } = variables;
-  const newSection = new Section({ title, order });
+  const { postId, title, order, backgroundPattern, backgroundColor } =
+    variables;
+  const defaultCard = new Card({});
+  const defaultList = new List({
+    title: "new list",
+    order,
+    cards: [defaultCard],
+  });
+  const newSection = new Section({
+    title,
+    order,
+    lists: [defaultList],
+    backgroundPattern,
+    backgroundColor,
+  });
+
   Blog.findOneAndUpdate(
     { _id: postId },
     {
@@ -174,7 +176,7 @@ router.post("/createSectionInPost", (req, res) => {
   );
 });
 
-router.post("/removeSection", (req, res) => {
+router.post("/removeSectionFromPost", (req, res) => {
   Blog.findOneAndUpdate(
     { _id: req.body.postId },
     {
@@ -188,18 +190,30 @@ router.post("/removeSection", (req, res) => {
   );
 });
 
-router.post("/createList", (req, res) => {
-  Blog.findById(req.body.postId, function (err, post) {
+router.post("/setSectionBgc", (req, res) => {
+  const { postId, sectionId, backgroundColor } = req.body;
+  Blog.findById(postId, function (err, post) {
     if (err) {
       console.log(err);
     }
-    let listsArr = post.sections.id(req.body.sectionId).lists;
-    listsArr.push({
-      inPost: req.body.postId,
-      inSection: req.body.sectionId,
-      order: req.body.order,
-      cards: req.body.cards,
+    let section = post.sections.id(sectionId);
+    post.sections.id(sectionId).backgroundColor = backgroundColor;
+    // section.backgroundColor = backgroundColor;
+    post.save((err, result) => {
+      if (err) return res.json({ success: false, err });
+      res.status(200).json(result);
     });
+  });
+});
+router.post("/setSectionPattern", (req, res) => {
+  const { postId, sectionId, backgroundPattern } = req.body;
+  Blog.findById(postId, function (err, post) {
+    if (err) {
+      console.log(err);
+    }
+    let section = post.sections.id(sectionId);
+    post.sections.id(sectionId).backgroundPattern = backgroundPattern;
+    // section.backgroundPattern = backgroundPattern;
     post.save((err, result) => {
       if (err) return res.json({ success: false, err });
       res.status(200).json(result);
@@ -207,23 +221,19 @@ router.post("/createList", (req, res) => {
   });
 });
 
-router.post("/createCard", (req, res) => {
-  const postId = req.body.postId;
-  const sectionId = req.body.sectionId;
-  const listId = req.body.listId;
+router.post("/setSectionTitle", (req, res) => {
+  const { postId, sectionId, newTitle } = req.body;
   Blog.findById(postId, function (err, post) {
     if (err) {
       console.log(err);
     }
-    let cardsArr = post.sections.id(sectionId).lists.id(listId).cards;
-    cardsArr.push({
-      inPost: postId,
-      inSection: sectionId,
-      inList: listId,
-      order: req.body.order,
-      content: req.body.content,
-      tags: req.body.tags,
-    });
+    console.log(`postId`, postId);
+    console.log(`sectionId`, sectionId);
+    console.log(`newTitle`, newTitle);
+    let section = post.sections.id(sectionId);
+    post.sections.id(sectionId).title = newTitle;
+    // section.backgroundColor = backgroundColor;
+    console.log(`section`, section);
     post.save((err, result) => {
       if (err) return res.json({ success: false, err });
       res.status(200).json(result);
@@ -231,19 +241,49 @@ router.post("/createCard", (req, res) => {
   });
 });
 
-router.post("/removeList", (req, res) => {
-  const listId = req.body.listId;
-  const postId = req.body.postId;
-  const sectionId = req.body.sectionId;
+router.post("/createListInSection", (req, res) => {
+  const { postId, sectionId, title, order } = req.body;
   Blog.findById(postId, function (err, post) {
     if (err) {
       console.log(err);
     }
-
-    let listsArr = post.sections.id(sectionId).lists;
-    post.sections.id(sectionId).lists = listsArr.filter(
-      (list) => list._id != listId
-    );
+    const defaultCard = new Card({});
+    const newList = new List({
+      title: "new list",
+      order,
+      cards: [defaultCard],
+    });
+    let lists = post.sections.id(sectionId).lists;
+    lists.push(newList);
+    post.save((err, result) => {
+      if (err) return res.json({ success: false, err });
+      res.status(200).json(result);
+    });
+  });
+});
+router.post("/removeListFromSection", (req, res) => {
+  const { postId, sectionId, listId } = req.body;
+  Blog.findById(postId, function (err, post) {
+    if (err) {
+      console.log(err);
+    }
+    let lists = post.sections.id(sectionId).lists;
+    post.sections.id(sectionId).lists = lists.filter((list) => {
+      return list._id != listId;
+    });
+    post.save((err, result) => {
+      if (err) return res.json({ success: false, err });
+      res.status(200).json(result);
+    });
+  });
+});
+router.post("/setListTitle", (req, res) => {
+  const { postId, sectionId, listId, newTitle } = req.body;
+  Blog.findById(postId, function (err, post) {
+    if (err) {
+      console.log(err);
+    }
+    post.sections.id(sectionId).lists.id(listId).title = newTitle;
     post.save((err, result) => {
       if (err) return res.json({ success: false, err });
       res.status(200).json(result);
@@ -251,23 +291,32 @@ router.post("/removeList", (req, res) => {
   });
 });
 
-router.post("/removeCard", (req, res) => {
-  const cardId = req.body.cardId;
-  const listId = req.body.listId;
-  const postId = req.body.postId;
-  const sectionId = req.body.sectionId;
+router.post("/createCardInList", (req, res) => {
+  const { postId, sectionId, listId, order } = req.body;
+  let newCard = new Card({ order });
   Blog.findById(postId, function (err, post) {
     if (err) {
       console.log(err);
     }
-    let cardsArr = post.sections.id(sectionId).lists.id(listId).cards;
-    post.sections.id(sectionId).lists.id(listId).cards = cardsArr.filter(
-      (card) => !(card._id == cardId)
-    );
-    console.log(`The current cardsArr`, cardsArr);
-    console.log(`we want to remove card number:`, cardId);
+    post.sections.id(sectionId).lists.id(listId).cards.push(newCard);
+    post.save((err, result) => {
+      if (err) return res.json({ success: false, err });
+      res.status(200).json(result);
+    });
+  });
+});
+router.post("/removeCardFromList", (req, res) => {
+  const { postId, sectionId, listId, cardId } = req.body;
 
-    console.log(cardsArr.filter((card) => card._id != cardId));
+  Blog.findById(postId, function (err, post) {
+    if (err) {
+      console.log(err);
+    }
+    let cardsArr = post.sections
+      .id(sectionId)
+      .lists.id(listId)
+      .cards.filter((card) => card._id != cardId);
+    post.sections.id(sectionId).lists.id(listId).cards = cardsArr;
     post.save((err, result) => {
       if (err) return res.json({ success: false, err });
       res.status(200).json(result);
@@ -276,21 +325,19 @@ router.post("/removeCard", (req, res) => {
 });
 
 router.post("/editNote", (req, res) => {
-  const cardId = req.body.cardId;
-  const listId = req.body.listId;
-  const postId = req.body.postId;
-  const sectionId = req.body.sectionId;
-  const content = req.body.content;
-  const tags = req.body.tags;
+  const { postId, sectionId, listId, cardId, editArr } = req.body;
   Blog.findById(postId, function (err, post) {
     if (err) {
       console.log(err);
     }
-    let card = post.sections.id(sectionId).lists.id(listId).cards.id(cardId);
-    console.log(`card`, card);
-    post.sections.id(sectionId).lists.id(listId).cards.id(cardId).content =
-      content;
-    post.sections.id(sectionId).lists.id(listId).cards.id(cardId).tags = tags;
+    editArr.forEach(({editType,editValue}) => {
+      post.sections.id(sectionId).lists.id(listId).cards.id(cardId)[editType] =
+      editValue;
+    });
+    // const contentTest = "content";
+    // post.sections.id(sectionId).lists.id(listId).cards.id(cardId)[contentTest] =
+    //   content;
+    // post.sections.id(sectionId).lists.id(listId).cards.id(cardId).tags = tags;
     post.save((err, result) => {
       if (err) return res.json({ success: false, err });
       res.status(200).json(result);
