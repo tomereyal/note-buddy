@@ -1,8 +1,15 @@
 //---------REACT-AND-HOOKS-IMPORTS----------------------//
-import React, { useEffect, useMemo, useState, useCallback } from "react";
-import { useDispatch } from "react-redux";
+import React, {
+  useEffect,
+  useMemo,
+  useState,
+  useCallback,
+  useRef,
+} from "react";
+import { useDispatch, useSelector } from "react-redux";
 //---------SLATE-EDITOR-IMPORTS----------------------//
-import { createEditor } from "slate";
+
+import { createEditor, Editor, Transforms, Range, Descendant } from "slate";
 // Import the Slate components and React plugin.
 import {
   Slate,
@@ -11,6 +18,7 @@ import {
   useSelected,
   useFocused,
   withReact,
+  ReactEditor,
 } from "slate-react";
 //Import the actual editor and its methods..
 import { withHistory } from "slate-history";
@@ -21,28 +29,20 @@ import { css } from "@emotion/css";
 //---------ANTD-COMPONENTS-IMPORTS----------------------//
 import { DownCircleOutlined } from "@ant-design/icons";
 //---------MY-COMPONENTS-IMPORTS------------------------//
-import EditorToolbar from "./sections/EditorToolbar";
+import EditorToolbar, { Portal } from "./sections/EditorToolbar";
 import NoteMentions from "./sections/NoteMentions";
 import EditorSelector from "./sections/EditorSelector";
 import EditorTag from "./sections/EditorTag";
 //--------SERVER-RELATED-IMPORTS-----------------------//
 import axios from "axios";
 import { editNote } from "../../_actions/post_actions";
-
+import { createTag, deleteTag, updateTag } from "../../_actions/tag_actions";
 //------THIRD-PARTY-COMPONENTS-------------------------//
 
 import { Modal } from "antd";
 //-----------------------------------------------------//
 
 export default function SlateEditor(props) {
-  const { withImages, withSteps, withEditableVoids } = EditorPlugins;
-  const editor = useMemo(
-    () =>
-      withEditableVoids(
-        withSteps(withImages(withHistory(withReact(createEditor()))))
-      ),
-    []
-  );
   const { card, listId, sectionId, postId, order } = props;
 
   let initContent =
@@ -54,10 +54,41 @@ export default function SlateEditor(props) {
             children: [{ text: "A line of text in a paragraph." }],
           },
         ];
-  const [value, setValue] = useState(initContent);
-  const [tags, setTags] = useState(card.tags);
 
+  const { withMentions, withImages, withSteps, withEditableVoids, getNodes } =
+    EditorPlugins;
+  const ref = useRef();
+  const [value, setValue] = useState(initContent);
+  const writersTags = useSelector((state) => state.tags);
+  const [tags, setTags] = useState(card.tags);
+  const [target, setTarget] = useState();
+  const [index, setIndex] = useState(0);
+  const [search, setSearch] = useState("");
+  console.log(`writersTags`, writersTags);
   const dispatch = useDispatch();
+  const editor = useMemo(
+    () =>
+      withEditableVoids(
+        withMentions(
+          withSteps(withImages(withHistory(withReact(createEditor()))))
+        )
+      ),
+    []
+  );
+
+  const chars = writersTags
+    .filter((tag) => tag.name.toLowerCase().startsWith(search.toLowerCase()))
+    .slice(0, 10);
+
+  useEffect(() => {
+    if (target && chars.length > 0) {
+      const el = ref.current;
+      const domRange = ReactEditor.toDOMRange(editor, target);
+      const rect = domRange.getBoundingClientRect();
+      el.style.top = `${rect.top + window.pageYOffset + 24}px`;
+      el.style.left = `${rect.left + window.pageXOffset}px`;
+    }
+  }, [chars.length, editor, index, search, target]);
 
   const renderElement = useCallback((props) => {
     switch (props.element.type) {
@@ -73,6 +104,8 @@ export default function SlateEditor(props) {
         return <EditableVoid {...props} />;
       case "selector":
         return <SelectorVoid {...props} />;
+      case "mention":
+        return <Mention {...props} />;
       default:
         return <DefaultElement {...props} />;
     }
@@ -85,10 +118,117 @@ export default function SlateEditor(props) {
     return <Leaf {...props} />;
   }, []);
 
+  const onKeyDown = useCallback(
+    (event) => {
+      console.log(`search`, search);
+      if (target) {
+        console.log(`target`, target);
+
+        switch (event.key) {
+          case "ArrowDown":
+            event.preventDefault();
+            const prevIndex = index >= chars.length - 1 ? 0 : index + 1;
+            setIndex(prevIndex);
+            break;
+          case "ArrowUp":
+            event.preventDefault();
+            const nextIndex = index <= 0 ? chars.length - 1 : index - 1;
+            setIndex(nextIndex);
+            break;
+          case "Tab":
+          case "Enter":
+            event.preventDefault();
+            Transforms.select(editor, target);
+
+            const mentionArr = getNodes(editor, "mention");
+
+            if (!chars[index]) {
+              EditorPlugins.insertMention(editor, search);
+              dispatch(
+                createTag({ name: search, writer: card.writer, card: card })
+              ); //create tag and add this card to its cards arr.
+            } else {
+              const cardHasTag =
+                mentionArr.findIndex(
+                  (mention) => mention.character == chars[index].name
+                ) == -1
+                  ? false
+                  : true;
+              if (cardHasTag) {
+                EditorPlugins.insertMention(editor, chars[index].name);
+              } else {
+                EditorPlugins.insertMention(editor, chars[index].name);
+
+                dispatch(
+                  updateTag({
+                    editType: "cards",
+                    editArr: [...chars[index].cards, card],
+                  })
+                );
+              }
+            }
+
+            setTarget(null);
+            break;
+          case "Escape":
+            event.preventDefault();
+            setTarget(null);
+            break;
+        }
+      }
+      if (event.ctrlKey) {
+        switch (event.key) {
+          case "`": {
+            event.preventDefault();
+            EditorPlugins.toggleCodeBlock(editor);
+            break;
+          }
+
+          case "b": {
+            event.preventDefault();
+            EditorPlugins.toggleFormat(editor, "bold");
+            break;
+          }
+          case "i": {
+            event.preventDefault();
+            EditorPlugins.toggleFormat(editor, "italic");
+            break;
+          }
+          case "u": {
+            event.preventDefault();
+            EditorPlugins.toggleFormat(editor, "underlined");
+            break;
+          }
+          case "s": {
+            event.preventDefault();
+            EditorPlugins.insertSteps(editor);
+          }
+          case "1": {
+            event.preventDefault();
+            EditorPlugins.insertEditableVoid(editor);
+          }
+          case "2": {
+            event.preventDefault();
+            EditorPlugins.insertSelector(editor);
+          }
+        }
+      }
+    },
+    [index, search, target]
+  );
+
   const saveNote = () => {
     console.log(`value to be saved`, value);
     console.log(`tags to be saved`, tags);
-
+    const currentTags = getNodes(editor, "mention");
+    const initialTags = card.tags;
+    console.log(`currentTags`, currentTags);
+    console.log(`initialTags`, initialTags);
+    //if currentTags is different than initialTags,, arrays are different
+    //then update Tags collection
+    //
+    //const tagToUpdate = `currentTags`.filter((tag)=>{return })
+    //dispatch(updateTags({card,}))
     const variables = {
       postId: postId,
       sectionId: sectionId,
@@ -102,11 +242,16 @@ export default function SlateEditor(props) {
       // tags: tags,
     };
     dispatch(editNote(variables));
-    axios.post("/api/blog/editNote", variables).then((result) => {
-      if (result.status === 200) {
-        console.log("edit request was successful");
-      }
-    });
+
+    //compare card.content.tags to the tagsArr
+    //if tag exists ( tag.length>=1) then update the tag content as well.
+    //dispatch(updateTag)
+    // if(tags.length>=1){
+    //   tags.forEach(tag => {
+    //     dispatch(updateTag({tag._id,editArr:{editType:"cards",editValue:value}}))
+    //   });
+
+    // }
   };
 
   return (
@@ -117,6 +262,29 @@ export default function SlateEditor(props) {
       onTagChange={setTags}
       onChange={(value) => {
         setValue(value);
+        const { selection } = editor;
+
+        if (selection && Range.isCollapsed(selection)) {
+          const [start] = Range.edges(selection);
+          const wordBefore = Editor.before(editor, start, { unit: "word" });
+          const before = wordBefore && Editor.before(editor, wordBefore);
+          const beforeRange = before && Editor.range(editor, before, start);
+          const beforeText = beforeRange && Editor.string(editor, beforeRange);
+          const beforeMatch = beforeText && beforeText.match(/^@(\w+)$/);
+          const after = Editor.after(editor, start);
+          const afterRange = Editor.range(editor, start, after);
+          const afterText = Editor.string(editor, afterRange);
+          const afterMatch = afterText.match(/^(\s|$)/);
+
+          if (beforeMatch && afterMatch) {
+            setTarget(beforeRange);
+            setSearch(beforeMatch[1]);
+            setIndex(0);
+            return;
+          }
+        }
+
+        setTarget(null);
       }}
     >
       <EditorToolbar></EditorToolbar>
@@ -140,49 +308,51 @@ export default function SlateEditor(props) {
               return EditorPlugins.toggleFormat(editor, "underlined");
           }
         }}
-        onKeyDown={(event) => {
-          if (!event.ctrlKey) {
-            return;
-          }
-
-          // Replace the `onKeyDown` logic with our new commands.
-          switch (event.key) {
-            case "`": {
-              event.preventDefault();
-              EditorPlugins.toggleCodeBlock(editor);
-              break;
-            }
-
-            case "b": {
-              event.preventDefault();
-              EditorPlugins.toggleFormat(editor, "bold");
-              break;
-            }
-            case "i": {
-              event.preventDefault();
-              EditorPlugins.toggleFormat(editor, "italic");
-              break;
-            }
-            case "u": {
-              event.preventDefault();
-              EditorPlugins.toggleFormat(editor, "underlined");
-              break;
-            }
-            case "s": {
-              event.preventDefault();
-              EditorPlugins.insertSteps(editor);
-            }
-            case "1": {
-              event.preventDefault();
-              EditorPlugins.insertEditableVoid(editor);
-            }
-            case "2": {
-              event.preventDefault();
-              EditorPlugins.insertSelector(editor);
-            }
-          }
-        }}
-      />
+        onKeyDown={onKeyDown}
+      />{" "}
+      {target && (
+        <Portal>
+          <div
+            ref={ref}
+            style={{
+              top: "-9999px",
+              left: "-9999px",
+              position: "absolute",
+              zIndex: 1,
+              padding: "3px",
+              background: "white",
+              borderRadius: "4px",
+              boxShadow: "0 1px 5px rgba(0,0,0,.2)",
+            }}
+          >
+            {chars.length > 0 ? (
+              chars.map((char, i) => (
+                <div
+                  key={char}
+                  style={{
+                    padding: "1px 3px",
+                    borderRadius: "3px",
+                    background: i === index ? "#B4D5FF" : "transparent",
+                  }}
+                >
+                  {char.name}
+                </div>
+              ))
+            ) : (
+              <div
+                key={search}
+                style={{
+                  padding: "1px 3px",
+                  borderRadius: "3px",
+                  background: 0 === index ? "#B4D5FF" : "transparent",
+                }}
+              >
+                {search}
+              </div>
+            )}
+          </div>
+        </Portal>
+      )}
     </Slate>
   );
 }
@@ -368,5 +538,29 @@ const SelectorVoid = ({ attributes, children, element }) => {
       </div>
       {children}
     </div>
+  );
+};
+
+const Mention = ({ attributes, children, element }) => {
+  const selected = useSelected();
+  const focused = useFocused();
+  return (
+    <span
+      {...attributes}
+      contentEditable={false}
+      style={{
+        padding: "3px 3px 2px",
+        margin: "0 1px",
+        verticalAlign: "baseline",
+        display: "inline-block",
+        borderRadius: "4px",
+        backgroundColor: "#eee",
+        fontSize: "0.9em",
+        boxShadow: selected && focused ? "0 0 0 2px #B4D5FF" : "none",
+      }}
+    >
+      {element.character}
+      {children}
+    </span>
   );
 };

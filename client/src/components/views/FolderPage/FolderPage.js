@@ -16,7 +16,6 @@ import {
 import { deletePost, createPost } from "../../../_actions/post_actions";
 import FolderSubmenu from "./sections/FolderSubmenu";
 import PostPage from "../PostPage/PostPage";
-import Apple from "./Apple";
 import Auth from "../../../hoc/auth";
 import { Layout, Row, Menu, Button, Dropdown, Input, Spin } from "antd";
 

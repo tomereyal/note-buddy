@@ -76,7 +76,7 @@ export const EditorPlugins = {
       } else if (EditorPlugins.isImageUrl(text)) {
         EditorPlugins.insertImage(editor, text);
       } else {
-        EditorPlugins.insertData(data);
+        insertData(data);
       }
     };
 
@@ -92,6 +92,50 @@ export const EditorPlugins = {
     const text = { text: "" };
     const image = { type: "image", url, children: [text] };
     Transforms.insertNodes(editor, image);
+  },
+  withMentions(editor) {
+    const { isInline, isVoid } = editor;
+
+    editor.isInline = (element) => {
+      return element.type === "mention" ? true : isInline(element);
+    };
+
+    editor.isVoid = (element) => {
+      return element.type === "mention" ? true : isVoid(element);
+    };
+
+    return editor;
+  },
+  getNodes(editor, nodeType) {
+    if (!editor || !nodeType || !(typeof nodeType == "string")) {
+      return;
+    }
+    let root = editor.children;
+    let nodeArr = [];
+    findNodes(root, nodeType);
+
+    function findNodes(root, nodeType) {
+      root.forEach((child) => {
+        if (child.type) {
+          if (child.type == nodeType) {
+            nodeArr.push(child);
+          }
+        }
+        if (child.children) {
+          return findNodes(child.children, nodeType);
+        }
+      });
+    }
+    return nodeArr;
+  },
+  insertMention(editor, character) {
+    const mention = {
+      type: "mention",
+      character,
+      children: [{ text: "" }],
+    };
+    Transforms.insertNodes(editor, mention);
+    Transforms.move(editor);
   },
   insertSteps(editor) {
     const text = { text: "" };

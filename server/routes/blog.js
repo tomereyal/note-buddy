@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
 const { Blog, Section, List, Card } = require("../models/Blog");
+const { Tag } = require("../models/Tag");
+const axios = require("axios");
 
 const { auth } = require("../middleware/auth");
 const multer = require("multer");
@@ -330,9 +332,23 @@ router.post("/editNote", (req, res) => {
     if (err) {
       console.log(err);
     }
-    editArr.forEach(({editType,editValue}) => {
+    editArr.forEach(({ editType, editValue }) => {
+      // switch (editType) {
+      //   case "tags":
+      //     //editValue is a tag array
+      //find if tag array
+
+      //editValue.forEach(tag=>{
+      //Tag.
+
+      //})
+      //     break;
+
+      //   default:
+      //     break;
+      // }
       post.sections.id(sectionId).lists.id(listId).cards.id(cardId)[editType] =
-      editValue;
+        editValue;
     });
     // const contentTest = "content";
     // post.sections.id(sectionId).lists.id(listId).cards.id(cardId)[contentTest] =
@@ -344,4 +360,5 @@ router.post("/editNote", (req, res) => {
     });
   });
 });
+
 module.exports = router;

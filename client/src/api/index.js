@@ -1,16 +1,17 @@
 import axios from "axios";
-import { POST_SERVER, FOLDER_SERVER, USER_SERVER } from "../components/Config.js";
-
+import {
+  POST_SERVER,
+  FOLDER_SERVER,
+  USER_SERVER,
+  TAG_SERVER,
+} from "../components/Config.js";
 
 //=========================================
 //                _USER
 //=========================================
-export const getUserSettings = (userId)=> {
-  axios.get(`${USER_SERVER}/getUserSettings/${userId}`) 
-}
-
-
-
+export const getUserSettings = (userId) => {
+  axios.get(`${USER_SERVER}/getUserSettings/${userId}`);
+};
 
 //=========================================
 //                _POST
@@ -63,4 +64,17 @@ export const renameFolder = (folderName) =>
   axios.post(`${FOLDER_SERVER}/renameFolder`, folderName);
 export const deletePostFromFolder = (variables) =>
   axios.post(`${FOLDER_SERVER}/deletePostFromFolder`, variables);
+//-----------------------------------------
+
+//=========================================
+//                _TAGS
+//=========================================
+export const getTags = () => axios.get(`${TAG_SERVER}/getTags`);
+export const createTag = (tagVariables) =>
+  axios.post(`${TAG_SERVER}/createTag`, tagVariables);
+export const deleteTag = (tagId) =>
+  axios.delete(`${TAG_SERVER}/deleteTag/${tagId}`);
+export const updateTag = (variables) =>
+  axios.post(`${FOLDER_SERVER}/updateTag`, variables);
+
 //-----------------------------------------

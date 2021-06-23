@@ -16,6 +16,7 @@ import SettingsPage from "./views/SettingsPage/SettingsPage";
 import { useDispatch, useSelector } from "react-redux";
 import { getPosts } from "../_actions/post_actions";
 import { getFolders } from "../_actions/folder_actions";
+import { getTags } from "../_actions/tag_actions";
 
 import { ConfigProvider } from "antd";
 //null   Anyone Can go inside
@@ -32,6 +33,7 @@ function App() {
   useEffect(() => {
     dispatch(getPosts());
     dispatch(getFolders());
+    dispatch(getTags());
   }, []);
   const direction = useSelector(
     (state) => state.settings.general_config.direction
@@ -52,7 +54,7 @@ function App() {
                 path="/register"
                 component={Auth(RegisterPage, false)}
               />
-              <Route path="/folders" component={Auth(FolderPage, null)} /> 
+              <Route path="/folders" component={Auth(FolderPage, null)} />
               <Route
                 exact
                 path="/post/:postId"

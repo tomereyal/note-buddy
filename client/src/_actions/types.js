@@ -45,3 +45,13 @@ export const MOVE_TO_TRASH_FOLDER = "MOVE_TO_TRASH_FOLDER";
 //=========================================
 export const SET_GENERAL_CONFIG = "SET_GENERAL_CONFIG";
 //-----------------------------------------
+
+//=========================================
+//                _TAG
+//=========================================
+export const GET_TAGS = "GET_TAGS";
+export const CREATE_TAG = "CREATE_TAG";
+export const DELETE_TAG = "DELETE_TAG";
+export const UPDATE_TAG = "UPDATE_TAG";
+export const ADD_CARD_TO_TAG = "ADD_CARD_TO_TAG";
+export const DELETE_CARD_FROM_TAG = "DELETE_CARD_FROM_TAG";

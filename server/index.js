@@ -7,6 +7,8 @@ const config = require("./config/key");
 const mongoose = require("mongoose");
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
+const axios = require("axios");
+
 //https://www.freecodecamp.org/news/express-explained-with-examples-installation-routing-middleware-and-more/
 
 /*
@@ -64,20 +66,13 @@ app.use(
 //make the session available to the view components.. Attach the session store to each response..
 
 app.use(function (req, res, next) {
+  // const db = mongoose.connection;
+  // console.log(`db`, db);
   // console.log(`req`, req.session);
   res.locals.session = req.session; // response.vs request! mind the difference
   // console.log(`res.locals.session`, res.locals.session.cats);
   next();
 });
-
-// app.use(function(req,res,next){
-//   if(req.session.siteSettings){
-//     res.locals.siteSettings = req.session.siteSettings;
-//     return next();
-//   }
-//   return
-
-// })
 
 /*Lets create two endpoints for our clients
 one with the uri: "/api/users"
@@ -90,6 +85,8 @@ app.use("/api/users", require("./routes/users"));
 app.use("/api/blog", require("./routes/blog"));
 app.use("/api/folder", require("./routes/folder"));
 app.use("/api/settings", require("./routes/settings"));
+app.use("/api/tag", require("./routes/tag"));
+app.use("/api/external", require("./routes/external"));
 /* Above we used a modular route handler for the the two routes.
 Use the express.Router class to create modular, mountable route handlers. 
 A Router instance is a complete middleware and routing system; for this reason, 
@@ -125,3 +122,15 @@ const port = process.env.PORT || 5000;
 app.listen(port, () => {
   console.log(`Server Listening on ${port}`);
 });
+
+// const headers = {
+//   "Content-Type": "multipart/form-data",
+//   Accept: "application/json",
+// };
+// const apiKey = "ba03cf4b08e7da7f403276f070a4d6db8314d9c0";
+// axios
+//   .post("https://api.flaticon.com/v2/app/authentication", apiKey, headers)
+//   .then((response) => {
+//     console.log(`response.data`, response.data);
+//   });
+// next()
