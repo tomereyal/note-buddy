@@ -7,7 +7,11 @@ import {
   getPosts,
   deletePost,
 } from "../../../_actions/post_actions";
-import { addPostToFolder, getFolders,deletePostFromFolder } from "../../../_actions/folder_actions";
+import {
+  addPostToFolder,
+  getFolders,
+  deletePostFromFolder,
+} from "../../../_actions/folder_actions";
 import { Button, Layout, Card, Avatar, Col, Typography, Row, Menu } from "antd";
 import { createPostInServer } from "../../../api";
 import {
@@ -78,9 +82,8 @@ export default function PostsPage(props) {
       return;
     }
     const postVariables = { folderId: folderId, postId: blogId };
-    dispatch(deletePostFromFolder(postVariables))
+    dispatch(deletePostFromFolder(postVariables));
     dispatch(deletePost(blogId));
-
   };
 
   const renderCards = folder
@@ -91,6 +94,9 @@ export default function PostsPage(props) {
               <Card
                 hoverable
                 style={{ width: 270, marginTop: 16 }}
+                onClick={() => {
+                  console.log(`blog`, blog);
+                }}
                 onDoubleClick={() => {
                   history.push(`/post/${blog._id}`);
                 }}

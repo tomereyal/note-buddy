@@ -21,6 +21,7 @@ export const getPosts = () => async (dispatch) => {
   try {
     const { data } = await api.fetchPosts();
     // const action = { type: "FETCH_ALL", payload: [] } _______ I put action object interface directly in dispatch
+    console.log(`data.blogs`, data.blogs);
     dispatch({ type: FETCH_ALL_POSTS, payload: data.blogs });
   } catch (error) {
     console.log(error.message);

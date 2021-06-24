@@ -24,7 +24,7 @@ function PostPage(props) {
   const [sections, setSections] = useState([]);
 
   const container = useRef(initPost);
-
+  console.log(`posts`, posts);
   // function getInitPost(props) {
   //   if (props.match) {
   //     const postId = props.post ? props.post._id : props.match.params.postId;

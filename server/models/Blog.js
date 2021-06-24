@@ -10,6 +10,7 @@ const cardSchema = mongoose.Schema(
   },
   { timestamps: true }
 );
+const Card = mongoose.model("Card", cardSchema);
 
 const listSchema = mongoose.Schema(
   {
@@ -17,7 +18,7 @@ const listSchema = mongoose.Schema(
     // inSection: { type: Schema.Types.ObjectId, ref: "Section" },
     title: { type: String, default: "New list" },
     order: { type: Number, default: 0 },
-    cards: { type: [cardSchema], default: [] },
+    cards: [{ type: Schema.Types.ObjectId, ref: "Card" }],
   },
   { timestamps: true }
 );
@@ -49,6 +50,5 @@ const blogSchema = mongoose.Schema(
 const Blog = mongoose.model("Blog", blogSchema);
 const Section = mongoose.model("Section", sectionSchema);
 const List = mongoose.model("List", listSchema);
-const Card = mongoose.model("Card", cardSchema);
 
 module.exports = { Blog, Section, List, Card };

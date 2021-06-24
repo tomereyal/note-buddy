@@ -45,9 +45,16 @@ router.post("/uploadfiles", (req, res) => {
 
 router.post("/createPost", (req, res) => {
   let defaultCard = new Card({});
+  defaultCard.save((err,cardInfo)=>{
+    if (err) return res.json({ success: false, err });
+    return res.status(200).json({ success: true, cardInfo });
+
+
+
+  })
   let defaultList = new List({
     title: "new list",
-    cards: [defaultCard],
+    cards: [defaultCard._id],
   });
   let defaultSection = new Section({
     lists: [defaultList],
@@ -87,23 +94,47 @@ router.delete("/deletePost/:postId", (req, res) => {
   // );
 });
 
+//https://github.com/buunguyen/mongoose-deep-populate/issues/41
+//solution plugin called "deep-populate"
+
+//or maybe this : https://www.initialapps.com/mongoose-why-you-may-be-having-issues-populating-across-multiple-levels/
+
 router.get("/fetchPosts", (req, res) => {
   Blog.find()
-    .populate("writer")
+    .populate({
+      path: "writer",
+      model: "User",
+    })
+    .populate({
+      path: "sections",
+      model: "Section",
+      populate: {
+        path: "lists",
+        model: "List",
+        populate: { path: "cards", model: "Card" },
+      },
+    })
     .exec((err, blogs) => {
       if (err) return res.status(400).send(err);
+      blogs.forEach((blog) => {
+        blog.sections.forEach((section) => {
+          section.lists.forEach((list) => {
+            console.log(`list.cards`, list.cards);
+          });
+        });
+      });
       res.status(200).json({ success: true, blogs });
     });
 });
 
-router.get("/getBlogs", (req, res) => {
-  Blog.find()
-    .populate("writer")
-    .exec((err, blogs) => {
-      if (err) return res.status(400).send(err);
-      res.status(200).json({ success: true, blogs });
-    });
-});
+// router.get("/getBlogs", (req, res) => {
+//   Blog.find()
+//     .populate("writer")
+//     .exec((err, blogs) => {
+//       if (err) return res.status(400).send(err);
+//       res.status(200).json({ success: true, blogs });
+//     });
+// });
 
 router.post("/getPost", (req, res) => {
   Blog.findOne({ _id: req.body.postId })
@@ -153,7 +184,7 @@ router.post("/createSectionInPost", (req, res) => {
   const defaultList = new List({
     title: "new list",
     order,
-    cards: [defaultCard],
+    cards: [defaultCard._id],
   });
   const newSection = new Section({
     title,
@@ -253,7 +284,7 @@ router.post("/createListInSection", (req, res) => {
     const newList = new List({
       title: "new list",
       order,
-      cards: [defaultCard],
+      cards: [defaultCard._id],
     });
     let lists = post.sections.id(sectionId).lists;
     lists.push(newList);
