@@ -4,7 +4,7 @@ import {
   CREATE_FOLDER,
   DELETE_FOLDER,
   MOVE_TO_TRASH_FOLDER,
-  CREATE_POST_IN_FOLDER,
+  CREATE_POST,
   DELETE_POST_FROM_FOLDER,
   ADD_POST_TO_FOLDER,
 } from "./types";
@@ -43,18 +43,19 @@ export const deleteFolder = (folderId) => async (dispatch) => {
   }
 };
 
-export const createPostInFolder =
-  (variables, post, folder) => async (dispatch) => {
-    try {
-      if (!post) {
-        const { data } = await api.createPostInFolderApi(variables);
-        console.log(`data`, data);
-        const folder = data;
-      }
-      //we want to return the updated folder to reducer to update app folders state;
-      dispatch({ type: CREATE_POST_IN_FOLDER, payload: folder });
-    } catch (error) {}
-  };
+export const createPostInFolder = (variables) => async (dispatch) => {
+  try {
+    const { postVariables, folderId } = variables;
+    const postRes = await api.createPostInServer(postVariables);
+    const newPost = postRes.data.postInfo;
+    dispatch({ type: CREATE_POST, payload: newPost });
+    const newPostId = postRes.data.postInfo._id;
+    const { data } = await api.addPostToFolder({ newPostId, folderId });
+    const folder = data;
+    //we want to return the updated folder to reducer to update app folders state;
+    dispatch({ type: ADD_POST_TO_FOLDER, payload: folder });
+  } catch (error) {}
+};
 
 export const addPostToFolder = (variables) => async (dispatch) => {
   try {

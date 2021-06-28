@@ -3,7 +3,7 @@ import {
   POST_SERVER,
   FOLDER_SERVER,
   USER_SERVER,
-  TAG_SERVER,
+  CARD_SERVER,
 } from "../components/Config.js";
 
 //=========================================
@@ -43,9 +43,17 @@ export const createCardInList = (variables) =>
   axios.post(`${POST_SERVER}/createCardInList`, variables);
 export const removeCardFromList = (variables) =>
   axios.post(`${POST_SERVER}/removeCardFromList`, variables);
-export const editNote = (variables) =>
-  axios.post(`${POST_SERVER}/editNote`, variables);
+//-----------------------------------------
 
+//=========================================
+//                _CARD
+//=========================================
+export const getCards = () => axios.get(`${CARD_SERVER}/fetchCards`);
+export const getCardTags = () => axios.get(`${CARD_SERVER}/fetchCardTags`);
+export const editNote = (variables) =>
+  axios.post(`${CARD_SERVER}/editNote`, variables);
+export const saveNoteTags = (variables) =>
+  axios.post(`${CARD_SERVER}/saveNoteTags`, variables);
 //-----------------------------------------
 
 //=========================================
@@ -64,17 +72,4 @@ export const renameFolder = (folderName) =>
   axios.post(`${FOLDER_SERVER}/renameFolder`, folderName);
 export const deletePostFromFolder = (variables) =>
   axios.post(`${FOLDER_SERVER}/deletePostFromFolder`, variables);
-//-----------------------------------------
-
-//=========================================
-//                _TAGS
-//=========================================
-export const getTags = () => axios.get(`${TAG_SERVER}/getTags`);
-export const createTag = (tagVariables) =>
-  axios.post(`${TAG_SERVER}/createTag`, tagVariables);
-export const deleteTag = (tagId) =>
-  axios.delete(`${TAG_SERVER}/deleteTag/${tagId}`);
-export const updateTag = (variables) =>
-  axios.post(`${FOLDER_SERVER}/updateTag`, variables);
-
 //-----------------------------------------

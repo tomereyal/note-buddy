@@ -1,17 +1,32 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
-const moment = require("moment");
-// require("./Card");
-const cardSchema = mongoose.Schema(
-  {
-    order: { type: Number, default: 0 },
-    content: { type: [Schema.Types.Mixed], default: [] },
-    tags: { type: [Schema.Types.Mixed], default: [] },
-  },
-  { timestamps: true }
-);
-const Card = mongoose.model("Card", cardSchema);
+require("./Card");
+// const tagSchema = mongoose.Schema(
+//   {
+//     name: String,
+//     style: {
+//       color: { type: String, default: "" },
+//       size: { type: String, default: "" },
+//     },
+//   },
+//   { timestamps: true }
+// );
+// const Tag = mongoose.model("Tag", tagSchema);
 
+// const cardSchema = mongoose.Schema(
+//   {
+//     order: { type: Number, default: 0 },
+//     content: { type: [Schema.Types.Mixed], default: [] },
+//     location: {
+//       post: { type: Schema.Types.ObjectId },
+//       section: { type: Schema.Types.ObjectId },
+//       list: { type: Schema.Types.ObjectId },
+//     },
+//     tags: { type: [tagSchema], default: [] },
+//   },
+//   { timestamps: true }
+// );
+// const Card = mongoose.model("Card", cardSchema);
 const listSchema = mongoose.Schema(
   {
     // inPost: { type: Schema.Types.ObjectId, ref: "Blog" },
@@ -47,8 +62,41 @@ const blogSchema = mongoose.Schema(
   { timestamps: true }
 );
 
+blogSchema.pre("remove", function (next) {
+  const postId = this._id;
+  mongoose.model("Card").deleteMany(
+    {
+      "location.post": postId,
+    },
+    function (err, res) {
+      if (err) console.log(`err`, err);
+    }
+  );
+  next();
+});
+
+// blogSchema.methods.saveAndPopulate = function (doc) {
+//   return doc.save().then((doc) => doc.populate("foo").execPopulate());
+// };
+blogSchema.methods.saveAndPopulate = function (cb) {
+  return this.save((err, updatedPost) => {
+    updatedPost
+      .populate({
+        path: "sections",
+        model: "Section",
+        populate: {
+          path: "lists",
+          model: "List",
+          populate: { path: "cards", model: "Card" },
+        },
+      })
+      .execPopulate(cb);
+  });
+};
+// animalSchema.methods.findSimilarTypes = function (cb) {
+//   return mongoose.model("Animal").find({ type: this.type }, cb);
+// };
 const Blog = mongoose.model("Blog", blogSchema);
 const Section = mongoose.model("Section", sectionSchema);
 const List = mongoose.model("List", listSchema);
-
-module.exports = { Blog, Section, List, Card };
+module.exports = { Blog, Section, List };

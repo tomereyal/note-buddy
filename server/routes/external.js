@@ -38,7 +38,7 @@ router.get("/getFlatIcon", (req, res) => {
 
   var config = {
     method: "get",
-    url: "https://api.flaticon.com/v2/search/icons?q=apple",
+    url: "https://api.flaticon.com/v2/search/icons?q=monster",
     headers: {
       Accept: "application/json",
       Authorization: `Bearer ${authToken}`,

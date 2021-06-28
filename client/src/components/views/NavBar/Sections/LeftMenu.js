@@ -23,14 +23,17 @@ function LeftMenu(props) {
         <Menu.Item key="mail">
           <Link to="/">Home</Link>
         </Menu.Item>
-        <Menu.Item key="Blog">
+        {/* <Menu.Item key="Blog">
           <Link to="/blog">Blog</Link>
-        </Menu.Item>
+        </Menu.Item> */}
         <Menu.Item key="Folders">
           <Link to="/folders">Folders</Link>
         </Menu.Item>
         <Menu.Item key="Create">
           <Link to="/blog/create">Create</Link>
+        </Menu.Item>
+        <Menu.Item key="search">
+          <Link to="/search">Search</Link>
         </Menu.Item>
         <Menu.Item
           key="Settings"

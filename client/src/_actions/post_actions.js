@@ -15,6 +15,7 @@ import {
   CREATE_CARD_IN_LIST,
   REMOVE_CARD_FROM_LIST,
   EDIT_NOTE,
+  UPDATE_CARD_IN_POST,
 } from "./types";
 
 export const getPosts = () => async (dispatch) => {
@@ -32,6 +33,7 @@ export const createPost = (postVariables, post) => async (dispatch) => {
   try {
     //if posted wasnt created in the server by the component..
     if (!post) {
+      // const cardData = await api.createCard();
       const { data } = await api.createPostInServer(postVariables);
       if (data.success) {
         const post = data.postInfo;
@@ -150,11 +152,11 @@ export const removeCardFromList = (variables) => async (dispatch) => {
     console.log(error.message);
   }
 };
-export const editNote = (variables) => async (dispatch) => {
-  try {
-    const { data } = await api.editNote(variables);
-    dispatch({ type: EDIT_NOTE, payload: data });
-  } catch (error) {
-    console.log(error.message);
-  }
-};
+// export const editNote = (variables) => async (dispatch) => {
+//   try {
+//     const { data } = await api.editNote(variables);
+//     dispatch({ type: EDIT_NOTE, payload: data });
+//   } catch (error) {
+//     console.log(error.message);
+//   }
+// };

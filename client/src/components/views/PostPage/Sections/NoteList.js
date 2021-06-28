@@ -25,7 +25,7 @@ export default function NoteList(props) {
   // const [cardCount, setCardCount] = useState(cards.length);
   const [isShown, setIsShown] = useState(true);
   const [editableStr, setEditableStr] = useState(list.title);
-
+  console.log(`list.cards`, list.cards);
   useEffect(() => {
     setList(props.list);
   }, [props]);
@@ -138,10 +138,12 @@ export default function NoteList(props) {
             />
           </Tooltip>
         </div>
-        {list.cards.map((card, index) => {
+        {console.log(`list.cards rendered`, list.cards)}
+        {list.cards.map((card, index, cards) => {
           return (
             <NoteCard
               key={index}
+              listCardCount={cards.length}
               card={card}
               index={index}
               listId={list._id}

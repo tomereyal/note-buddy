@@ -35,16 +35,13 @@ export default function FolderPage(props) {
   const folders = useSelector((state) => state.folders);
   const posts = useSelector((state) => state.posts);
   const user = useSelector((state) => state.user);
-  const [selectedFolder, setSelectedFolder] = useState(
-    folders ? folders[0] : null
-  );
+
   const [content, setContent] = useState(null);
   const [selectedPost, setSelectedPost] = useState(null);
   const [showFolderInput, setShowFolderInput] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [openKeys, setOpenKeys] = useState(["sub1"]);
   const dispatch = useDispatch();
-
   let { path, url } = useRouteMatch();
 
   useEffect(() => {}, [dispatch, posts]);
@@ -79,37 +76,33 @@ export default function FolderPage(props) {
       return (
         <SubMenu
           key={`sub${index + 1}`}
-          icon={
-            collapsed ? (
-              <TeamOutlined />
-            ) : (
-              <>
+          title={
+            <>
+              <span style={{ zindex: "5", color: "red" }}>
                 {" "}
                 <DeleteOutlined
+                  style={{ zindex: "5", color: "red" }}
                   onClick={() => {
-                    //SETSTATE BELOW DOESNT WORK :(  !!!!
-                    setSelectedFolder((prevSelected) => {
-                      console.log(
-                        `trying to change prev selected Folder :`,
-                        prevSelected
-                      );
-                      return folders ? { ...folders[0] } : "No Folder";
-                    });
-
+                    console.log(`hi`);
+                    props.history.push(`${url}`);
                     removeFolder(folder);
                   }}
                 />
-                <DeleteOutlined />
-              </>
-            )
+              </span>
+              <span
+                onClick={(e) => {
+                  e.preventDefault();
+
+                  e.stopPropagation();
+                  console.log(`bye`);
+                  props.history.push(`${url}/${folder._id}`);
+                }}
+              >
+                {" "}
+                {folder.name}{" "}
+              </span>{" "}
+            </>
           }
-          title={folder.name}
-          onTitleClick={() => {
-            //or should i use react router and reroute
-            props.history.push(`${url}/${folder._id}`);
-            setSelectedFolder(folder);
-            // setContent(<PostsPage folder={folder} />);
-          }}
           onTitleMouseEnter={() => {}}
         >
           {folder.blogs &&
