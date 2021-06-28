@@ -35,8 +35,8 @@ import EditorSelector from "./sections/EditorSelector";
 import EditorTag from "./sections/EditorTag";
 //--------SERVER-RELATED-IMPORTS-----------------------//
 import axios from "axios";
-import { editNote } from "../../_actions/post_actions";
-import { createTag, deleteTag, updateTag } from "../../_actions/tag_actions";
+import { editNote, saveNoteTags } from "../../_actions/card_actions";
+import { getCards } from "../../api/index";
 //------THIRD-PARTY-COMPONENTS-------------------------//
 
 import { Modal } from "antd";
@@ -44,9 +44,9 @@ import { Modal } from "antd";
 
 export default function SlateEditor(props) {
   const { card, listId, sectionId, postId, order } = props;
-
+  console.log(`card from slate props`, card);
   let initContent =
-    card.content.length > 0
+    card.content && card.content.length > 0
       ? card.content
       : [
           {
@@ -59,12 +59,12 @@ export default function SlateEditor(props) {
     EditorPlugins;
   const ref = useRef();
   const [value, setValue] = useState(initContent);
-  const writersTags = useSelector((state) => state.tags);
-  const [tags, setTags] = useState(card.tags);
+  const writersTags = useSelector((state) => card.tags);
+  const [userTags, setUserTags] = useState();
   const [target, setTarget] = useState();
   const [index, setIndex] = useState(0);
   const [search, setSearch] = useState("");
-  console.log(`writersTags`, writersTags);
+
   const dispatch = useDispatch();
   const editor = useMemo(
     () =>
@@ -76,9 +76,12 @@ export default function SlateEditor(props) {
     []
   );
 
-  const chars = writersTags
-    .filter((tag) => tag.name.toLowerCase().startsWith(search.toLowerCase()))
-    .slice(0, 10);
+  const chars =
+    userTags && userTags.length > 0
+      ? userTags
+          .filter((tag) => tag.toLowerCase().startsWith(search.toLowerCase()))
+          .slice(0, 10)
+      : [];
 
   useEffect(() => {
     if (target && chars.length > 0) {
@@ -88,7 +91,7 @@ export default function SlateEditor(props) {
       el.style.top = `${rect.top + window.pageYOffset + 24}px`;
       el.style.left = `${rect.left + window.pageXOffset}px`;
     }
-  }, [chars.length, editor, index, search, target]);
+  }, [chars.length, editor, index, search, target, props]);
 
   const renderElement = useCallback((props) => {
     switch (props.element.type) {
@@ -122,8 +125,6 @@ export default function SlateEditor(props) {
     (event) => {
       console.log(`search`, search);
       if (target) {
-        console.log(`target`, target);
-
         switch (event.key) {
           case "ArrowDown":
             event.preventDefault();
@@ -140,31 +141,31 @@ export default function SlateEditor(props) {
             event.preventDefault();
             Transforms.select(editor, target);
 
-            const mentionArr = getNodes(editor, "mention");
-
             if (!chars[index]) {
+              //if the tag doesnt exist..
               EditorPlugins.insertMention(editor, search);
-              dispatch(
-                createTag({ name: search, writer: card.writer, card: card })
-              ); //create tag and add this card to its cards arr.
+
+              //saveNonExisitingTagToNote()
+              setTimeout(function () {
+                saveTags();
+              }, 2000);
             } else {
+              const mentionArr = getNodes(editor, "mention");
               const cardHasTag =
                 mentionArr.findIndex(
-                  (mention) => mention.character == chars[index].name
+                  (mention) => mention.character == chars[index]
                 ) == -1
                   ? false
                   : true;
-              if (cardHasTag) {
-                EditorPlugins.insertMention(editor, chars[index].name);
-              } else {
-                EditorPlugins.insertMention(editor, chars[index].name);
+              console.log(`cardHasTag`, cardHasTag);
+              if (chars[index] && !cardHasTag) {
+                EditorPlugins.insertMention(editor, chars[index]);
 
-                dispatch(
-                  updateTag({
-                    editType: "cards",
-                    editArr: [...chars[index].cards, card],
-                  })
-                );
+                //saveExisitingTagToNote()
+                //for example if a card in another blog has this tag
+                //find the tag and copy the tag info to this card
+              } else if (chars[index] && cardHasTag) {
+                EditorPlugins.insertMention(editor, chars[index]);
               }
             }
 
@@ -217,50 +218,60 @@ export default function SlateEditor(props) {
     [index, search, target]
   );
 
+  const saveTags = () => {
+    const currentTags = getNodes(editor, "mention").map((tag) => tag.character);
+
+    const filteredTags = currentTags.reduce((prev, tag) => {
+      if (!prev.includes(tag)) {
+        return prev.concat(tag);
+      }
+      return;
+    }, []);
+
+    const variables = {
+      cardId: card._id,
+      tags: filteredTags,
+    };
+
+    dispatch(saveNoteTags(variables));
+  };
+
   const saveNote = () => {
-    console.log(`value to be saved`, value);
-    console.log(`tags to be saved`, tags);
-    const currentTags = getNodes(editor, "mention");
-    const initialTags = card.tags;
-    console.log(`currentTags`, currentTags);
-    console.log(`initialTags`, initialTags);
-    //if currentTags is different than initialTags,, arrays are different
-    //then update Tags collection
-    //
-    //const tagToUpdate = `currentTags`.filter((tag)=>{return })
-    //dispatch(updateTags({card,}))
+    if (!value) return;
+    console.log(`card`, card);
+    console.log(`value`, value);
     const variables = {
       postId: postId,
       sectionId: sectionId,
       listId: listId,
       cardId: card._id,
-      editArr: [
-        { editType: "content", editValue: value },
-        { editType: "tags", editValue: tags },
-      ],
-      // content: value,
-      // tags: tags,
+      editArr: [{ editType: "content", editValue: value }],
     };
     dispatch(editNote(variables));
-
-    //compare card.content.tags to the tagsArr
-    //if tag exists ( tag.length>=1) then update the tag content as well.
-    //dispatch(updateTag)
-    // if(tags.length>=1){
-    //   tags.forEach(tag => {
-    //     dispatch(updateTag({tag._id,editArr:{editType:"cards",editValue:value}}))
-    //   });
-
-    // }
   };
+
+  async function getCardTagNamesFromServer() {
+    const { data } = await getCards();
+    const cards = data.cards;
+
+    const allTags = cards.reduce((prev, card) => {
+      const tagNames = card.tags
+        .map((tag) => tag.name)
+        .filter((tagname) => !prev.includes(tagname));
+      return prev.concat(tagNames);
+    }, []);
+
+    setUserTags(allTags);
+    return;
+  }
 
   return (
     <Slate
       editor={editor}
       value={value}
-      tags={tags}
-      onTagChange={setTags}
-      onChange={(value) => {
+      // tags={tags}
+      // onTagChange={setTags}
+      onChange={async (value) => {
         setValue(value);
         const { selection } = editor;
 
@@ -280,6 +291,7 @@ export default function SlateEditor(props) {
             setTarget(beforeRange);
             setSearch(beforeMatch[1]);
             setIndex(0);
+            getCardTagNamesFromServer();
             return;
           }
         }
@@ -335,7 +347,7 @@ export default function SlateEditor(props) {
                     background: i === index ? "#B4D5FF" : "transparent",
                   }}
                 >
-                  {char.name}
+                  {char}
                 </div>
               ))
             ) : (

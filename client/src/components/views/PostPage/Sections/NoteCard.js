@@ -26,6 +26,11 @@ export default function NoteCard(props) {
   const [isShown, setIsShown] = useState(true);
   const posts = useSelector((state) => state.posts);
   //removing the event listener when card unmounts..
+  console.log(`props of NoteCard`, props);
+  console.log(
+    `the problem is here... in NoteCard which doesnt seem to give slate the updated cards!
+    `
+  );
   useEffect(() => {}, [props]);
   const createCard = () => {
     const variables = {
@@ -36,6 +41,15 @@ export default function NoteCard(props) {
       content: [],
       tags: [],
     };
+    const cardVariables = {
+      order: index,
+      content: [],
+      tags: [],
+      postId,
+      sectionId,
+      listId,
+    };
+    const location = { postId, sectionId, listId };
 
     dispatch(createCardInList(variables));
   };
@@ -95,6 +109,7 @@ export default function NoteCard(props) {
             hoverable={true}
           >
             <SlateEditor
+              listCardCount={props.listCardCount}
               card={card}
               listId={listId}
               sectionId={sectionId}

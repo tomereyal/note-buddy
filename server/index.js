@@ -85,7 +85,7 @@ app.use("/api/users", require("./routes/users"));
 app.use("/api/blog", require("./routes/blog"));
 app.use("/api/folder", require("./routes/folder"));
 app.use("/api/settings", require("./routes/settings"));
-app.use("/api/tag", require("./routes/tag"));
+app.use("/api/card", require("./routes/card"));
 app.use("/api/external", require("./routes/external"));
 /* Above we used a modular route handler for the the two routes.
 Use the express.Router class to create modular, mountable route handlers. 

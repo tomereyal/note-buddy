@@ -1,19 +1,13 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { useSelector, useDispatch } from "react-redux";
 import { useHistory } from "react-router";
+import { getPosts, deletePost } from "../../../_actions/post_actions";
 import {
-  createPost,
-  getPosts,
-  deletePost,
-} from "../../../_actions/post_actions";
-import {
-  addPostToFolder,
   getFolders,
   deletePostFromFolder,
+  createPostInFolder,
 } from "../../../_actions/folder_actions";
 import { Button, Layout, Card, Avatar, Col, Typography, Row, Menu } from "antd";
-import { createPostInServer } from "../../../api";
 import {
   SettingOutlined,
   EditOutlined,
@@ -68,12 +62,8 @@ export default function PostsPage(props) {
       writer: folder.writer,
       name: `Post-${folder.name}-${folder.blogs.length + 1}`,
     };
-    const folderId = folder._id;
-    const { data } = await createPostInServer(postVariables);
-    const newPost = data.postInfo;
-    dispatch(createPost(null, newPost));
-    const postId = newPost._id;
-    dispatch(addPostToFolder({ postId, folderId }));
+    dispatch(createPostInFolder({ postVariables, folderId }));
+    dispatch(getPosts());
   };
 
   const removePost = (blogId) => {

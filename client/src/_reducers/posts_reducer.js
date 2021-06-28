@@ -14,6 +14,7 @@ import {
   CREATE_CARD_IN_LIST,
   REMOVE_CARD_FROM_LIST,
   EDIT_NOTE,
+  UPDATE_CARD_IN_POST,
 } from "../_actions/types";
 
 export default function (posts = [], action) {
@@ -75,10 +76,20 @@ export default function (posts = [], action) {
       return posts.map((post) => {
         return post._id == action.payload._id ? action.payload : post;
       });
-    case EDIT_NOTE:
-      return posts.map((post) => {
-        return post._id == action.payload._id ? action.payload : post;
+    case UPDATE_CARD_IN_POST:  
+      const updatedCard = action.payload;
+      const { location } = updatedCard;
+      console.log(`action.payload`, action.payload);
+      const post = posts.find((post) => post._id == location.post);
+      const section = post.sections.find(
+        (section) => section._id == location.section
+      );
+      const list = section.lists.find((list) => list._id == location.list);
+      list.cards = list.cards.map((card) => {
+        return card._id == updatedCard._id ? updatedCard : card;
       });
+      console.log(`list`, list);
+      return [...posts];
 
     default:
       return posts;

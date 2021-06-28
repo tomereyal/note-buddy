@@ -10,13 +10,14 @@ import Footer from "./views/Footer/Footer";
 import CreatePage from "./views/BlogPage/Sections/CreatePage.js";
 import BlogPage from "./views/BlogPage/BlogPage.js";
 import PostPage from "./views/PostPage/PostPage.js";
+import SearchPage from "./views/SearchPage/SearchPage";
 import "./App.css";
 import FolderPage from "./views/FolderPage/FolderPage";
 import SettingsPage from "./views/SettingsPage/SettingsPage";
 import { useDispatch, useSelector } from "react-redux";
 import { getPosts } from "../_actions/post_actions";
 import { getFolders } from "../_actions/folder_actions";
-import { getTags } from "../_actions/tag_actions";
+
 
 import { ConfigProvider } from "antd";
 //null   Anyone Can go inside
@@ -33,7 +34,6 @@ function App() {
   useEffect(() => {
     dispatch(getPosts());
     dispatch(getFolders());
-    dispatch(getTags());
   }, []);
   const direction = useSelector(
     (state) => state.settings.general_config.direction
@@ -66,6 +66,7 @@ function App() {
                 component={Auth(SettingsPage, null)}
               />
 
+              <Route exact path="/search" component={Auth(SearchPage, null)} />
               <Route
                 exact
                 path="/blog/post/:postId"

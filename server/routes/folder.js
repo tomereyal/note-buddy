@@ -35,20 +35,10 @@ router.post("/createPostInFolder", (req, res) => {
 });
 router.post("/addPostToFolder", (req, res) => {
   const { body } = req;
-  const { postId, folderId } = body;
-  console.log(`postId`, postId);
-  console.log(`folderId`, folderId);
-  // const blog = new Blog({
-  //   _id: post._id,
-  //   content: null,
-  //   writer: post.writer,
-  //   name: post.name,
-  //   sections:post.sections,
-  //   createdAt: post.createdAt,
-  // });
+  const { newPostId, folderId } = body;
   Folder.findByIdAndUpdate(
     folderId,
-    { $push: { blogs: postId } },
+    { $push: { blogs: newPostId } },
     { new: true }
   )
     .populate("blogs")
@@ -70,16 +60,34 @@ router.get("/fetchFolders", (req, res) => {
     });
 });
 
+// router.delete("/deleteFolder/:folderId", (req, res) => {
+//   console.log(req.params.folderId);
+
+//   //delete all folder.posts... Blog.
+//   // Blog.deleteMany({_id:{$in: folderPostIds}}, function (err, result) {
+
+//   // })
+//   Folder.findOneAndDelete({ _id: req.params.folderId }).then(
+//     (result) => {
+//       console.log(`Delete folder result`, result);
+//     },
+//     (reason) => {
+//       console.log(reason);
+//     }
+//   );
+// });
+
 router.delete("/deleteFolder/:folderId", (req, res) => {
   console.log(req.params.folderId);
-  Folder.findByIdAndRemove({ _id: req.params.folderId }).then(
-    (result) => {
-      console.log(`Delete folder result`, result);
-    },
-    (reason) => {
-      console.log(reason);
-    }
-  );
+  Folder.findById(req.params.folderId, function (err, folder) {
+    if (err) return res.json({ success: false, err });
+    folder.remove({}, function (err) {
+      if (err) {
+        console.log(`err`, err);
+        return res.json({ success: false, err });
+      }
+    });
+  });
 });
 
 router.post("/deletePostFromFolder", (req, res) => {
