@@ -46,7 +46,7 @@ export default function SlateEditor(props) {
   const { card, listId, sectionId, postId, order } = props;
 
   let initContent =
-    card.content.length > 0
+    card.content && card.content.length > 0
       ? card.content
       : [
           {
