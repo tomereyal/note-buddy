@@ -26,12 +26,19 @@ export default function NoteCard(props) {
   const [isShown, setIsShown] = useState(true);
   const posts = useSelector((state) => state.posts);
   //removing the event listener when card unmounts..
-  console.log(`props of NoteCard`, props);
-  console.log(
-    `the problem is here... in NoteCard which doesnt seem to give slate the updated cards!
-    `
-  );
-  useEffect(() => {}, [props]);
+
+  // console.log(
+  //   `the problem is here... in NoteCard which doesnt seem to give slate the updated cards!
+  //   NoteCard is receiving the updated cards arr but is not giving slateEditor the right one
+  //   `
+  // );
+  useEffect(() => {
+    //props will update and to update its children you can useState or
+    //give the children below props.cards
+    if (props.card) {
+      setCard(props.card);
+    }
+  }, [props]);
   const createCard = () => {
     const variables = {
       postId,

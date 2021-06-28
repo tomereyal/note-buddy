@@ -25,7 +25,8 @@ router.post("/getFlatIconToken", (req, res) => {
     });
 });
 
-router.get("/getFlatIcon", (req, res) => {
+router.get("/getFlatIcon/:iconName", (req, res) => {
+  const iconName = req.params.iconName;
   const authToken = req.session.flatIconAuthToken?.authToken;
   const tokenCreatedAt = req.session.flatIconAuthToken?.tokenCreatedAt;
   const TOKEN_EXPIRATION_IN_MILLISEC = 2 * 60 * 60 * 1000; //2 hours

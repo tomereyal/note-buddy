@@ -44,7 +44,7 @@ import { Modal } from "antd";
 
 export default function SlateEditor(props) {
   const { card, listId, sectionId, postId, order } = props;
-  console.log(`card from slate props`, card);
+
   let initContent =
     card.content && card.content.length > 0
       ? card.content
@@ -144,11 +144,8 @@ export default function SlateEditor(props) {
             if (!chars[index]) {
               //if the tag doesnt exist..
               EditorPlugins.insertMention(editor, search);
-
               //saveNonExisitingTagToNote()
-              setTimeout(function () {
-                saveTags();
-              }, 2000);
+              saveTags();
             } else {
               const mentionArr = getNodes(editor, "mention");
               const cardHasTag =
@@ -160,7 +157,6 @@ export default function SlateEditor(props) {
               console.log(`cardHasTag`, cardHasTag);
               if (chars[index] && !cardHasTag) {
                 EditorPlugins.insertMention(editor, chars[index]);
-
                 //saveExisitingTagToNote()
                 //for example if a card in another blog has this tag
                 //find the tag and copy the tag info to this card
@@ -222,10 +218,11 @@ export default function SlateEditor(props) {
     const currentTags = getNodes(editor, "mention").map((tag) => tag.character);
 
     const filteredTags = currentTags.reduce((prev, tag) => {
+      console.log(`prev`, prev);
       if (!prev.includes(tag)) {
         return prev.concat(tag);
       }
-      return;
+      return prev;
     }, []);
 
     const variables = {
@@ -269,8 +266,6 @@ export default function SlateEditor(props) {
     <Slate
       editor={editor}
       value={value}
-      // tags={tags}
-      // onTagChange={setTags}
       onChange={async (value) => {
         setValue(value);
         const { selection } = editor;
@@ -576,3 +571,46 @@ const Mention = ({ attributes, children, element }) => {
     </span>
   );
 };
+
+const getFlatIcon = async (iconName) => {
+  var headers = {
+    Accept: "application/json",
+    Authorization: "string",
+  };
+  console.log(`hi`);
+  const { data } = await axios
+    .get(`/api/external/getFlatIcon/${iconName}`)
+    .then((response) => {
+      if (!response) {
+        return getFlatIconToken();
+      }
+      return response.data;
+    });
+
+  console.log(`data`, data);
+  const iconArr = data.map((item) => {
+    const { images } = item;
+    const { svg, png } = images;
+    if (svg) {
+      return svg;
+    } else if (png) return png[128];
+  });
+  setIcons(iconArr);
+};
+
+const getFlatIconToken = async () => {
+  console.log(`hi`);
+  const token = await axios
+    .post("/api/external/getFlatIconToken")
+    .then((response) => {
+      return response.data;
+    });
+  console.log(`bye`);
+  console.log(`token`, token);
+};
+
+const renderIcons = icons
+  ? icons.map((svg, index) => {
+      return <img height="30px" width="30px" src={svg} key={index + svg[3]} />;
+    })
+  : null;

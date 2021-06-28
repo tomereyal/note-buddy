@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const axios = require("axios");
 const { Card, Tag } = require("../models/Card");
 //=================================
 //             Card
@@ -52,6 +53,8 @@ router.post("/saveNoteTags", (req, res) => {
     const exisitingTagNames = card.tags.map(({ name }) => name);
     tags.forEach((tag) => {
       if (!exisitingTagNames.includes(tag)) {
+        const icon = await getFlatIcon("monster");
+        console.log(`icon`, icon);
         tagsForCreation.push(new Tag({ name: tag }));
       }
     });

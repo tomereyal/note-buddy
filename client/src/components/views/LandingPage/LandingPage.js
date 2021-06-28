@@ -12,14 +12,14 @@ function LandingPage() {
   const user = useSelector((state) => state.user);
   const [icons, setIcons] = useState(null);
 
-  const getFlatIcon = async () => {
+  const getFlatIcon = async (iconName) => {
     var headers = {
       Accept: "application/json",
       Authorization: "string",
     };
     console.log(`hi`);
     const { data } = await axios
-      .get("/api/external/getFlatIcon")
+      .get(`/api/external/getFlatIcon/${iconName}`)
       .then((response) => {
         if (!response) {
           return getFlatIconToken();
@@ -79,7 +79,7 @@ function LandingPage() {
         </p>
         <p
           onClick={() => {
-            getFlatIcon();
+            getFlatIcon("monster");
           }}
         >
           Click to get animal icons
