@@ -35,11 +35,15 @@ import EditorSelector from "./sections/EditorSelector";
 import EditorTag from "./sections/EditorTag";
 //--------SERVER-RELATED-IMPORTS-----------------------//
 import axios from "axios";
-import { editNote, saveNoteTags } from "../../_actions/card_actions";
+import {
+  editNote,
+  saveNewNoteTags,
+  saveExistingNoteTags,
+} from "../../_actions/card_actions";
 import { getCards } from "../../api/index";
 //------THIRD-PARTY-COMPONENTS-------------------------//
 
-import { Modal } from "antd";
+import { Button, Modal } from "antd";
 //-----------------------------------------------------//
 
 export default function SlateEditor(props) {
@@ -145,24 +149,21 @@ export default function SlateEditor(props) {
               //if the tag doesnt exist..
               EditorPlugins.insertMention(editor, search);
               //saveNonExisitingTagToNote()
-              saveTags();
+              saveNewTags();
             } else {
-              const mentionArr = getNodes(editor, "mention");
-              const cardHasTag =
-                mentionArr.findIndex(
-                  (mention) => mention.character == chars[index]
-                ) == -1
-                  ? false
-                  : true;
-              console.log(`cardHasTag`, cardHasTag);
-              if (chars[index] && !cardHasTag) {
-                EditorPlugins.insertMention(editor, chars[index]);
-                //saveExisitingTagToNote()
-                //for example if a card in another blog has this tag
-                //find the tag and copy the tag info to this card
-              } else if (chars[index] && cardHasTag) {
-                EditorPlugins.insertMention(editor, chars[index]);
-              }
+              EditorPlugins.insertMention(editor, chars[index]);
+              saveExistingTags();
+              // const mentionArr = getNodes(editor, "mention");
+              // const cardHasTag =
+              //   mentionArr.findIndex(
+              //     (mention) => mention.character == chars[index]
+              //   ) == -1
+              //     ? false
+              //     : true;
+              // console.log(`cardHasTag`, cardHasTag);
+              // if (chars[index] && !cardHasTag) {
+              //for example if a card in another blog has this tag
+              //find the tag and copy the tag info to this card
             }
 
             setTarget(null);
@@ -214,7 +215,7 @@ export default function SlateEditor(props) {
     [index, search, target]
   );
 
-  const saveTags = () => {
+  const saveNewTags = async () => {
     const currentTags = getNodes(editor, "mention").map((tag) => tag.character);
 
     const filteredTags = currentTags.reduce((prev, tag) => {
@@ -225,12 +226,44 @@ export default function SlateEditor(props) {
       return prev;
     }, []);
 
+    const { data } = await axios.get("/api/external/fetchIconsInDb");
+    const fetchedIcons = data.doc.icons;
+    console.log(`fetchedIcons`, fetchedIcons);
+    const randomIcon =
+      fetchedIcons[Math.floor(Math.random() * fetchedIcons.length)].svg;
+
     const variables = {
       cardId: card._id,
       tags: filteredTags,
+      image: randomIcon,
     };
 
-    dispatch(saveNoteTags(variables));
+    dispatch(saveNewNoteTags(variables));
+  };
+  const saveExistingTags = async () => {
+    const currentTags = getNodes(editor, "mention").map((tag) => tag.character);
+
+    const filteredTags = currentTags.reduce((prev, tag) => {
+      console.log(`prev`, prev);
+      if (!prev.includes(tag)) {
+        return prev.concat(tag);
+      }
+      return prev;
+    }, []);
+
+    const { data } = await axios.get("/api/external/fetchIconsInDb");
+    const fetchedIcons = data.doc.icons;
+    console.log(`fetchedIcons`, fetchedIcons);
+    const randomIcon =
+      fetchedIcons[Math.floor(Math.random() * fetchedIcons.length)].svg;
+
+    const variables = {
+      cardId: card._id,
+      tags: filteredTags,
+      tagImageId: randomIcon,
+    };
+
+    dispatch(saveExistingNoteTags(variables));
   };
 
   const saveNote = () => {
@@ -257,7 +290,7 @@ export default function SlateEditor(props) {
         .filter((tagname) => !prev.includes(tagname));
       return prev.concat(tagNames);
     }, []);
-
+    console.log(`allTags`, allTags);
     setUserTags(allTags);
     return;
   }
@@ -551,22 +584,54 @@ const SelectorVoid = ({ attributes, children, element }) => {
 const Mention = ({ attributes, children, element }) => {
   const selected = useSelected();
   const focused = useFocused();
+  const [isModalVisible, setIsModalVisible] = useState(false);
+
+  const showModal = () => {
+    setIsModalVisible(true);
+  };
+
+  const handleOk = () => {
+    setIsModalVisible(false);
+  };
+
+  const handleCancel = () => {
+    setIsModalVisible(false);
+  };
   return (
     <span
       {...attributes}
       contentEditable={false}
       style={{
-        padding: "3px 3px 2px",
+        // padding: "1px 1px 2px",
         margin: "0 1px",
         verticalAlign: "baseline",
         display: "inline-block",
         borderRadius: "4px",
-        backgroundColor: "#eee",
+        // backgroundColor: "#eee",
         fontSize: "0.9em",
-        boxShadow: selected && focused ? "0 0 0 2px #B4D5FF" : "none",
+        // boxShadow: selected && focused ? "0 0 0 2px #B4D5FF" : "none",
       }}
     >
-      {element.character}
+      <Button
+        default
+        style={{ padding: "3px 3px 2px" }}
+        type="dashed"
+        onClick={() => {
+          console.log("Button works");
+          showModal();
+        }}
+      >
+        {element.character}
+      </Button>
+
+      <Modal
+        title="Basic Modal"
+        visible={isModalVisible}
+        onOk={handleOk}
+        onCancel={handleCancel}
+      >
+        {element.character}
+      </Modal>
       {children}
     </span>
   );
@@ -595,7 +660,6 @@ const getFlatIcon = async (iconName) => {
       return svg;
     } else if (png) return png[128];
   });
-  setIcons(iconArr);
 };
 
 const getFlatIconToken = async () => {
@@ -609,8 +673,8 @@ const getFlatIconToken = async () => {
   console.log(`token`, token);
 };
 
-const renderIcons = icons
-  ? icons.map((svg, index) => {
-      return <img height="30px" width="30px" src={svg} key={index + svg[3]} />;
-    })
-  : null;
+// const renderIcons = icons
+//   ? icons.map((svg, index) => {
+//       return <img height="30px" width="30px" src={svg} key={index + svg[3]} />;
+//     })
+//   : null;

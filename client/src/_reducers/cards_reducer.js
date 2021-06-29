@@ -1,4 +1,9 @@
-import { EDIT_NOTE, GET_CARDS, SAVE_NOTE_TAGS } from "../_actions/types";
+import {
+  EDIT_NOTE,
+  GET_CARDS,
+  SAVE_NEW_NOTE_TAGS,
+  SAVE_EXISTING_NOTE_TAGS,
+} from "../_actions/types";
 
 export default function (cards = [], action) {
   switch (action.type) {
@@ -7,7 +12,9 @@ export default function (cards = [], action) {
     case GET_CARDS:
       console.log(`action.payload`, action.payload);
       return action.payload;
-    case SAVE_NOTE_TAGS:
+    case SAVE_NEW_NOTE_TAGS:
+      console.log(`action.payload`, action.payload);
+    case SAVE_EXISTING_NOTE_TAGS:
       console.log(`action.payload`, action.payload);
 
       return action.payload;

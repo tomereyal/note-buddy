@@ -6,7 +6,8 @@ import {
   UPDATE_CARD_IN_POST,
   GET_CARDS,
   GET_CARD_TAGS,
-  SAVE_NOTE_TAGS,
+  SAVE_NEW_NOTE_TAGS,
+  SAVE_EXISTING_NOTE_TAGS,
 } from "./types";
 import { message } from "antd";
 
@@ -28,10 +29,19 @@ export const editNote = (variables) => async (dispatch) => {
     console.log(error.message);
   }
 };
-export const saveNoteTags = (variables) => async (dispatch) => {
+export const saveNewNoteTags = (variables) => async (dispatch) => {
   try {
-    const { data } = await api.saveNoteTags(variables);
-    dispatch({ type: SAVE_NOTE_TAGS, payload: data.updatedCard });
+    const { data } = await api.saveNewNoteTags(variables);
+    dispatch({ type: SAVE_NEW_NOTE_TAGS, payload: data.updatedCard });
+    dispatch({ type: UPDATE_CARD_IN_POST, payload: data.updatedCard });
+  } catch (error) {
+    console.log(error.message);
+  }
+};
+export const saveExistingNoteTags = (variables) => async (dispatch) => {
+  try {
+    const { data } = await api.saveExistingNoteTags(variables);
+    dispatch({ type: SAVE_EXISTING_NOTE_TAGS, payload: data.updatedCard });
     dispatch({ type: UPDATE_CARD_IN_POST, payload: data.updatedCard });
   } catch (error) {
     console.log(error.message);

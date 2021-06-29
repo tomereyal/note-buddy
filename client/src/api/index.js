@@ -50,10 +50,14 @@ export const removeCardFromList = (variables) =>
 //=========================================
 export const getCards = () => axios.get(`${CARD_SERVER}/fetchCards`);
 export const getCardTags = () => axios.get(`${CARD_SERVER}/fetchCardTags`);
+export const getTaggedCards = (tagName) =>
+  axios.get(`${CARD_SERVER}/fetchTaggedCards/${tagName}`);
 export const editNote = (variables) =>
   axios.post(`${CARD_SERVER}/editNote`, variables);
-export const saveNoteTags = (variables) =>
-  axios.post(`${CARD_SERVER}/saveNoteTags`, variables);
+export const saveNewNoteTags = (variables) =>
+  axios.post(`${CARD_SERVER}/saveNewNoteTags`, variables);
+export const saveExistingNoteTags = (variables) =>
+  axios.post(`${CARD_SERVER}/saveExistingNoteTags`, variables);
 //-----------------------------------------
 
 //=========================================
