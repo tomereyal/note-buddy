@@ -4,12 +4,17 @@ import { ReactEditor, useSlate } from "slate-react";
 import { Editor } from "slate";
 import { css, cx } from "@emotion/css";
 import { EditorPlugins } from "../EditorPlugins";
-import BoldOutlined from "@ant-design/icons";
-import UnderlineOutlined from "@ant-design/icons";
-import ItalicOutlined from "@ant-design/icons";
+import {
+  BoldOutlined,
+  FontSizeOutlined,
+  ItalicOutlined,
+  OrderedListOutlined,
+  UnderlineOutlined,
+  UnorderedListOutlined,
+} from "@ant-design/icons";
 
 import { Range } from "slate";
-export default function EditorToolbar() {
+export default function EditorHoverToolbar() {
   const ref = useRef();
   const editor = useSlate();
 
@@ -58,9 +63,20 @@ export default function EditorToolbar() {
           transition: opacity 0.75s;
         `}
       >
-        <FormatButton format="bold" icon="B" />
-        <FormatButton format="italic" icon="I" />
-        <FormatButton format="underlined" icon="U" />
+        <FormatButton format="bold" icon={<BoldOutlined />} />
+        <FormatButton format="italic" icon={<ItalicOutlined />} />
+        <FormatButton format="underlined" icon={<UnderlineOutlined />} />
+        <BlockButton
+          format="heading-one"
+          icon={<FontSizeOutlined style={{ fontSize: "20px" }} />}
+        />
+        <BlockButton
+          format="heading-two"
+          icon={<FontSizeOutlined style={{ fontSize: "16px" }} />}
+        />
+        <BlockButton format="block-quote" icon='" "' />
+        <BlockButton format="numbered-list" icon={<OrderedListOutlined />} />
+        <BlockButton format="bulleted-list" icon={<UnorderedListOutlined />} />
       </Menu>
     </Portal>
   );
@@ -75,6 +91,21 @@ const FormatButton = ({ format, icon }) => {
       onMouseDown={(event) => {
         event.preventDefault();
         EditorPlugins.toggleFormat(editor, format);
+      }}
+    >
+      <Icon>{icon}</Icon>
+    </Button>
+  );
+};
+const BlockButton = ({ format, icon }) => {
+  const editor = useSlate();
+  return (
+    <Button
+      reversed
+      active={EditorPlugins.isBlockActive(editor, format)}
+      onMouseDown={(event) => {
+        event.preventDefault();
+        EditorPlugins.toggleBlock(editor, format);
       }}
     >
       <Icon>{icon}</Icon>

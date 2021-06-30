@@ -213,17 +213,17 @@ router.post("/removeSectionFromPost", (req, res) => {
   Card.deleteMany({ "location.section": sectionId }, function (err, result) {
     if (err) console.log(`card remove from section err`, err);
     // if (err) return res.json({ success: false, err });
-    Blog.findOneAndUpdate(
-      { _id: req.body.postId },
-      {
-        $pull: { sections: { _id: req.body.sectionId } },
-      },
-      { new: true },
-      (err, blogInfo) => {
+    Blog.findById(req.body.postId, (err, post) => {
+      if (err) return res.json({ success: false, err });
+
+      post.sections = post.sections.filter((section) => {
+        return section._id != sectionId;
+      });
+      post.saveAndPopulate((err, blogInfo) => {
         if (err) return res.json({ success: false, err });
         res.status(200).json(blogInfo);
-      }
-    );
+      });
+    });
   });
 });
 
@@ -300,7 +300,7 @@ router.post("/createListInSection", (req, res) => {
 
       let lists = post.sections.id(sectionId).lists;
       lists.push(newList);
-      post.save((err, result) => {
+      post.saveAndPopulate((err, result) => {
         if (err) return res.json({ success: false, err });
         res.status(200).json(result);
       });
@@ -320,7 +320,7 @@ router.post("/removeListFromSection", (req, res) => {
       post.sections.id(sectionId).lists = lists.filter((list) => {
         return list._id != listId;
       });
-      post.save((err, result) => {
+      post.saveAndPopulate((err, result) => {
         if (err) return res.json({ success: false, err });
         res.status(200).json(result);
       });

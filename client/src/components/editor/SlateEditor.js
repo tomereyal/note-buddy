@@ -29,10 +29,11 @@ import { css } from "@emotion/css";
 //---------ANTD-COMPONENTS-IMPORTS----------------------//
 import { DownCircleOutlined } from "@ant-design/icons";
 //---------MY-COMPONENTS-IMPORTS------------------------//
-import EditorToolbar, { Portal } from "./sections/EditorToolbar";
-import NoteMentions from "./sections/NoteMentions";
-import EditorSelector from "./sections/EditorSelector";
-import EditorTag from "./sections/EditorTag";
+import EditorHoverToolbar, { Portal } from "./sections/EditorHoverToolbar";
+import EditorMainToolbar from "./sections/EditorMainToolBar";
+// import NoteMentions from "./sections/NoteMentions";
+// import EditorSelector from "./sections/EditorSelector";
+// import EditorTag from "./sections/EditorTag";
 //--------SERVER-RELATED-IMPORTS-----------------------//
 import axios from "axios";
 import {
@@ -41,20 +42,34 @@ import {
   saveExistingNoteTags,
 } from "../../_actions/card_actions";
 import { getCards } from "../../api/index";
-//------THIRD-PARTY-COMPONENTS-------------------------//
-
-import { Button, Modal } from "antd";
+//------MY-SLATE-ELEMENTS-------------------------//
+import {
+  DefaultElement,
+  Image,
+  Mention,
+  CodeElement,
+  QuoteBlock,
+  H2Block,
+  BulletList,
+  NumberList,
+  ListItem,
+  H1Block,
+  StepsList,
+  StepNode,
+  EditableVoid,
+} from "./sections/EditorElements";
 //-----------------------------------------------------//
 
 export default function SlateEditor(props) {
   const { card, listId, sectionId, postId, order } = props;
-
+  const defaultBgc = "white";
   let initContent =
     card.content && card.content.length > 0
       ? card.content
       : [
           {
             type: "paragraph",
+            backgroundColor: defaultBgc,
             children: [{ text: "A line of text in a paragraph." }],
           },
         ];
@@ -65,6 +80,7 @@ export default function SlateEditor(props) {
   const [value, setValue] = useState(initContent);
   const writersTags = useSelector((state) => card.tags);
   const [userTags, setUserTags] = useState();
+  const [fetchedIcons, setFetchedIcons] = useState([]);
   const [target, setTarget] = useState();
   const [index, setIndex] = useState(0);
   const [search, setSearch] = useState("");
@@ -83,9 +99,12 @@ export default function SlateEditor(props) {
   const chars =
     userTags && userTags.length > 0
       ? userTags
-          .filter((tag) => tag.toLowerCase().startsWith(search.toLowerCase()))
+          .filter((tag) =>
+            tag.name.toLowerCase().startsWith(search.toLowerCase())
+          )
           .slice(0, 10)
       : [];
+  console.log(`chars`, chars);
 
   useEffect(() => {
     if (target && chars.length > 0) {
@@ -98,7 +117,8 @@ export default function SlateEditor(props) {
   }, [chars.length, editor, index, search, target, props]);
 
   const renderElement = useCallback((props) => {
-    switch (props.element.type) {
+    const { children, attributes, element } = props;
+    switch (element.type) {
       case "image":
         return <Image {...props} />;
       case "code":
@@ -109,10 +129,20 @@ export default function SlateEditor(props) {
         return <StepNode {...props} />;
       case "editable-void":
         return <EditableVoid {...props} />;
-      case "selector":
-        return <SelectorVoid {...props} />;
       case "mention":
         return <Mention {...props} />;
+      case "block-quote":
+        return <QuoteBlock {...props} />;
+      case "heading-one":
+        return <H1Block {...props} />;
+      case "heading-two":
+        return <H2Block {...props} />;
+      case "bulleted-list":
+        return <BulletList {...props} />;
+      case "numbered-list":
+        return <NumberList {...props} />;
+      case "list-item":
+        return <ListItem {...props} />;
       default:
         return <DefaultElement {...props} />;
     }
@@ -125,9 +155,13 @@ export default function SlateEditor(props) {
     return <Leaf {...props} />;
   }, []);
 
+  /////////////EVENTS/////////////////
   const onKeyDown = useCallback(
     (event) => {
       console.log(`search`, search);
+      if (event.key === "@") {
+        getIconsFromDB();
+      }
       if (target) {
         switch (event.key) {
           case "ArrowDown":
@@ -147,12 +181,23 @@ export default function SlateEditor(props) {
 
             if (!chars[index]) {
               //if the tag doesnt exist..
-              EditorPlugins.insertMention(editor, search);
+
+              const randomIcon =
+                fetchedIcons.length > 0
+                  ? fetchedIcons[
+                      Math.floor(Math.random() * fetchedIcons.length)
+                    ].svg
+                  : "";
+              EditorPlugins.insertMention(editor, search, randomIcon);
               //saveNonExisitingTagToNote()
-              saveNewTags();
+              saveNewTags(randomIcon);
             } else {
-              EditorPlugins.insertMention(editor, chars[index]);
-              saveExistingTags();
+              EditorPlugins.insertMention(
+                editor,
+                chars[index].name,
+                chars[index].image
+              );
+              // saveExistingTags();
               // const mentionArr = getNodes(editor, "mention");
               // const cardHasTag =
               //   mentionArr.findIndex(
@@ -174,6 +219,7 @@ export default function SlateEditor(props) {
             break;
         }
       }
+
       if (event.ctrlKey) {
         switch (event.key) {
           case "`": {
@@ -214,8 +260,8 @@ export default function SlateEditor(props) {
     },
     [index, search, target]
   );
-
-  const saveNewTags = async () => {
+  ////////////////////
+  const saveNewTags = async (randomIcon) => {
     const currentTags = getNodes(editor, "mention").map((tag) => tag.character);
 
     const filteredTags = currentTags.reduce((prev, tag) => {
@@ -225,12 +271,6 @@ export default function SlateEditor(props) {
       }
       return prev;
     }, []);
-
-    const { data } = await axios.get("/api/external/fetchIconsInDb");
-    const fetchedIcons = data.doc.icons;
-    console.log(`fetchedIcons`, fetchedIcons);
-    const randomIcon =
-      fetchedIcons[Math.floor(Math.random() * fetchedIcons.length)].svg;
 
     const variables = {
       cardId: card._id,
@@ -241,26 +281,24 @@ export default function SlateEditor(props) {
     dispatch(saveNewNoteTags(variables));
   };
   const saveExistingTags = async () => {
-    const currentTags = getNodes(editor, "mention").map((tag) => tag.character);
-
-    const filteredTags = currentTags.reduce((prev, tag) => {
-      console.log(`prev`, prev);
+    const currentNameTags = getNodes(editor, "mention").map(
+      (tag) => tag.character
+    );
+    const filteredNameTags = currentNameTags.reduce((prev, tag) => {
       if (!prev.includes(tag)) {
         return prev.concat(tag);
       }
       return prev;
     }, []);
-
-    const { data } = await axios.get("/api/external/fetchIconsInDb");
-    const fetchedIcons = data.doc.icons;
-    console.log(`fetchedIcons`, fetchedIcons);
-    const randomIcon =
-      fetchedIcons[Math.floor(Math.random() * fetchedIcons.length)].svg;
-
+    const mappedFilteredTags = filteredNameTags((filteredTag) => {
+      const tagFromAllTags = userTags.find(
+        (tag) => tag.name === filteredTag.name
+      );
+      return tagFromAllTags;
+    });
     const variables = {
       cardId: card._id,
-      tags: filteredTags,
-      tagImageId: randomIcon,
+      tags: mappedFilteredTags,
     };
 
     dispatch(saveExistingNoteTags(variables));
@@ -284,16 +322,29 @@ export default function SlateEditor(props) {
     const { data } = await getCards();
     const cards = data.cards;
 
-    const allTags = cards.reduce((prev, card) => {
-      const tagNames = card.tags
-        .map((tag) => tag.name)
-        .filter((tagname) => !prev.includes(tagname));
-      return prev.concat(tagNames);
-    }, []);
-    console.log(`allTags`, allTags);
+    const allTags = cards
+      .reduce((prev, card) => {
+        return prev.concat(card.tags);
+      }, [])
+      .reduce((prev, tag) => {
+        if (!prev.map((obj) => obj.name).includes(tag.name)) {
+          return prev.concat(tag);
+        }
+        return prev;
+      }, []);
     setUserTags(allTags);
     return;
   }
+
+  ////////////////////
+  async function getIconsFromDB() {
+    const { data } = await axios.get("/api/external/fetchIconsInDb");
+    console.log(`fetchedIcons`, data.doc.icons);
+    setFetchedIcons(data.doc.icons);
+    return;
+  }
+
+  ///////////////////////
 
   return (
     <Slate
@@ -309,17 +360,19 @@ export default function SlateEditor(props) {
           const before = wordBefore && Editor.before(editor, wordBefore);
           const beforeRange = before && Editor.range(editor, before, start);
           const beforeText = beforeRange && Editor.string(editor, beforeRange);
-          const beforeMatch = beforeText && beforeText.match(/^@(\w+)$/);
+          const beforeMatch =
+            beforeText &&
+            beforeText.match(/^@([a-zA-Z0-9_*\u0590-\u05fe\u200f\u200e]+)$/);
           const after = Editor.after(editor, start);
           const afterRange = Editor.range(editor, start, after);
           const afterText = Editor.string(editor, afterRange);
           const afterMatch = afterText.match(/^(\s|$)/);
-
           if (beforeMatch && afterMatch) {
             setTarget(beforeRange);
             setSearch(beforeMatch[1]);
             setIndex(0);
             getCardTagNamesFromServer();
+
             return;
           }
         }
@@ -327,10 +380,12 @@ export default function SlateEditor(props) {
         setTarget(null);
       }}
     >
-      <EditorToolbar></EditorToolbar>
+      {props.isMenuShown && <EditorMainToolbar></EditorMainToolbar>}
+      {/* <EditorHoverToolbar></EditorHoverToolbar> */}
       <Editable
         renderElement={renderElement}
         renderLeaf={renderLeaf}
+        readOnly={props.isReadOnly}
         placeholder="Enter some text..."
         onBlur={(e) => saveNote()}
         onDOMBeforeInput={(event) => {
@@ -366,16 +421,20 @@ export default function SlateEditor(props) {
             }}
           >
             {chars.length > 0 ? (
-              chars.map((char, i) => (
+              chars.map((tag, i) => (
                 <div
-                  key={char}
+                  key={tag.name}
+                  onClick={() => {
+                    console.log(`tag.name`, tag.name);
+                  }}
                   style={{
                     padding: "1px 3px",
                     borderRadius: "3px",
                     background: i === index ? "#B4D5FF" : "transparent",
                   }}
                 >
-                  {char}
+                  {tag.name}
+                  {/* <Button>{tag.name}</Button> */}
                 </div>
               ))
             ) : (
@@ -412,269 +471,3 @@ const Leaf = ({ attributes, children, leaf }) => {
   }
   return <span {...attributes}>{children}</span>;
 };
-
-//MY ELEMENTS --------------
-const CodeElement = (props) => {
-  return (
-    <pre {...props.attributes}>
-      <code>{props.children}</code>
-    </pre>
-  );
-};
-
-const DefaultElement = (props) => {
-  return <p {...props.attributes}>{props.children}</p>;
-};
-
-const Image = ({ attributes, children, element }) => {
-  const selected = useSelected();
-  const focused = useFocused();
-  const [isModalVisible, setIsModalVisible] = useState(false);
-
-  const showModal = () => {
-    setIsModalVisible(true);
-  };
-
-  const handleOk = () => {
-    setIsModalVisible(false);
-  };
-
-  const handleCancel = () => {
-    setIsModalVisible(false);
-  };
-  return (
-    <div {...attributes}>
-      <div contentEditable={false} style={{ width: "200px" }}>
-        <img
-          src={element.url}
-          className={css`
-            display: block;
-            max-width: 100%;
-            max-height: 20em;
-            box-shadow: ${selected && focused ? "0 0 0 3px #B4D5FF" : "none"};
-          `}
-          onClick={showModal}
-        />
-        <Modal
-          title="Basic Modal"
-          visible={isModalVisible}
-          onOk={handleOk}
-          onCancel={handleCancel}
-        >
-          <p>Some contents...</p>
-          <img
-            src={element.url}
-            className={css`
-              display: block;
-              max-width: 100%;
-              max-height: 20em;
-              box-shadow: ${selected && focused ? "0 0 0 3px #B4D5FF" : "none"};
-            `}
-          />
-        </Modal>
-      </div>
-      {children}
-    </div>
-  );
-};
-
-const StepsList = ({ attributes, children, element }) => {
-  const editor = useSlateStatic();
-  return (
-    <div
-      {...attributes}
-      onClick={console.log(element)}
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      {children}
-    </div>
-  );
-};
-
-const StepNode = ({ attributes, children, element }) => {
-  return (
-    <div
-      {...attributes}
-      className={css`
-        background-color: "whitesmoke";
-        min-width: 30px;
-        min-height: 30px;
-        margin: auto 5px;
-        border: solid 1px lightblue;
-
-        &:hover {
-          background-color: lawngreen;
-        }
-      `}
-    >
-      {children}
-    </div>
-  );
-};
-
-const EditableVoid = ({ attributes, children, element }) => {
-  return (
-    // Need contentEditable=false or Firefox has issues with certain input types.
-    <div {...attributes} contentEditable={false}>
-      <div>
-        <NoteMentions />
-        <DownCircleOutlined />
-      </div>
-      {children}
-    </div>
-  );
-};
-
-const SelectorVoid = ({ attributes, children, element }) => {
-  const editor = useSlateStatic();
-
-  console.log(`editor.tags`, editor.tags);
-  const [tagValue, setTagValue] = useState(editor.tags);
-
-  async function fetchUserList(username) {
-    console.log("fetching user", username);
-    return fetch("https://randomuser.me/api/?results=5")
-      .then((response) => response.json())
-      .then((body) =>
-        body.results.map((user) => ({
-          label: `${user.name.first} ${user.name.last}`,
-          value: user.login.username,
-        }))
-      );
-  }
-  return (
-    <div {...attributes} contentEditable={false}>
-      <div
-        className={css`
-          display: flex;
-          justify-content: center;
-          align-items: center;
-        `}
-      >
-        <EditorSelector
-          mode="multiple"
-          tagvalue={tagValue}
-          tagRender={EditorTag}
-          placeholder="Select buddies"
-          fetchOptions={fetchUserList}
-          onChange={(newTagValue) => {
-            console.log(`newTagValue`, newTagValue);
-            setTagValue(newTagValue);
-            editor.onTagChange((prev) => {
-              return newTagValue;
-            });
-          }}
-          className={css`
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-width: 200px;
-          `}
-        />
-      </div>
-      {children}
-    </div>
-  );
-};
-
-const Mention = ({ attributes, children, element }) => {
-  const selected = useSelected();
-  const focused = useFocused();
-  const [isModalVisible, setIsModalVisible] = useState(false);
-
-  const showModal = () => {
-    setIsModalVisible(true);
-  };
-
-  const handleOk = () => {
-    setIsModalVisible(false);
-  };
-
-  const handleCancel = () => {
-    setIsModalVisible(false);
-  };
-  return (
-    <span
-      {...attributes}
-      contentEditable={false}
-      style={{
-        // padding: "1px 1px 2px",
-        margin: "0 1px",
-        verticalAlign: "baseline",
-        display: "inline-block",
-        borderRadius: "4px",
-        // backgroundColor: "#eee",
-        fontSize: "0.9em",
-        // boxShadow: selected && focused ? "0 0 0 2px #B4D5FF" : "none",
-      }}
-    >
-      <Button
-        default
-        style={{ padding: "3px 3px 2px" }}
-        type="dashed"
-        onClick={() => {
-          console.log("Button works");
-          showModal();
-        }}
-      >
-        {element.character}
-      </Button>
-
-      <Modal
-        title="Basic Modal"
-        visible={isModalVisible}
-        onOk={handleOk}
-        onCancel={handleCancel}
-      >
-        {element.character}
-      </Modal>
-      {children}
-    </span>
-  );
-};
-
-const getFlatIcon = async (iconName) => {
-  var headers = {
-    Accept: "application/json",
-    Authorization: "string",
-  };
-  console.log(`hi`);
-  const { data } = await axios
-    .get(`/api/external/getFlatIcon/${iconName}`)
-    .then((response) => {
-      if (!response) {
-        return getFlatIconToken();
-      }
-      return response.data;
-    });
-
-  console.log(`data`, data);
-  const iconArr = data.map((item) => {
-    const { images } = item;
-    const { svg, png } = images;
-    if (svg) {
-      return svg;
-    } else if (png) return png[128];
-  });
-};
-
-const getFlatIconToken = async () => {
-  console.log(`hi`);
-  const token = await axios
-    .post("/api/external/getFlatIconToken")
-    .then((response) => {
-      return response.data;
-    });
-  console.log(`bye`);
-  console.log(`token`, token);
-};
-
-// const renderIcons = icons
-//   ? icons.map((svg, index) => {
-//       return <img height="30px" width="30px" src={svg} key={index + svg[3]} />;
-//     })
-//   : null;

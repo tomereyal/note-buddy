@@ -33,7 +33,6 @@ router.post("/editNote", (req, res) => {
   const { cardId, editArr } = req.body;
   Card.findById(cardId, function (err, card) {
     if (err) return res.status(400).send(err);
-
     editArr.forEach(({ editType, editValue }) => {
       switch (editType) {
         default:
@@ -65,7 +64,6 @@ router.post("/saveNewNoteTags", (req, res) => {
       }
     });
     card.tags = existingTagsInCard.concat(tagsForCreation);
-
     card.save(function (err, updatedCard) {
       if (err) return res.json({ success: false, err });
       return res.status(200).json({ success: true, updatedCard });
@@ -73,37 +71,17 @@ router.post("/saveNewNoteTags", (req, res) => {
   });
 });
 router.post("/saveExistingNoteTags", (req, res) => {
-  const { cardId, tags, image } = req.body;
+  const { cardId, tags } = req.body;
   console.log(`1...`);
   Card.findById(cardId, function (err, card) {
     if (err) return res.json({ success: false, err });
-    const tagsToCopy = [];
-    const existingTagsInCard = card.tags.filter((tag) => {
-      return tags.includes(tag.name);
+
+    card.tags = tags;
+
+    card.save(function (err, updatedCard) {
+      if (err) return res.json({ success: false, err });
+      return res.status(200).json({ success: true, updatedCard });
     });
-    console.log(`2...`);
-    console.log(`card`, card);
-    const existingTagNames = card.tags.map(({ name }) => name);
-    console.log(`existingTagNames`, existingTagNames);
-
-    Card.find({ "card.tags": { $in: existingTagNames } }).exec(
-      err,
-      (cardsWithTags) => {
-        if (err) return res.status(400).json({ success: false, err });
-        console.log(`cardsWithTags`, cardsWithTags);
-      }
-    );
-    // tags.forEach((tag) => {
-    //   if (!existingTagsInCard.includes(tag)) {
-    //     tagsForCreation.push(new Tag({ name: tag, image: image }));
-    //   }
-    // });
-    // card.tags = existingTagsInCard.concat(tagsForCreation);
-
-    // card.save(function (err, updatedCard) {
-    //   if (err) return res.json({ success: false, err });
-    //   return res.status(200).json({ success: true, updatedCard });
-    // });
   });
 });
 module.exports = router;

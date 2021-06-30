@@ -18,18 +18,37 @@ export default function SearchPage() {
       async function fetchData() {
         const { data } = await getCards(); // maybe store the cards in redux state for faster loading?
         const cards = data.cards;
-        const allUserTags = cards.reduce((prev, card) => {
-          const tagNames = card.tags
-            .filter((tag) => !prev.includes(tag.name))
-            .map((tag) => {
-              return {
+        // const allUserTags = cards.reduce((prev, card) => {
+        //   const tagNames = card.tags
+        //     .filter((tag) => !prev.includes(tag.name))
+        //     .map((tag) => {
+        //       return {
+        //         label: tag.name,
+        //         value: tag.name,
+        //         fetchedtag: tag,
+        //       };
+        //     });
+        //   return prev.concat(tagNames);
+        // }, []);
+
+        const allUserTags = cards
+          .reduce((prev, card) => {
+            return prev.concat(card.tags);
+          }, [])
+          .reduce((prev, tag) => {
+            if (!prev.map((obj) => obj.name).includes(tag.name)) {
+              return prev.concat({
+                // ...tag,
+                name: tag.name,
                 label: tag.name,
                 value: tag.name,
-                fetchedtag: tag,
-              };
-            });
-          return prev.concat(tagNames);
-        }, []);
+                image: tag.image,
+                _id: tag._id,
+              });
+            }
+            return prev;
+          }, []);
+        // console.log(`allTags`, allTags);
         console.log(`allUserTags`, allUserTags);
         setAllTags(allUserTags);
       }
@@ -41,9 +60,9 @@ export default function SearchPage() {
         const tagsFromAllTags = selectedTagsValue.reduce(
           (prev, selectedTag) => {
             const foundTag = allTags.find(
-              (tag) => tag.fetchedtag.name == selectedTag.label
+              (tag) => tag.name == selectedTag.label
             );
-            return foundTag ? prev.concat(foundTag.fetchedtag) : prev;
+            return foundTag ? prev.concat(foundTag) : prev;
           },
           []
         );
@@ -133,6 +152,7 @@ export default function SearchPage() {
                               order={index}
                               key={card._id}
                               style={{ width: "100%" }}
+                              isReadOnly={true}
                             ></SlateEditor>
                           </Card>
                         </Col>

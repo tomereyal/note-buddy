@@ -24,6 +24,7 @@ export default function NoteCard(props) {
   const { postId, sectionId, listId, index } = props;
   const [card, setCard] = useState(props.card ? props.card : {});
   const [isShown, setIsShown] = useState(true);
+  const [isMenuShown, setIsMenuShown] = useState(false);
   const posts = useSelector((state) => state.posts);
   //removing the event listener when card unmounts..
 
@@ -114,6 +115,12 @@ export default function NoteCard(props) {
             bodyStyle={{ padding: "2px" }}
             style={{ width: "100%" }}
             hoverable={true}
+            onMouseEnter={() => {
+              setIsMenuShown(true);
+            }}
+            onMouseLeave={() => {
+              setIsMenuShown(false);
+            }}
           >
             <SlateEditor
               listCardCount={props.listCardCount}
@@ -124,6 +131,7 @@ export default function NoteCard(props) {
               order={index}
               key={card._id}
               style={{ width: "100%" }}
+              isMenuShown={isMenuShown}
             ></SlateEditor>
           </Card>
         </div>

@@ -43,7 +43,7 @@ function LandingPage() {
         console.log(`res`, res);
       })
       .then((response) => {
-        return response.data;
+        return response;
       });
 
     console.log(`allIcons`, allIcons);
