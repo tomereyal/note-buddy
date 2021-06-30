@@ -1,31 +1,85 @@
 import React, { useState, useEffect } from "react";
 import SelectorBar from "./Sections/SelectorBar";
 import TagContainer from "./Sections/TagContainer";
+import SlateEditor from "../../editor/SlateEditor";
 import { css } from "@emotion/css";
-import { getCards } from "../../../api";
+import { getCards, getTaggedCards } from "../../../api";
+import { Row, Col, Divider, Card } from "antd";
+import Avatar from "antd/lib/avatar/avatar";
 
 export default function SearchPage() {
-  const [tagValue, setTagValue] = useState();
+  const [selectedTagsValue, setSelectedTagsValue] = useState([]);
+  const [mappedSelectedTags, setMappedSelectedTags] = useState([]);
   const [allTags, setAllTags] = useState(null);
-  useEffect(() => {
-    async function fetchData() {
-      const { data } = await getCards();
-      const cards = data.cards;
-      const allUserTags = cards.reduce((prev, card) => {
-        const tagNames = card.tags
-          .filter((tag) => !prev.includes(tag.name))
-          .map((tag) => {
-            return { label: tag.name, value: tag.name };
-          });
-        return prev.concat(tagNames);
-      }, []);
-      console.log(`allUserTags`, allUserTags);
-      setAllTags(allUserTags);
-    }
-    fetchData();
-  }, []);
 
-  async function fetchTagList(search) {
+  console.log(`mappedSelectedTags`, mappedSelectedTags);
+  useEffect(() => {
+    if (!allTags) {
+      async function fetchData() {
+        const { data } = await getCards(); // maybe store the cards in redux state for faster loading?
+        const cards = data.cards;
+        // const allUserTags = cards.reduce((prev, card) => {
+        //   const tagNames = card.tags
+        //     .filter((tag) => !prev.includes(tag.name))
+        //     .map((tag) => {
+        //       return {
+        //         label: tag.name,
+        //         value: tag.name,
+        //         fetchedtag: tag,
+        //       };
+        //     });
+        //   return prev.concat(tagNames);
+        // }, []);
+
+        const allUserTags = cards
+          .reduce((prev, card) => {
+            return prev.concat(card.tags);
+          }, [])
+          .reduce((prev, tag) => {
+            if (!prev.map((obj) => obj.name).includes(tag.name)) {
+              return prev.concat({
+                // ...tag,
+                name: tag.name,
+                label: tag.name,
+                value: tag.name,
+                image: tag.image,
+                _id: tag._id,
+              });
+            }
+            return prev;
+          }, []);
+        // console.log(`allTags`, allTags);
+        console.log(`allUserTags`, allUserTags);
+        setAllTags(allUserTags);
+      }
+      fetchData();
+      return;
+    }
+    if (selectedTagsValue.length > 0) {
+      async function mapSelectedTags() {
+        const tagsFromAllTags = selectedTagsValue.reduce(
+          (prev, selectedTag) => {
+            const foundTag = allTags.find(
+              (tag) => tag.name == selectedTag.label
+            );
+            return foundTag ? prev.concat(foundTag) : prev;
+          },
+          []
+        );
+
+        const tagsWithCardsPromises = await tagsFromAllTags.map(async (tag) => {
+          const { data } = await getTaggedCards(tag.name);
+          return { ...tag, cards: data.cards };
+        });
+
+        const tagsWithCards = await Promise.all(tagsWithCardsPromises);
+        setMappedSelectedTags(tagsWithCards);
+      }
+      mapSelectedTags();
+    }
+  }, [selectedTagsValue]);
+
+  async function fetchTagListforSelector(search) {
     if (!allTags) return;
     if (allTags.length > 0) {
       return allTags
@@ -38,34 +92,85 @@ export default function SearchPage() {
   }
 
   return (
-    <div>
-      Search Page
-      <div
-        className={css`
-          display: flex;
-          justify-content: center;
-          align-items: center;
-        `}
-      >
+    <>
+      <Row justify="center" align="middle" style={{ padding: "14px 0" }}>
         <SelectorBar
           mode="multiple"
-          tagvalue={tagValue}
+          tagvalue={selectedTagsValue}
           tagRender={TagContainer}
           placeholder="Select buddies"
-          fetchOptions={fetchTagList}
-          onChange={(newTagValue) => {
-            console.log(`newTagValue`, newTagValue);
-            setTagValue(newTagValue);
+          fetchOptions={fetchTagListforSelector}
+          onChange={(currentSelectedTags) => {
+            setSelectedTagsValue(currentSelectedTags);
           }}
           className={css`
             min-width: 200px;
           `}
         />
-      </div>
-      <div>Monster images</div>
-      <div>sections in common</div>
-      <div>lists in common</div>
-      <div>cards in common </div>
-    </div>
+      </Row>
+      {selectedTagsValue.length > 0 ? (
+        <>
+          {mappedSelectedTags.map((tag) => {
+            console.log(`tag`, tag);
+            return (
+              <div key={tag._id}>
+                <Divider> Monsters' image </Divider>
+                <Row justify="center" align="middle">
+                  <Col key={tag._id}>
+                    <div>{tag.name}</div>
+                    <Avatar src={tag.image}></Avatar>
+                  </Col>
+                </Row>
+                <Divider> Section Links </Divider>
+                <Row justify="center" align="middle">
+                  sections in common
+                </Row>
+                <Divider> List Links </Divider>
+                <Row justify="center" align="middle">
+                  lists in common
+                </Row>
+                <Divider> Cards </Divider>
+                <Row justify="center" align="middle">
+                  {tag.cards &&
+                    tag.cards.map((card, index, cards) => {
+                      const { post, section, list, _id } = card.location;
+
+                      return (
+                        <Col key={card._id}>
+                          {" "}
+                          <Card
+                            bodyStyle={{ padding: "2px" }}
+                            style={{ width: "100%" }}
+                            hoverable={true}
+                          >
+                            <SlateEditor
+                              listCardCount={cards.length}
+                              card={card}
+                              listId={list}
+                              sectionId={section}
+                              postId={post}
+                              order={index}
+                              key={card._id}
+                              style={{ width: "100%" }}
+                              isReadOnly={true}
+                            ></SlateEditor>
+                          </Card>
+                        </Col>
+                      );
+                    })}
+                </Row>
+              </div>
+            );
+          })}
+        </>
+      ) : (
+        <>
+          <Divider> Monsters' image </Divider>
+          <Divider> Section Links </Divider>
+          <Divider> List Links </Divider>
+          <Divider> Cards </Divider>
+        </>
+      )}
+    </>
   );
 }

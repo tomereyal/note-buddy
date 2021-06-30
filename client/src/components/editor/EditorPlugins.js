@@ -14,6 +14,8 @@ import {
 import imageExtensions from "image-extensions";
 import isUrl from "is-url";
 
+const LIST_TYPES = ["numbered-list", "bulleted-list"];
+
 export const EditorPlugins = {
   toggleFormat(editor, format) {
     const isActive = EditorPlugins.isFormatActive(editor, format);
@@ -30,15 +32,66 @@ export const EditorPlugins = {
     });
     return !!match;
   },
-  isBoldMarkActive(editor) {
+  paintBlock(editor, backgroundColor) {
+    console.log(`paintBlock`, backgroundColor);
+    // const newProperties = {
+    //   backgroundColor: EditorPlugins.isBlockPainted()
+    //     ? "white"
+    //     : backgroundColor,
+    // };
+    const newProperties = { backgroundColor: backgroundColor };
+    console.log(`editor`, editor);
+    console.log(`newProperties`, newProperties);
+    Transforms.setNodes(editor, newProperties);
+  },
+  // isBlockPainted(editor, backgroundColor) {
+  //   const [match] = Editor.nodes(editor, {
+  //     match: (n) => {
+  //       console.log(`n of iseblockpainted`, n);
+  //       return (
+  //         !Editor.isEditor(n) &&
+  //         SlateElement.isElement(n) &&
+  //         n.type &&
+  //         n.backgroundColor === backgroundColor
+  //       );
+  //     },
+  //   });
+  //   console.log(`!!match`, !!match);
+  //   return !!match;
+  // },
+
+  toggleBlock(editor, format) {
+    const isActive = EditorPlugins.isBlockActive(editor, format);
+    const isList = LIST_TYPES.includes(format);
+
+    Transforms.unwrapNodes(editor, {
+      match: (n) =>
+        LIST_TYPES.includes(
+          !Editor.isEditor(n) && SlateElement.isElement(n) && n.type
+        ),
+      split: true,
+    });
+    const newProperties = {
+      type: isActive ? "paragraph" : isList ? "list-item" : format,
+    };
+    Transforms.setNodes(editor, newProperties);
+
+    if (!isActive && isList) {
+      const block = { type: format, children: [] };
+      Transforms.wrapNodes(editor, block);
+    }
+  },
+  isBlockActive(editor, format) {
     const [match] = Editor.nodes(editor, {
-      match: (n) => n.bold === true,
-      universal: true,
+      match: (n) => {
+        return (
+          !Editor.isEditor(n) && SlateElement.isElement(n) && n.type === format
+        );
+      },
     });
 
     return !!match;
   },
-
   isCodeBlockActive(editor) {
     const [match] = Editor.nodes(editor, {
       match: (n) => n.type === "code",
@@ -128,10 +181,11 @@ export const EditorPlugins = {
     }
     return nodeArr;
   },
-  insertMention(editor, character) {
+  insertMention(editor, character, image) {
     const mention = {
       type: "mention",
       character,
+      image,
       children: [{ text: "" }],
     };
     Transforms.insertNodes(editor, mention);

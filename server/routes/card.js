@@ -12,9 +12,17 @@ router.get("/fetchCards", (req, res) => {
     res.status(200).json({ success: true, cards });
   });
 });
-router.get("/fetchCardTags", (req, res) => {
-  Card.find().exec((err, cards) => {
+// router.get("/fetchCardTags", (req, res) => {
+//   Card.find().exec((err, cards) => {
+//     if (err) return res.status(400).send(err);
+//     res.status(200).json({ success: true, cards });
+//   });
+// });
+router.get("/fetchTaggedCards/:tagName", (req, res) => {
+  const tagName = req.params.tagName;
+  Card.find({ "tags.name": tagName }).exec((err, cards) => {
     if (err) return res.status(400).send(err);
+    console.log(`cards`, cards);
     res.status(200).json({ success: true, cards });
   });
 });
@@ -25,7 +33,6 @@ router.post("/editNote", (req, res) => {
   const { cardId, editArr } = req.body;
   Card.findById(cardId, function (err, card) {
     if (err) return res.status(400).send(err);
-
     editArr.forEach(({ editType, editValue }) => {
       switch (editType) {
         default:
@@ -41,13 +48,13 @@ router.post("/editNote", (req, res) => {
   });
 });
 
-router.post("/saveNoteTags", (req, res) => {
-  const { cardId, tags } = req.body;
+router.post("/saveNewNoteTags", (req, res) => {
+  const { cardId, tags, image } = req.body;
 
   Card.findById(cardId, function (err, card) {
     if (err) return res.json({ success: false, err });
     const tagsForCreation = [];
-    const exisitingTags = card.tags.filter((tag) => {
+    const existingTagsInCard = card.tags.filter((tag) => {
       return tags.includes(tag.name);
     });
     const exisitingTagNames = card.tags.map(({ name }) => name);
@@ -58,11 +65,20 @@ router.post("/saveNoteTags", (req, res) => {
         tagsForCreation.push(new Tag({ name: tag }));
       }
     });
-    console.log(
-      `exisitingTagNames.concat(tagsForCreation)`,
-      exisitingTags.concat(tagsForCreation)
-    );
-    card.tags = exisitingTags.concat(tagsForCreation);
+    card.tags = existingTagsInCard.concat(tagsForCreation);
+    card.save(function (err, updatedCard) {
+      if (err) return res.json({ success: false, err });
+      return res.status(200).json({ success: true, updatedCard });
+    });
+  });
+});
+router.post("/saveExistingNoteTags", (req, res) => {
+  const { cardId, tags } = req.body;
+  console.log(`1...`);
+  Card.findById(cardId, function (err, card) {
+    if (err) return res.json({ success: false, err });
+
+    card.tags = tags;
 
     card.save(function (err, updatedCard) {
       if (err) return res.json({ success: false, err });

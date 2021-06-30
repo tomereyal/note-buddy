@@ -10,7 +10,18 @@ function LandingPage() {
   const dispatch = useDispatch();
   const state = useSelector((state) => state);
   const user = useSelector((state) => state.user);
-  const [icons, setIcons] = useState(null);
+  const [icons, setIcons] = useState([]);
+  const [allIcons, setAllIcons] = useState([]);
+  const [iconsInDB, setIconsInDB] = useState();
+  useEffect(() => {
+    async function getIconsInDB() {
+      const { data } = await axios.get("/api/external/fetchIconsInDb");
+      const fetchedIcons = data.doc.icons;
+      console.log(`fetchedIcons`, fetchedIcons);
+      setIconsInDB(fetchedIcons);
+    }
+    getIconsInDB();
+  }, []);
 
   const getFlatIcon = async (iconName) => {
     var headers = {
@@ -19,23 +30,50 @@ function LandingPage() {
     };
     console.log(`hi`);
     const { data } = await axios
-      .get(`/api/external/getFlatIcon/${iconName}`)
+      .get(`/api/external/getFlatIcon/q=${iconName}&page=10`)
       .then((response) => {
         if (!response) {
-          return getFlatIconToken();
+          throw new Error("Oh no!");
         }
+        console.log(`if no response will i be reached? `);
         return response.data;
+      })
+      .catch(async (error) => {
+        const res = await getFlatIconToken();
+        console.log(`res`, res);
+      })
+      .then((response) => {
+        return response;
       });
 
-    console.log(`data`, data);
-    const iconArr = data.map((item) => {
-      const { images } = item;
+    console.log(`allIcons`, allIcons);
+
+    const fullIconArr = data.reduce((prev, item) => {
+      const { images, id, style_name } = item;
       const { svg, png } = images;
-      if (svg) {
-        return svg;
-      } else if (png) return png[128];
+      if (svg && style_name === "Flat") {
+        return prev.concat([{ svg, id }]);
+      }
+      return prev;
+    }, []);
+
+    const flatIconsIdArr = fullIconArr.map((icon) => icon.id);
+    const storedIcons = iconsInDB.length > 0 ? iconsInDB : [];
+    const filteredAllIcons =
+      allIcons.length > 0
+        ? allIcons.filter((myIcon) => {
+            return !flatIconsIdArr.includes(myIcon.id);
+          })
+        : [];
+
+    console.log(`allIcons`, allIcons);
+
+    setAllIcons(filteredAllIcons.concat(fullIconArr));
+
+    const iconArr = fullIconArr.map((icon) => icon.svg);
+    setIcons((prev) => {
+      return filteredAllIcons.concat(fullIconArr).map((icon) => icon.svg);
     });
-    setIcons(iconArr);
   };
 
   const getFlatIconToken = async () => {
@@ -84,7 +122,17 @@ function LandingPage() {
         >
           Click to get animal icons
         </p>
-
+        <Button
+          onClick={async () => {
+            console.log(`allIcons`, allIcons);
+            const data = await axios.post("/api/external/saveIcons", {
+              allIcons,
+            });
+            console.log(`data`, data);
+          }}
+        >
+          save icons to db
+        </Button>
         {icons ? (
           <div
             style={{

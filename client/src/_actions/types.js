@@ -35,7 +35,8 @@ export const UPDATE_CARD_IN_POST = "UPDATE_CARD_IN_POST";
 export const GET_CARDS = "GET_CARDS";
 export const GET_CARD_TAGS = "GET_CARD_TAGS";
 export const EDIT_NOTE = "EDIT_NOTE";
-export const SAVE_NOTE_TAGS = "SAVE_NOTE_TAGS";
+export const SAVE_NEW_NOTE_TAGS = "SAVE_NEW_NOTE_TAGS";
+export const SAVE_EXISTING_NOTE_TAGS = "SAVE_EXISTING_NOTE_TAGS";
 //-----------------------------------------
 
 //=========================================
