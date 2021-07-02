@@ -1,23 +1,32 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import ReactDOM from "react-dom";
 import { ReactEditor, useSlate } from "slate-react";
 import { Editor } from "slate";
 import { css, cx } from "@emotion/css";
-import { EditorPlugins } from "../EditorPlugins";
+import { EditorPlugins } from "../../EditorPlugins";
 import {
   BoldOutlined,
   BorderOutlined,
+  BgColorsOutlined,
+  CloseCircleOutlined,
   FontSizeOutlined,
+  FontColorsOutlined,
   ItalicOutlined,
   OrderedListOutlined,
   UnderlineOutlined,
   UnorderedListOutlined,
 } from "@ant-design/icons";
+// import ColorPicker from "./Sections/ColorPicker";
+import { Popover, Button as AntdButton } from "antd";
+
+import { GithubPicker } from "react-color";
 
 // import { Range } from "slate";
 export default function EditorMainToolbar() {
   const ref = useRef();
+
   //   const editor = useSlate();
+
   return (
     <Menu
       ref={ref}
@@ -46,7 +55,7 @@ export default function EditorMainToolbar() {
       <BlockButton format="block-quote" icon='" "' />
       <BlockButton format="numbered-list" icon={<OrderedListOutlined />} />
       <BlockButton format="bulleted-list" icon={<UnorderedListOutlined />} />
-      <PaintBlockButton backgroundColor="gold" icon={<BorderOutlined />} />
+      <PaintBlockButton icon={<BgColorsOutlined />} />
     </Menu>
   );
 }
@@ -83,17 +92,78 @@ const BlockButton = ({ format, icon }) => {
 };
 const PaintBlockButton = ({ backgroundColor, icon }) => {
   const editor = useSlate();
+  const [color, setColor] = useState("");
+  const colors = [
+    "#B80000",
+    "#DB3E00",
+    "#FCCB00",
+    "#008B02",
+    "#006B76",
+    "#1273DE",
+    "#004DCF",
+    "#5300EB",
+    "#EB9694",
+    "#FAD0C3",
+    "#FEF3BD",
+    "#C1E1C5",
+    "#BEDADC",
+    "#C4DEF6",
+    "#BED3F3",
+    "#D4C4FB",
+  ];
+  const renderColorPicker = () => {
+    return (
+      <div style={{ display: "flex" }}>
+        <div>
+          <GithubPicker
+            width="216px"
+            triangle={"hide"}
+            colors={colors}
+            //   color={background}
+            onChangeComplete={(color) => {
+              EditorPlugins.paintBlock(editor, color.hex);
+              setColor(color.hex);
+            }}
+          ></GithubPicker>{" "}
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-around",
+          }}
+        >
+          <AntdButton icon={<BorderOutlined />}> </AntdButton>
+          <AntdButton icon={<FontColorsOutlined />}> </AntdButton>
+          <AntdButton
+            icon={<CloseCircleOutlined />}
+            onClick={() => {
+              EditorPlugins.paintBlock(editor, "#FFFFFF");
+              setColor("#FFFFFF");
+            }}
+          >
+            {" "}
+          </AntdButton>
+        </div>
+      </div>
+    );
+  };
   return (
     <Button
       reversed
-      //   active={EditorPlugins.isBlockPainted(editor, backgroundColor)}
+      active={EditorPlugins.isBlockPainted(editor, color)}
       onMouseDown={(event) => {
         event.preventDefault();
-        console.log(`backgroundColor`, backgroundColor);
-        EditorPlugins.paintBlock(editor, backgroundColor);
       }}
     >
-      <Icon>{icon}</Icon>
+      <Popover
+        style={{ padding: 0 }}
+        content={renderColorPicker()}
+        trigger="hover"
+      >
+        <Icon>{icon}</Icon>
+      </Popover>{" "}
     </Button>
   );
 };

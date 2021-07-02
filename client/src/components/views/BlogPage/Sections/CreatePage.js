@@ -2,15 +2,22 @@ import React, { useState } from "react";
 import { Typography, Button, Form, message } from "antd";
 import axios from "axios";
 import { useSelector } from "react-redux";
-import QuillEditor from "../../../editor/QuillEditor";
-
+import MathJax from "react-mathjax-preview";
+const Latex = require("react-latex");
+// import QuillEditor from "../../../editor/QuillEditor";
 const { Title } = Typography;
+const mathTex = String.raw`
 
+
+  $$\lim_{x \to \infty} \exp(-x) = 0$$
+
+`;
 export default function CreatePage(props) {
   const user = useSelector((state) => state.user);
   const [content, setContent] = useState("");
   const [files, setFiles] = useState([]);
   const someId = "1";
+  const [math, setMath] = useState(mathTex);
   const onSubmit = (event) => {
     event.preventDefault();
 
@@ -44,18 +51,21 @@ export default function CreatePage(props) {
     console.log("files changed");
     // setFiles(files);
   };
-
+  const expression = `       When $a \ne 0$, there are two solutions to (ax^2 + bx + c = 0) and they are`;
+  const secondExpression = String.raw` $x = \frac{-b \pm \sqrt{b^2-4ac}}{2a}.$`;
   return (
     <div>
       <div style={{ maxWidth: "700px", margin: "2rem auto" }}>
         <div style={{ textAlign: "center" }}>
           <Title level={2}>Note</Title>
-          <QuillEditor
+          {/* <QuillEditor
             placeholder={"Start Posting Something"}
             onEditorChange={onEditorChange}
             onFilesChange={onFilesChange}
             toolbarId={"toolbar" + someId}
-          ></QuillEditor>
+          ></QuillEditor> */}
+          <p>{secondExpression}</p>
+          <Latex>{secondExpression}</Latex>
           <Form onSubmit={onSubmit}>
             <div style={{ textAlign: "center", margin: "2rem" }}>
               <Button

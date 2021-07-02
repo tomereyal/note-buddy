@@ -60,9 +60,7 @@ router.post("/saveNewNoteTags", (req, res) => {
     const exisitingTagNames = card.tags.map(({ name }) => name);
     tags.forEach((tag) => {
       if (!exisitingTagNames.includes(tag)) {
-        const icon = getFlatIcon("monster");
-        console.log(`icon`, icon);
-        tagsForCreation.push(new Tag({ name: tag }));
+        tagsForCreation.push(new Tag({ name: tag, image }));
       }
     });
     card.tags = existingTagsInCard.concat(tagsForCreation);

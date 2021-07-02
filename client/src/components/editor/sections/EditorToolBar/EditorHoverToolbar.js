@@ -3,7 +3,7 @@ import ReactDOM from "react-dom";
 import { ReactEditor, useSlate } from "slate-react";
 import { Editor } from "slate";
 import { css, cx } from "@emotion/css";
-import { EditorPlugins } from "../EditorPlugins";
+import { EditorPlugins } from "../../EditorPlugins";
 import {
   BoldOutlined,
   FontSizeOutlined,

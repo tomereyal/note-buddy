@@ -29,8 +29,10 @@ import { css } from "@emotion/css";
 //---------ANTD-COMPONENTS-IMPORTS----------------------//
 import { DownCircleOutlined } from "@ant-design/icons";
 //---------MY-COMPONENTS-IMPORTS------------------------//
-import EditorHoverToolbar, { Portal } from "./sections/EditorHoverToolbar";
-import EditorMainToolbar from "./sections/EditorMainToolBar";
+import EditorHoverToolbar, {
+  Portal,
+} from "./sections/EditorToolBar/EditorHoverToolbar";
+import EditorMainToolbar from "./sections/EditorToolBar/EditorMainToolBar";
 // import NoteMentions from "./sections/NoteMentions";
 // import EditorSelector from "./sections/EditorSelector";
 // import EditorTag from "./sections/EditorTag";
@@ -57,25 +59,34 @@ import {
   StepsList,
   StepNode,
   EditableVoid,
+  MathBlock,
 } from "./sections/EditorElements";
 //-----------------------------------------------------//
 
 export default function SlateEditor(props) {
   const { card, listId, sectionId, postId, order } = props;
-  const defaultBgc = "white";
+  const defaultBgc = "#FFFFFF";
   let initContent =
     card.content && card.content.length > 0
       ? card.content
       : [
           {
-            type: "paragraph",
+            type: "math-block",
             backgroundColor: defaultBgc,
-            children: [{ text: "A line of text in a paragraph." }],
+            math: `$$ \lim_{x \to \infty} \exp(-x) = 0$$`,
+            children: [{ text: "" }],
           },
         ];
 
-  const { withMentions, withImages, withSteps, withEditableVoids, getNodes } =
-    EditorPlugins;
+  const {
+    withMentions,
+    withImages,
+    withSteps,
+    withEditableVoids,
+    getNodes,
+    withTitledCardLayout,
+    withMathBlock,
+  } = EditorPlugins;
   const ref = useRef();
   const [value, setValue] = useState(initContent);
   const writersTags = useSelector((state) => card.tags);
@@ -84,18 +95,22 @@ export default function SlateEditor(props) {
   const [target, setTarget] = useState();
   const [index, setIndex] = useState(0);
   const [search, setSearch] = useState("");
-
   const dispatch = useDispatch();
+  const withCustomLayout = withTitledCardLayout; //make a switch case, switch(props.cardType)
   const editor = useMemo(
     () =>
-      withEditableVoids(
-        withMentions(
-          withSteps(withImages(withHistory(withReact(createEditor()))))
+      withMathBlock(
+        // withCustomLayout(
+        withEditableVoids(
+          withMentions(
+            withSteps(withImages(withHistory(withReact(createEditor()))))
+          )
         )
+        // )
       ),
     []
   );
-
+  console.log(`value`, value);
   const chars =
     userTags && userTags.length > 0
       ? userTags
@@ -104,7 +119,6 @@ export default function SlateEditor(props) {
           )
           .slice(0, 10)
       : [];
-  console.log(`chars`, chars);
 
   useEffect(() => {
     if (target && chars.length > 0) {
@@ -143,6 +157,8 @@ export default function SlateEditor(props) {
         return <NumberList {...props} />;
       case "list-item":
         return <ListItem {...props} />;
+      case "math-block":
+        return <MathBlock {...props} />;
       default:
         return <DefaultElement {...props} />;
     }
@@ -161,6 +177,10 @@ export default function SlateEditor(props) {
       console.log(`search`, search);
       if (event.key === "@") {
         getIconsFromDB();
+        // const expression = String.raw` \lim_{x \to \infty} \exp(-x) = 0`;
+        // const math = `$$ \lim_{x \to \infty} \exp(-x) = 0$$`;
+
+        // EditorPlugins.insertMathBlock(math);
       }
       if (target) {
         switch (event.key) {
@@ -387,6 +407,7 @@ export default function SlateEditor(props) {
         renderLeaf={renderLeaf}
         readOnly={props.isReadOnly}
         placeholder="Enter some text..."
+        spellCheck
         onBlur={(e) => saveNote()}
         onDOMBeforeInput={(event) => {
           //Make sure you place the event.preventDefault() inside each case,

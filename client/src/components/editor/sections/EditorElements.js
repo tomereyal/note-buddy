@@ -5,16 +5,16 @@ import { useSelected, useFocused, useSlateStatic } from "slate-react";
 
 import { css } from "@emotion/css";
 //------THIRD-PARTY-COMPONENTS-------------------------//
-
+import Latex from "react-latex";
+import MathJax from "react-mathjax-preview";
 import { Button, Modal } from "antd";
 //----------------------------------------------------//
 const defaultBgc = "white";
 export const DefaultElement = ({ attributes, children, element }) => {
-  console.log(`element`, element);
   const bcg = element.backgroundColor ? element.backgroundColor : defaultBgc;
 
   return (
-    <p {...attributes} style={{ backgroundColor: bcg }}>
+    <p {...attributes} style={{ backgroundColor: bcg, margin: 0 }}>
       {children}
     </p>
   );
@@ -28,27 +28,100 @@ export const CodeElement = ({ attributes, children, element }) => {
     </pre>
   );
 };
+// export const MathBlock = ({ attributes, children, element }) => {
+//   const bcg = element.backgroundColor ? element.backgroundColor : defaultBgc;
+//   console.log(`children`, children);
+//   return (
+//     <MathJax
+//       // math={`  $$\lim_{x \to \infty} \exp(-x) = 0$$`}
+//       math={children[0].props.text.text}
+//       // style={{ backgroundColor: bcg }}
+//       {...attributes}
+//     >
+//       {" "}
+//       {children}
+//     </MathJax>
+//   );
+// };
+export const MathBlock = ({ attributes, children, element }) => {
+  const bcg = element.backgroundColor ? element.backgroundColor : defaultBgc;
+  const math = element.math;
+  console.log(`children`, children);
+
+  return (
+    <span
+      {...attributes}
+      contentEditable={false}
+      style={{
+        // padding: "1px 1px 2px",
+        margin: "0 1px",
+        verticalAlign: "baseline",
+        display: "inline-block",
+        borderRadius: "4px",
+        // backgroundColor: "#eee",
+        fontSize: "0.9em",
+        // boxShadow: selected && focused ? "0 0 0 2px #B4D5FF" : "none",
+      }}
+    >
+      {" "}
+      <MathJax math={math}></MathJax>
+      {children}
+    </span>
+  );
+};
 export const QuoteBlock = ({ attributes, children, element }) => {
-  return <blockquote {...attributes}>{children}</blockquote>;
+  const bcg = element.backgroundColor ? element.backgroundColor : defaultBgc;
+  return (
+    <blockquote {...attributes} style={{ backgroundColor: bcg }}>
+      {children}
+    </blockquote>
+  );
 };
 export const H1Block = ({ attributes, children, element }) => {
+  const bcg = element.backgroundColor ? element.backgroundColor : defaultBgc;
   return (
-    <h1 style={{ backgroundColor: "gold" }} {...attributes}>
+    <h1
+      style={{ backgroundColor: bcg, margin: 0, paddingBottom: "3px" }}
+      {...attributes}
+    >
       {children}
     </h1>
   );
 };
 export const H2Block = ({ attributes, children, element }) => {
-  return <h2 {...attributes}>{children}</h2>;
+  const bcg = element.backgroundColor ? element.backgroundColor : defaultBgc;
+  return (
+    <h2
+      style={{ backgroundColor: bcg, margin: 0, paddingBottom: "3px" }}
+      {...attributes}
+    >
+      {children}
+    </h2>
+  );
 };
 export const BulletList = ({ attributes, children, element }) => {
-  return <ul {...attributes}>{children}</ul>;
+  const bcg = element.backgroundColor ? element.backgroundColor : defaultBgc;
+  return (
+    <ul style={{ backgroundColor: bcg }} {...attributes}>
+      {children}
+    </ul>
+  );
 };
 export const NumberList = ({ attributes, children, element }) => {
-  return <ol {...attributes}>{children}</ol>;
+  const bcg = element.backgroundColor ? element.backgroundColor : defaultBgc;
+  return (
+    <ol style={{ backgroundColor: bcg }} {...attributes}>
+      {children}
+    </ol>
+  );
 };
 export const ListItem = ({ attributes, children, element }) => {
-  return <li {...attributes}>{children}</li>;
+  const bcg = element.backgroundColor ? element.backgroundColor : defaultBgc;
+  return (
+    <li style={{ backgroundColor: bcg }} {...attributes}>
+      {children}
+    </li>
+  );
 };
 
 export const Image = ({ attributes, children, element }) => {
@@ -87,6 +160,7 @@ export const Image = ({ attributes, children, element }) => {
           onCancel={handleCancel}
         >
           <p>Some contents...</p>
+
           <img
             src={element.url}
             className={css`

@@ -17,6 +17,43 @@ import isUrl from "is-url";
 const LIST_TYPES = ["numbered-list", "bulleted-list"];
 
 export const EditorPlugins = {
+  withTitledCardLayout(editor) {
+    const { normalizeNode } = editor;
+
+    editor.normalizeNode = ([node, path]) => {
+      if (path.length === 0) {
+        if (editor.children.length < 1) {
+          const title = {
+            type: "heading-two",
+            children: [{ text: "Untitled" }],
+          };
+          Transforms.insertNodes(editor, title, { at: path.concat(0) });
+        }
+
+        if (editor.children.length < 2) {
+          const paragraph = {
+            type: "paragraph",
+            children: [{ text: "" }],
+          };
+          Transforms.insertNodes(editor, paragraph, { at: path.concat(1) });
+        }
+
+        for (const [child, childPath] of Node.children(editor, path)) {
+          const type = childPath[0] === 0 ? "heading-two" : "paragraph";
+
+          if (SlateElement.isElement(child) && child.type !== type) {
+            const newProperties = { type };
+            Transforms.setNodes(editor, newProperties, { at: childPath });
+          }
+        }
+      }
+
+      return normalizeNode([node, path]);
+    };
+
+    return editor;
+  },
+
   toggleFormat(editor, format) {
     const isActive = EditorPlugins.isFormatActive(editor, format);
     Transforms.setNodes(
@@ -34,31 +71,29 @@ export const EditorPlugins = {
   },
   paintBlock(editor, backgroundColor) {
     console.log(`paintBlock`, backgroundColor);
-    // const newProperties = {
-    //   backgroundColor: EditorPlugins.isBlockPainted()
-    //     ? "white"
-    //     : backgroundColor,
-    // };
-    const newProperties = { backgroundColor: backgroundColor };
+    const newProperties = {
+      backgroundColor: EditorPlugins.isBlockPainted(editor, backgroundColor)
+        ? "white"
+        : backgroundColor,
+    };
+    // const newProperties = { backgroundColor: backgroundColor };
     console.log(`editor`, editor);
     console.log(`newProperties`, newProperties);
     Transforms.setNodes(editor, newProperties);
   },
-  // isBlockPainted(editor, backgroundColor) {
-  //   const [match] = Editor.nodes(editor, {
-  //     match: (n) => {
-  //       console.log(`n of iseblockpainted`, n);
-  //       return (
-  //         !Editor.isEditor(n) &&
-  //         SlateElement.isElement(n) &&
-  //         n.type &&
-  //         n.backgroundColor === backgroundColor
-  //       );
-  //     },
-  //   });
-  //   console.log(`!!match`, !!match);
-  //   return !!match;
-  // },
+  isBlockPainted(editor, backgroundColor) {
+    const [match] = Editor.nodes(editor, {
+      match: (n) => {
+        return (
+          !Editor.isEditor(n) &&
+          SlateElement.isElement(n) &&
+          n.backgroundColor === backgroundColor
+        );
+      },
+    });
+    console.log(`!!match`, !!match);
+    return !!match;
+  },
 
   toggleBlock(editor, format) {
     const isActive = EditorPlugins.isBlockActive(editor, format);
@@ -259,8 +294,29 @@ export const EditorPlugins = {
     return editor;
   },
 
-  // Comment below: #Schema-specific instance methods to override
+  withMathBlock(editor) {
+    const { isInline, isVoid } = editor;
 
+    editor.isInline = (element) => {
+      return element.type === "math-block" ? true : isInline(element);
+    };
+
+    editor.isVoid = (element) => {
+      return element.type === "math-block" ? true : isVoid(element);
+    };
+
+    return editor;
+  },
+  insertMathBlock(editor, math) {
+    const mathBlock = {
+      type: "math-block",
+      math: math,
+      children: [{ text: "" }],
+    };
+    Transforms.insertNodes(editor, mathBlock);
+    // Transforms.move(editor);
+  },
+  // Comment below: #Schema-specific instance methods to override
   withEditableVoids(editor) {
     const { isVoid } = editor;
 

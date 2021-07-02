@@ -63,7 +63,7 @@ export default function ColorMenu(props) {
             dispatch(setSectionPattern(variables));
           }}
         >
-          s
+          
         </Button>
       </div>
     );
