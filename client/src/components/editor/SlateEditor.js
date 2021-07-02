@@ -66,15 +66,26 @@ import {
 export default function SlateEditor(props) {
   const { card, listId, sectionId, postId, order } = props;
   const defaultBgc = "#FFFFFF";
+  // const mathRawString = String.raw`e^{i \theta} = cos\theta + isin\theta`;
+  // let initContent =
+  //   card.content && card.content.length > 0
+  //     ? card.content
+  //     : [
+  //         {
+  //           type: "math-block",
+  //           backgroundColor: defaultBgc,
+  //           math: mathRawString,
+  //           children: [{ text: "" }],
+  //         },
+  //       ];
   let initContent =
     card.content && card.content.length > 0
       ? card.content
       : [
           {
-            type: "math-block",
+            type: "paragraph",
             backgroundColor: defaultBgc,
-            math: `$$ \lim_{x \to \infty} \exp(-x) = 0$$`,
-            children: [{ text: "" }],
+            children: [{ text: "N" }],
           },
         ];
 
@@ -110,7 +121,7 @@ export default function SlateEditor(props) {
       ),
     []
   );
-  console.log(`value`, value);
+
   const chars =
     userTags && userTags.length > 0
       ? userTags
@@ -383,6 +394,7 @@ export default function SlateEditor(props) {
           const beforeMatch =
             beforeText &&
             beforeText.match(/^@([a-zA-Z0-9_*\u0590-\u05fe\u200f\u200e]+)$/);
+          console.log(`beforeMatch`, beforeMatch);
           const after = Editor.after(editor, start);
           const afterRange = Editor.range(editor, start, after);
           const afterText = Editor.string(editor, afterRange);
@@ -394,6 +406,19 @@ export default function SlateEditor(props) {
             getCardTagNamesFromServer();
 
             return;
+          } else {
+            const beforeMatch2 =
+              beforeText &&
+              beforeText.match(/^#([a-zA-Z0-9_*\u0590-\u05fe\u200f\u200e]+)$/);
+            if (beforeMatch2 && afterMatch) {
+              console.log(`beforeMatch for math`, beforeMatch2);
+              setTarget(beforeRange);
+              setSearch(beforeMatch[1]);
+              // setIndex(0);
+              // getCardTagNamesFromServer();
+
+              return;
+            }
           }
         }
 

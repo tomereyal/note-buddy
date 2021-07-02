@@ -91,7 +91,7 @@ export const EditorPlugins = {
         );
       },
     });
-    console.log(`!!match`, !!match);
+
     return !!match;
   },
 
@@ -181,6 +181,17 @@ export const EditorPlugins = {
     const image = { type: "image", url, children: [text] };
     Transforms.insertNodes(editor, image);
   },
+  insertMathBlock(editor, math) {
+    const text = { text: "" };
+    console.log(`math from insertNode transform function`, math);
+    const mathBlock = {
+      type: "math-block",
+      math,
+      children: [text],
+    };
+    Transforms.insertNodes(editor, mathBlock);
+    Transforms.move(editor);
+  },
   withMentions(editor) {
     const { isInline, isVoid } = editor;
 
@@ -190,6 +201,19 @@ export const EditorPlugins = {
 
     editor.isVoid = (element) => {
       return element.type === "mention" ? true : isVoid(element);
+    };
+
+    return editor;
+  },
+  withMathBlock(editor) {
+    const { isInline, isVoid } = editor;
+
+    editor.isInline = (element) => {
+      return element.type === "math-block" ? true : isInline(element);
+    };
+
+    editor.isVoid = (element) => {
+      return element.type === "math-block" ? true : isVoid(element);
     };
 
     return editor;
@@ -294,28 +318,6 @@ export const EditorPlugins = {
     return editor;
   },
 
-  withMathBlock(editor) {
-    const { isInline, isVoid } = editor;
-
-    editor.isInline = (element) => {
-      return element.type === "math-block" ? true : isInline(element);
-    };
-
-    editor.isVoid = (element) => {
-      return element.type === "math-block" ? true : isVoid(element);
-    };
-
-    return editor;
-  },
-  insertMathBlock(editor, math) {
-    const mathBlock = {
-      type: "math-block",
-      math: math,
-      children: [{ text: "" }],
-    };
-    Transforms.insertNodes(editor, mathBlock);
-    // Transforms.move(editor);
-  },
   // Comment below: #Schema-specific instance methods to override
   withEditableVoids(editor) {
     const { isVoid } = editor;

@@ -51,10 +51,10 @@
     <!--
       Trying out react latex (css file below)
     -->
-    <link
+    <!-- <link
       href="//cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0/katex.min.css"
       rel="stylesheet"
-    />
+    /> -->
 
     <title>React App</title>
   </head>
@@ -71,5 +71,35 @@
       To begin the development, run `npm start` or `yarn start`.
       To create a production bundle, use `npm run build` or `yarn build`.
     -->
+
+    <!-- MathJax -->
+    <script>
+      window.__MathJax_State__ = {
+        isReady: false,
+        promise: new Promise((resolve) => {
+          window.MathJax = {
+            // MathJax can be configured as desired in addition to these options.
+            startup: {
+              // Don't perform an initial typeset of the page when MathJax loads.
+              // Our React components will trigger typsetting as needed.
+              typeset: false,
+              ready: () => {
+                // Do whatever MathJax would normally do at this point.
+                MathJax.startup.defaultReady();
+                // Set the flag and resolve the promise.
+                window.__MathJax_State__.isReady = true;
+                resolve();
+              },
+            },
+          };
+        }),
+      };
+    </script>
+    <script
+      type="text/javascript"
+      id="MathJax-script"
+      async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"
+    ></script>
   </body>
 </html>

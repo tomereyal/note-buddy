@@ -5,8 +5,9 @@ import { useSelected, useFocused, useSlateStatic } from "slate-react";
 
 import { css } from "@emotion/css";
 //------THIRD-PARTY-COMPONENTS-------------------------//
-import Latex from "react-latex";
-import MathJax from "react-mathjax-preview";
+// import Latex from "react-latex";
+// import MathJax from "react-mathjax-preview";
+import Math from "../../views/TestPage/Math";
 import { Button, Modal } from "antd";
 //----------------------------------------------------//
 const defaultBgc = "white";
@@ -14,7 +15,10 @@ export const DefaultElement = ({ attributes, children, element }) => {
   const bcg = element.backgroundColor ? element.backgroundColor : defaultBgc;
 
   return (
-    <p {...attributes} style={{ backgroundColor: bcg, margin: 0 }}>
+    <p
+      {...attributes}
+      style={{ backgroundColor: bcg, margin: 0, fontSize: "1rem" }}
+    >
       {children}
     </p>
   );
@@ -28,25 +32,10 @@ export const CodeElement = ({ attributes, children, element }) => {
     </pre>
   );
 };
-// export const MathBlock = ({ attributes, children, element }) => {
-//   const bcg = element.backgroundColor ? element.backgroundColor : defaultBgc;
-//   console.log(`children`, children);
-//   return (
-//     <MathJax
-//       // math={`  $$\lim_{x \to \infty} \exp(-x) = 0$$`}
-//       math={children[0].props.text.text}
-//       // style={{ backgroundColor: bcg }}
-//       {...attributes}
-//     >
-//       {" "}
-//       {children}
-//     </MathJax>
-//   );
-// };
+
 export const MathBlock = ({ attributes, children, element }) => {
   const bcg = element.backgroundColor ? element.backgroundColor : defaultBgc;
   const math = element.math;
-  console.log(`children`, children);
 
   return (
     <span
@@ -59,12 +48,12 @@ export const MathBlock = ({ attributes, children, element }) => {
         display: "inline-block",
         borderRadius: "4px",
         // backgroundColor: "#eee",
-        fontSize: "0.9em",
+        // fontSize: "0.9em",
         // boxShadow: selected && focused ? "0 0 0 2px #B4D5FF" : "none",
       }}
     >
-      {" "}
-      <MathJax math={math}></MathJax>
+      <Math tex={math} />
+
       {children}
     </span>
   );

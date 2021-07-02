@@ -17,7 +17,7 @@ import SettingsPage from "./views/SettingsPage/SettingsPage";
 import { useDispatch, useSelector } from "react-redux";
 import { getPosts } from "../_actions/post_actions";
 import { getFolders } from "../_actions/folder_actions";
-
+import TestPage from "./views/TestPage/TestPage";
 
 import { ConfigProvider } from "antd";
 //null   Anyone Can go inside
@@ -55,6 +55,7 @@ function App() {
                 component={Auth(RegisterPage, false)}
               />
               <Route path="/folders" component={Auth(FolderPage, null)} />
+              <Route path="/test" component={Auth(TestPage, null)} />
               <Route
                 exact
                 path="/post/:postId"

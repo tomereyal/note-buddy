@@ -96,46 +96,58 @@ export default function NoteCard(props) {
 
   return (
     isShown && (
-      <Dropdown id={card._id} overlay={menu} trigger={["contextMenu"]}>
-        <div
-          style={{
-            // textAlign: "center",
-            minHeight: "50px",
-            minWidth: "100%",
+      // <Dropdown id={card._id} overlay={menu} trigger={["contextMenu"]}>
+      <div
+        style={{
+          // textAlign: "center",
+          minHeight: "50px",
+          minWidth: "100%",
 
-            // backgroundColor: "lightblue",
+          // backgroundColor: "lightblue",
+        }}
+        onDoubleClick={(e) => {
+          console.log("focused");
+        }}
+        id={card._id}
+      >
+        <Tooltip title="Remove Note">
+          <Button
+            type="default"
+            shape="circle"
+            size="small"
+            id={card._id}
+            icon={<DeleteFilled />}
+            onClick={() => {
+              removeCard();
+            }}
+          />
+        </Tooltip>
+
+        <Card
+          bodyStyle={{ padding: "2px" }}
+          style={{ width: "100%" }}
+          hoverable={true}
+          onMouseEnter={() => {
+            setIsMenuShown(true);
           }}
-          onDoubleClick={(e) => {
-            console.log("focused");
+          onMouseLeave={() => {
+            setIsMenuShown(false);
           }}
-          id={card._id}
         >
-          {" "}
-          <Card
-            bodyStyle={{ padding: "2px" }}
+          <SlateEditor
+            listCardCount={props.listCardCount}
+            card={card}
+            listId={listId}
+            sectionId={sectionId}
+            postId={postId}
+            order={index}
+            key={card._id}
             style={{ width: "100%" }}
-            hoverable={true}
-            onMouseEnter={() => {
-              setIsMenuShown(true);
-            }}
-            onMouseLeave={() => {
-              setIsMenuShown(false);
-            }}
-          >
-            <SlateEditor
-              listCardCount={props.listCardCount}
-              card={card}
-              listId={listId}
-              sectionId={sectionId}
-              postId={postId}
-              order={index}
-              key={card._id}
-              style={{ width: "100%" }}
-              isMenuShown={isMenuShown}
-            ></SlateEditor>
-          </Card>
-        </div>
-      </Dropdown>
+            isMenuShown={isMenuShown}
+          ></SlateEditor>
+        </Card>
+      </div>
+      // </Dropdown>
     )
   );
 }

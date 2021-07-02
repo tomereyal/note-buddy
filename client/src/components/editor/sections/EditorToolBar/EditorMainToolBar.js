@@ -15,6 +15,7 @@ import {
   OrderedListOutlined,
   UnderlineOutlined,
   UnorderedListOutlined,
+  FunctionOutlined,
 } from "@ant-design/icons";
 // import ColorPicker from "./Sections/ColorPicker";
 import { Popover, Button as AntdButton } from "antd";
@@ -55,6 +56,7 @@ export default function EditorMainToolbar() {
       <BlockButton format="block-quote" icon='" "' />
       <BlockButton format="numbered-list" icon={<OrderedListOutlined />} />
       <BlockButton format="bulleted-list" icon={<UnorderedListOutlined />} />
+      <InsertMathButton icon={<FunctionOutlined />} />
       <PaintBlockButton icon={<BgColorsOutlined />} />
     </Menu>
   );
@@ -84,6 +86,22 @@ const BlockButton = ({ format, icon }) => {
       onMouseDown={(event) => {
         event.preventDefault();
         EditorPlugins.toggleBlock(editor, format);
+      }}
+    >
+      <Icon>{icon}</Icon>
+    </Button>
+  );
+};
+const InsertMathButton = ({ format, icon }) => {
+  const editor = useSlate();
+  const mathRawString = String.raw`e^{i \theta} = cos\theta + isin\theta`;
+  const mathRawString2 = String.raw`\lim_{a \rightarrow b}  \frac{d}{dx}\ln(x)=\frac{1}{x} `;
+  return (
+    <Button
+      reversed
+      onMouseDown={(event) => {
+        event.preventDefault();
+        EditorPlugins.insertMathBlock(editor, mathRawString2);
       }}
     >
       <Icon>{icon}</Icon>
