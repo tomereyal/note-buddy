@@ -76,10 +76,9 @@ export default function (posts = [], action) {
       return posts.map((post) => {
         return post._id == action.payload._id ? action.payload : post;
       });
-    case UPDATE_CARD_IN_POST:  
+    case UPDATE_CARD_IN_POST:
       const updatedCard = action.payload;
       const { location } = updatedCard;
-      console.log(`action.payload`, action.payload);
       const post = posts.find((post) => post._id == location.post);
       const section = post.sections.find(
         (section) => section._id == location.section
@@ -88,7 +87,6 @@ export default function (posts = [], action) {
       list.cards = list.cards.map((card) => {
         return card._id == updatedCard._id ? updatedCard : card;
       });
-      console.log(`list`, list);
       return [...posts];
 
     default:

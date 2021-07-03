@@ -131,6 +131,22 @@ export default function SlateEditor(props) {
           .slice(0, 10)
       : [];
 
+  const texExpressions = [
+    {
+      label: ["divided by", "divide", "לחלק ב", "לחלק"],
+      value: "GET_INNER_VALUE",
+    },
+  ];
+
+  const matchTexOptions = (search) => {
+    const result = texExpressions.find((expr) => {
+      return expr.label.toLowerCase().startsWith(search.toLowerCase());
+    });
+  };
+  //this is  a helper function for extracting the inner expressions of operators such as frac,square root..
+
+  const getInnerValue = (operator, exp1, exp2) => {};
+
   useEffect(() => {
     if (target && chars.length > 0) {
       const el = ref.current;
@@ -193,6 +209,7 @@ export default function SlateEditor(props) {
 
         // EditorPlugins.insertMathBlock(math);
       }
+
       if (target) {
         switch (event.key) {
           case "ArrowDown":
@@ -253,6 +270,20 @@ export default function SlateEditor(props) {
 
       if (event.ctrlKey) {
         switch (event.key) {
+          case ".":
+          case "/": {
+            event.preventDefault();
+            const fraction = String.raw`/`;
+            EditorPlugins.insertMathBlock(editor, fraction);
+            break;
+          }
+          case "ד":
+          case "s": {
+            event.preventDefault();
+            const fraction = String.raw`sqrt`;
+            EditorPlugins.insertMathBlock(editor, fraction);
+            break;
+          }
           case "`": {
             event.preventDefault();
             EditorPlugins.toggleCodeBlock(editor);
@@ -274,10 +305,7 @@ export default function SlateEditor(props) {
             EditorPlugins.toggleFormat(editor, "underlined");
             break;
           }
-          case "s": {
-            event.preventDefault();
-            EditorPlugins.insertSteps(editor);
-          }
+
           case "1": {
             event.preventDefault();
             EditorPlugins.insertEditableVoid(editor);
@@ -337,8 +365,7 @@ export default function SlateEditor(props) {
 
   const saveNote = () => {
     if (!value) return;
-    console.log(`card`, card);
-    console.log(`value`, value);
+
     const variables = {
       postId: postId,
       sectionId: sectionId,
@@ -394,7 +421,6 @@ export default function SlateEditor(props) {
           const beforeMatch =
             beforeText &&
             beforeText.match(/^@([a-zA-Z0-9_*\u0590-\u05fe\u200f\u200e]+)$/);
-          console.log(`beforeMatch`, beforeMatch);
           const after = Editor.after(editor, start);
           const afterRange = Editor.range(editor, start, after);
           const afterText = Editor.string(editor, afterRange);
@@ -413,7 +439,7 @@ export default function SlateEditor(props) {
             if (beforeMatch2 && afterMatch) {
               console.log(`beforeMatch for math`, beforeMatch2);
               setTarget(beforeRange);
-              setSearch(beforeMatch[1]);
+              // setSearch(beforeMatch[1]);
               // setIndex(0);
               // getCardTagNamesFromServer();
 

@@ -19,7 +19,7 @@ import {
 } from "@ant-design/icons";
 // import ColorPicker from "./Sections/ColorPicker";
 import { Popover, Button as AntdButton } from "antd";
-
+import Math from "../../../views/TestPage/Math";
 import { GithubPicker } from "react-color";
 
 // import { Range } from "slate";
@@ -95,17 +95,70 @@ const BlockButton = ({ format, icon }) => {
 const InsertMathButton = ({ format, icon }) => {
   const editor = useSlate();
   const mathRawString = String.raw`e^{i \theta} = cos\theta + isin\theta`;
-  const mathRawString2 = String.raw`\lim_{a \rightarrow b}  \frac{d}{dx}\ln(x)=\frac{1}{x} `;
+  const mathRawString2 = String.raw`\sqrt{ab}`;
+  const mathRawString3 = String.raw`(a+x)`;
+  const fraction = String.raw`/`;
+  const alpha = String.raw`\alpha`;
+  const sqrt = String.raw`\sqrt{\bigcirc}`;
+  // const fraction = String.raw`{\frac{a}{\<span>ds</span>}}`;
   return (
-    <Button
-      reversed
-      onMouseDown={(event) => {
-        event.preventDefault();
-        EditorPlugins.insertMathBlock(editor, mathRawString2);
-      }}
-    >
-      <Icon>{icon}</Icon>
-    </Button>
+    <>
+      <Button
+        reversed
+        onMouseDown={(event) => {
+          event.preventDefault();
+          EditorPlugins.insertMathBlock(editor, alpha);
+        }}
+      >
+        <Icon>
+          <Math tex={alpha}></Math>
+        </Icon>
+      </Button>
+      <Button
+        reversed
+        onMouseDown={(event) => {
+          event.preventDefault();
+          EditorPlugins.insertMathBlock(editor, mathRawString2);
+        }}
+      >
+        <Icon>
+          <Math tex={mathRawString2}></Math>
+        </Icon>
+      </Button>
+      <Button
+        reversed
+        onMouseDown={(event) => {
+          event.preventDefault();
+          EditorPlugins.insertMathBlock(editor, mathRawString3);
+        }}
+      >
+        <Icon>
+          <Math tex={mathRawString3}></Math>
+        </Icon>
+      </Button>
+      <Button
+        reversed
+        onMouseDown={(event) => {
+          event.preventDefault();
+          EditorPlugins.insertMathBlock(editor, fraction);
+        }}
+      >
+        <Icon>
+          <Math tex={fraction}></Math>
+        </Icon>
+      </Button>
+      <Button
+        reversed
+        onMouseDown={(event) => {
+          event.preventDefault();
+          EditorPlugins.insertMathBlock(editor, sqrt);
+        }}
+      >
+        <Icon>
+          <Math tex={sqrt}></Math>
+        </Icon>
+      </Button>
+    </>
   );
 };
 const PaintBlockButton = ({ backgroundColor, icon }) => {

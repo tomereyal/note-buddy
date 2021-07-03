@@ -34,6 +34,8 @@ export const CodeElement = ({ attributes, children, element }) => {
 };
 
 export const MathBlock = ({ attributes, children, element }) => {
+  const selected = useSelected();
+  const focused = useFocused();
   const bcg = element.backgroundColor ? element.backgroundColor : defaultBgc;
   const math = element.math;
 
@@ -47,12 +49,25 @@ export const MathBlock = ({ attributes, children, element }) => {
         verticalAlign: "baseline",
         display: "inline-block",
         borderRadius: "4px",
+        color: "rebeccapurple",
         // backgroundColor: "#eee",
         // fontSize: "0.9em",
-        // boxShadow: selected && focused ? "0 0 0 2px #B4D5FF" : "none",
+        boxShadow: selected && focused ? "0 0 0 2px #B4D5FF" : "none",
       }}
     >
-      <Math tex={math} />
+      <Math
+        tex={math}
+        style={{
+          // padding: "1px 1px 2px",
+          margin: "0 1px",
+          verticalAlign: "baseline",
+          display: "inline-block",
+          borderRadius: "4px",
+          backgroundColor: "#eee",
+          // fontSize: "0.9em",
+          boxShadow: selected && focused ? "0 0 0 2px #B4D5FF" : "none",
+        }}
+      />
 
       {children}
     </span>

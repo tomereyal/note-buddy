@@ -180,18 +180,115 @@ export const EditorPlugins = {
     const text = { text: "" };
     const image = { type: "image", url, children: [text] };
     Transforms.insertNodes(editor, image);
+    Transforms.move(editor);
   },
   insertMathBlock(editor, math) {
+    const { selection } = editor;
+    if (!(selection && Range.isCollapsed(selection))) {
+      return;
+    }
+    // const [start] = Range.edges(selection);
+    // const wordBefore = Editor.before(editor, start, { unit: "word" });
+    // console.log(`wordBefore`, wordBefore);
+    // const before = wordBefore && Editor.before(editor, wordBefore);
+    const nodeAfter = Editor.next(editor, selection.anchor.path);
+    const nodeBefore = Editor.previous(editor, selection.anchor.path);
+    const previousElement = nodeBefore ? nodeBefore[0] : null;
+    const nextElement = nodeAfter ? nodeAfter[0] : null;
+
+    const previousMath = previousElement.math;
+    const nextMath = nextElement.math; 
+    // console.log(`math`, previousMath);
+    // console.log(`currentMath`, math);
+
+    let mathOutput = math;
+    let innerMath = [math];
+
+    switch (math) {
+      case `/`:
+        Editor.deleteBackward(editor);
+        mathOutput = String.raw`\frac{${previousMath}}{}`;
+        if (previousElement && previousElement.innerMath) {
+          innerMath = [previousMath];
+          console.log(`innerMath`, innerMath);
+        }
+        break;
+
+      default:
+        mathOutput = math;
+    }
+
+    //find regex matching : `\frac{${previousMath}}{}`
+    //if there previousMath is a match then  mathOutput = String.raw`\frac{${previousMath}}{math}`;
+    const regexForDenominator = /^\\frac{.+}{}$/gm;
+    const regexForSquare = /^/;
+    if (previousMath && previousMath.match(regexForDenominator)) {
+      console.log(`matcchhhhhhh`);
+      if (previousElement.innerMath && previousElement.innerMath[0]) {
+        Editor.deleteBackward(editor);
+        mathOutput = String.raw`\frac{${previousElement.innerMath[0]}}{${math}}`;
+        innerMath = [previousElement.innerMath[0], String.raw`${math}`];
+      }
+    }
+
     const text = { text: "" };
-    console.log(`math from insertNode transform function`, math);
+
     const mathBlock = {
       type: "math-block",
-      math,
+      math: mathOutput,
+      innerMath,
       children: [text],
     };
+
     Transforms.insertNodes(editor, mathBlock);
     Transforms.move(editor);
   },
+
+  // insertMathDivisionBlock(editor, math) {
+  //   const { selection } = editor;
+  //   // let mathOutput = math;
+
+  //   if (!(selection && Range.isCollapsed(selection))) {
+  //     return;
+  //   }
+  //   let mathOutput = math;
+
+  //   switch (math) {
+  //     case `{/}`:
+  //       const [start] = Range.edges(selection);
+  //       const wordBefore = Editor.before(editor, start, { unit: "word" });
+  //       console.log(`wordBefore`, wordBefore);
+  //       const before = wordBefore && Editor.before(editor, wordBefore);
+  //       const nodeBefore = before ? Editor.previous(editor, before.path) : null;
+  //       const previousElement = nodeBefore ? nodeBefore[0] : null;
+
+  //       const previousMath = previousElement.math;
+  //       console.log(`math`, previousMath);
+  //       console.log(`currentMath`, math);
+
+  //       Editor.deleteBackward(editor);
+  //       mathOutput = String.raw`\frac{${previousMath}}{}`;
+  //       break;
+  //     default:
+  //       mathOutput = math;
+  //   }
+  //   // if (math === `{/}`) {
+  //   //   mathOutput = String.raw`\frac{${previousMath}}{}`;
+  //   // }
+  //   console.log(`math==={/}`, math === `{/}`);
+  //   console.log(`mathOutput`, mathOutput);
+  //   const text = { text: "" };
+  //   console.log(`math from insertNode transform function`, math);
+  //   const mathBlock = {
+  //     type: "math-block",
+  //     math: mathOutput,
+  //     innerMath: [...previousElement.innerMath, previousMath],
+  //     children: [text],
+  //   };
+
+  //   Transforms.insertNodes(editor, mathBlock);
+  //   Transforms.move(editor);
+  // },
   withMentions(editor) {
     const { isInline, isVoid } = editor;
 
