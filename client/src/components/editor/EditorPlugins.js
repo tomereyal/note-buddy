@@ -206,9 +206,9 @@ export const EditorPlugins = {
     const { division, root } = mathConfig.operator;
     switch (math) {
       case division.tex:
-        Editor.deleteBackward(editor);
-        mathOutput = String.raw`\frac{${previousMath}}{}`;
         if (previousElement && previousElement.innerMath) {
+          Editor.deleteBackward(editor);
+          mathOutput = String.raw`\frac{${previousMath}}{1}`;
           innerMath = [previousMath];
           console.log(`innerMath`, innerMath);
         }
