@@ -13,7 +13,7 @@ import {
 } from "slate";
 import imageExtensions from "image-extensions";
 import isUrl from "is-url";
-
+import { mathConfig } from "./sections/math_Config";
 const LIST_TYPES = ["numbered-list", "bulleted-list"];
 
 export const EditorPlugins = {
@@ -197,15 +197,15 @@ export const EditorPlugins = {
     const nextElement = nodeAfter ? nodeAfter[0] : null;
 
     const previousMath = previousElement.math;
-    const nextMath = nextElement.math; 
+    const nextMath = nextElement.math;
     // console.log(`math`, previousMath);
     // console.log(`currentMath`, math);
 
     let mathOutput = math;
     let innerMath = [math];
-
+    const { division, root } = mathConfig.operator;
     switch (math) {
-      case `/`:
+      case division.tex:
         Editor.deleteBackward(editor);
         mathOutput = String.raw`\frac{${previousMath}}{}`;
         if (previousElement && previousElement.innerMath) {

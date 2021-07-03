@@ -1,18 +1,18 @@
 export const mathConfig = {
-  operators: [
-    {
-      label: "Fraction",
+  operator: {
+    division: {
+      label: "Division",
       tex: String.raw`\frac{\bigcirc}{\bigcirc}`,
       keydownShortcut: "/", //ctrl "/"
       typingShortcuts: [".divide", "./"],
     },
-    {
+    root: {
       label: "Root",
       tex: String.raw`\sqrt{\bigcirc}`,
       keydownShortcut: "s",
       typingShortcuts: [".root", ".square", ".s"],
     },
-  ],
+  },
   greekLetters: [],
   expressions: [],
   functions: [],

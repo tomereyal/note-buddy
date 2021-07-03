@@ -21,7 +21,7 @@ import {
 import { Popover, Button as AntdButton } from "antd";
 import Math from "../../../views/TestPage/Math";
 import { GithubPicker } from "react-color";
-
+import { mathConfig } from "../math_Config";
 // import { Range } from "slate";
 export default function EditorMainToolbar() {
   const ref = useRef();
@@ -93,6 +93,7 @@ const BlockButton = ({ format, icon }) => {
   );
 };
 const InsertMathButton = ({ format, icon }) => {
+  const { division, root } = mathConfig.operator;
   const editor = useSlate();
   const mathRawString = String.raw`e^{i \theta} = cos\theta + isin\theta`;
   const mathRawString2 = String.raw`\sqrt{ab}`;
@@ -140,11 +141,11 @@ const InsertMathButton = ({ format, icon }) => {
         reversed
         onMouseDown={(event) => {
           event.preventDefault();
-          EditorPlugins.insertMathBlock(editor, fraction);
+          EditorPlugins.insertMathBlock(editor, division.tex);
         }}
       >
         <Icon>
-          <Math tex={fraction}></Math>
+          <Math tex={division.tex}></Math>
         </Icon>
       </Button>
       <Button

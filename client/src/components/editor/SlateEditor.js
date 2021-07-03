@@ -33,6 +33,7 @@ import EditorHoverToolbar, {
   Portal,
 } from "./sections/EditorToolBar/EditorHoverToolbar";
 import EditorMainToolbar from "./sections/EditorToolBar/EditorMainToolBar";
+import { mathConfig } from "./sections/math_Config";
 // import NoteMentions from "./sections/NoteMentions";
 // import EditorSelector from "./sections/EditorSelector";
 // import EditorTag from "./sections/EditorTag";
@@ -269,19 +270,17 @@ export default function SlateEditor(props) {
       }
 
       if (event.ctrlKey) {
+        const { division, root } = mathConfig.operator;
         switch (event.key) {
-          case ".":
-          case "/": {
+          case division.keydownShortcut: {
             event.preventDefault();
-            const fraction = String.raw`/`;
-            EditorPlugins.insertMathBlock(editor, fraction);
+            EditorPlugins.insertMathBlock(editor, division.tex);
             break;
           }
-          case "ד":
-          case "s": {
+
+          case root.keydownShortcut: {
             event.preventDefault();
-            const fraction = String.raw`sqrt`;
-            EditorPlugins.insertMathBlock(editor, fraction);
+            EditorPlugins.insertMathBlock(editor, root.tex);
             break;
           }
           case "`": {
