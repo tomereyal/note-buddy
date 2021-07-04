@@ -98,6 +98,8 @@ export default function SlateEditor(props) {
     getNodes,
     withTitledCardLayout,
     withMathBlock,
+    insertMathBlock,
+    insertMathOperator,
   } = EditorPlugins;
   const ref = useRef();
   const [value, setValue] = useState(initContent);
@@ -202,7 +204,6 @@ export default function SlateEditor(props) {
   /////////////EVENTS/////////////////
   const onKeyDown = useCallback(
     (event) => {
-      console.log(`search`, search);
       if (event.key === "@") {
         getIconsFromDB();
         // const expression = String.raw` \lim_{x \to \infty} \exp(-x) = 0`;
@@ -210,7 +211,18 @@ export default function SlateEditor(props) {
 
         // EditorPlugins.insertMathBlock(math);
       }
-
+      if (event.key === "{") {
+        event.preventDefault();
+        insertMathOperator(editor, String.raw`\{`);
+      }
+      if (event.key === "}") {
+        event.preventDefault();
+        insertMathBlock(editor, String.raw`\}`);
+      }
+      if (event.key === "/") {
+        event.preventDefault();
+        insertMathOperator(editor, String.raw`/`);
+      }
       if (target) {
         switch (event.key) {
           case "ArrowDown":

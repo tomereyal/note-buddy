@@ -182,52 +182,131 @@ export const EditorPlugins = {
     Transforms.insertNodes(editor, image);
     Transforms.move(editor);
   },
+  getPreviousMathElement(editor) {
+    const { selection } = editor;
+    if (!(selection && Range.isCollapsed(selection))) {
+      return;
+    }
+    const nodeBefore = Editor.previous(editor, selection.anchor.path);
+    const previousElement = nodeBefore ? nodeBefore[0] : null;
+    return previousElement && previousElement.math ? previousElement : null;
+  },
+  insertMathOperator(editor, math) {
+    //saves mathParent before it and inserts operator tex
+    const { selection } = editor;
+    const { root } = mathConfig.operator;
+    if (!(selection && Range.isCollapsed(selection))) {
+      return;
+    }
+    const previousMathElement = EditorPlugins.getPreviousMathElement(editor);
+
+    let mathParent = previousMathElement.math;
+    let mathOutput = String.raw`${math}`;
+    if (math === root.tex && mathParent) {
+      Editor.deleteBackward(editor);
+      mathOutput = String.raw`\sqrt[${mathParent}]{\bigcirc}`;
+    }
+
+    const text = { text: "" };
+    const mathBlock = {
+      type: "math-block",
+      math: mathOutput,
+      mathParent, //by defualt will be itself
+      children: [text],
+    };
+
+    Transforms.insertNodes(editor, mathBlock);
+    Transforms.move(editor);
+  },
+
+  insertMathExpression() {},
+  insertMathAfterDivisionOperator(editor, math, previousMathElement) {
+    const { grouper, expression } = mathConfig;
+    const { fraction } = expression;
+    const { isClosedGroup } = grouper;
+    //on "/", "sqrt",.., we save a mathParent to current operation and it's growing math string
+
+    let { mathParent } = previousMathElement;
+    console.log(`mathParent`, mathParent);
+    let previousMath = previousMathElement.math;
+    let mathOutput = String.raw`${math}`;
+    let numerator, denominator;
+    if (!isClosedGroup("{", "}", previousMath + math)) {
+      //if the denominator expression is not closed
+      Editor.deleteBackward(editor);
+      mathOutput = String.raw`${previousMath + math}`;
+    } else if (isClosedGroup("{", "}", previousMath + math)) {
+      Editor.deleteBackward(editor);
+      Editor.deleteBackward(editor);
+      numerator = previousMathElement.mathParent;
+      denominator = previousMath.substring(1) + math;
+      mathOutput = String.raw`\frac{${numerator}}{${denominator}}`;
+      mathParent = "";
+    }
+
+    const text = { text: "" };
+
+    const mathBlock = {
+      type: "math-block",
+      math: mathOutput,
+      mathParent, //by defualt will be itself
+      numerator,
+      denominator,
+      children: [text],
+    };
+
+    Transforms.insertNodes(editor, mathBlock);
+    Transforms.move(editor);
+  },
   insertMathBlock(editor, math) {
     const { selection } = editor;
     if (!(selection && Range.isCollapsed(selection))) {
       return;
     }
-    // const [start] = Range.edges(selection);
-    // const wordBefore = Editor.before(editor, start, { unit: "word" });
-    // console.log(`wordBefore`, wordBefore);
-    // const before = wordBefore && Editor.before(editor, wordBefore);
-    const nodeAfter = Editor.next(editor, selection.anchor.path);
-    const nodeBefore = Editor.previous(editor, selection.anchor.path);
-    const previousElement = nodeBefore ? nodeBefore[0] : null;
-    const nextElement = nodeAfter ? nodeAfter[0] : null;
-
-    const previousMath = previousElement.math;
-    const nextMath = nextElement.math;
-    // console.log(`math`, previousMath);
-    // console.log(`currentMath`, math);
-
+    const previousMathElement = EditorPlugins.getPreviousMathElement(editor);
     let mathOutput = math;
-    let innerMath = [math];
-    const { division, root } = mathConfig.operator;
-    switch (math) {
-      case division.tex:
-        Editor.deleteBackward(editor);
-        mathOutput = String.raw`\frac{${previousMath}}{}`;
-        if (previousElement && previousElement.innerMath) {
-          innerMath = [previousMath];
-          console.log(`innerMath`, innerMath);
+    let mathParent, numerator, denominator;
+    const { operator, grouper, expression } = mathConfig;
+    const { division } = operator;
+    const { isClosedGroup, curlyBrackets } = grouper;
+    //check if user current string starts with an operator"/","+","sqrt" or an "{" save previous
+    if (previousMathElement) {
+      const previousMath = previousMathElement.math;
+
+      if (previousMath.match(division.regex)) {
+        //DIVIDE EXPRESSION FROM MATHPARENT
+        //to divide "/"
+        EditorPlugins.insertMathAfterDivisionOperator(
+          editor,
+          math,
+          previousMathElement
+        );
+        return;
+      }
+
+      if (previousMath.match(curlyBrackets.regex)) {
+        //CONNECT/MULT EXPRESSION BY MATHPARENT
+        console.log(`previousMath to add to bracket`, previousMath);
+        if (!isClosedGroup("{", "}", previousMath + math)) {
+          //if the expression is not closed
+          Editor.deleteBackward(editor);
+          mathOutput = String.raw`${previousMath + math}`;
+        } else if (isClosedGroup("{", "}", previousMath + math)) {
+          console.log(
+            `previousMathElement.mathParent`,
+            previousMathElement.mathParent
+          );
+          //if the expression is closed than check mathParent of operation if it is a fraction
+          if (previousMathElement.mathParent.match(expression.fraction.regex)) {
+            Editor.deleteBackward(editor);
+            Editor.deleteBackward(editor);
+            console.log(`i should add this to numerator: `, math);
+            let numerator = previousMathElement.numerator + previousMath + math;
+            let denominator = previousMathElement.denominator;
+            mathOutput = String.raw`\frac{${numerator}}{${denominator}}`;
+            mathParent = mathOutput;
+          }
         }
-        break;
-
-      default:
-        mathOutput = math;
-    }
-
-    //find regex matching : `\frac{${previousMath}}{}`
-    //if there previousMath is a match then  mathOutput = String.raw`\frac{${previousMath}}{math}`;
-    const regexForDenominator = /^\\frac{.+}{}$/gm;
-    const regexForSquare = /^/;
-    if (previousMath && previousMath.match(regexForDenominator)) {
-      console.log(`matcchhhhhhh`);
-      if (previousElement.innerMath && previousElement.innerMath[0]) {
-        Editor.deleteBackward(editor);
-        mathOutput = String.raw`\frac{${previousElement.innerMath[0]}}{${math}}`;
-        innerMath = [previousElement.innerMath[0], String.raw`${math}`];
       }
     }
 
@@ -236,7 +315,9 @@ export const EditorPlugins = {
     const mathBlock = {
       type: "math-block",
       math: mathOutput,
-      innerMath,
+      mathParent, //by defualt will be itself
+      numerator,
+      denominator,
       children: [text],
     };
 
@@ -244,51 +325,6 @@ export const EditorPlugins = {
     Transforms.move(editor);
   },
 
-  // insertMathDivisionBlock(editor, math) {
-  //   const { selection } = editor;
-  //   // let mathOutput = math;
-
-  //   if (!(selection && Range.isCollapsed(selection))) {
-  //     return;
-  //   }
-  //   let mathOutput = math;
-
-  //   switch (math) {
-  //     case `{/}`:
-  //       const [start] = Range.edges(selection);
-  //       const wordBefore = Editor.before(editor, start, { unit: "word" });
-  //       console.log(`wordBefore`, wordBefore);
-  //       const before = wordBefore && Editor.before(editor, wordBefore);
-  //       const nodeBefore = before ? Editor.previous(editor, before.path) : null;
-  //       const previousElement = nodeBefore ? nodeBefore[0] : null;
-
-  //       const previousMath = previousElement.math;
-  //       console.log(`math`, previousMath);
-  //       console.log(`currentMath`, math);
-
-  //       Editor.deleteBackward(editor);
-  //       mathOutput = String.raw`\frac{${previousMath}}{}`;
-  //       break;
-  //     default:
-  //       mathOutput = math;
-  //   }
-  //   // if (math === `{/}`) {
-  //   //   mathOutput = String.raw`\frac{${previousMath}}{}`;
-  //   // }
-  //   console.log(`math==={/}`, math === `{/}`);
-  //   console.log(`mathOutput`, mathOutput);
-  //   const text = { text: "" };
-  //   console.log(`math from insertNode transform function`, math);
-  //   const mathBlock = {
-  //     type: "math-block",
-  //     math: mathOutput,
-  //     innerMath: [...previousElement.innerMath, previousMath],
-  //     children: [text],
-  //   };
-
-  //   Transforms.insertNodes(editor, mathBlock);
-  //   Transforms.move(editor);
-  // },
   withMentions(editor) {
     const { isInline, isVoid } = editor;
 
@@ -303,7 +339,7 @@ export const EditorPlugins = {
     return editor;
   },
   withMathBlock(editor) {
-    const { isInline, isVoid } = editor;
+    const { isInline, isVoid, selection } = editor;
 
     editor.isInline = (element) => {
       return element.type === "math-block" ? true : isInline(element);

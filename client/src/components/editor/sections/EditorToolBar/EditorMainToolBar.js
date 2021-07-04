@@ -95,70 +95,56 @@ const BlockButton = ({ format, icon }) => {
 const InsertMathButton = ({ format, icon }) => {
   const { division, root } = mathConfig.operator;
   const editor = useSlate();
+  const { insertMathBlock, insertMathOperator } = EditorPlugins;
   const mathRawString = String.raw`e^{i \theta} = cos\theta + isin\theta`;
   const mathRawString2 = String.raw`\sqrt{ab}`;
-  const mathRawString3 = String.raw`(a+x)`;
+  const mathRawString3 = String.raw`{(a+x)}`;
   const fraction = String.raw`/`;
   const alpha = String.raw`\alpha`;
+  const openCurly = String.raw`\{`;
+  const closedCurly = String.raw`\}`;
   const sqrt = String.raw`\sqrt{\bigcirc}`;
   // const fraction = String.raw`{\frac{a}{\<span>ds</span>}}`;
+  const mathArr = [
+    { math: alpha, insertMethod: insertMathBlock },
+    {
+      math: mathRawString,
+      insertMethod: insertMathBlock,
+    },
+    {
+      math: mathRawString2,
+      insertMethod: insertMathBlock,
+    },
+    {
+      math: mathRawString3,
+      insertMethod: insertMathBlock,
+    },
+    {
+      math: fraction,
+      insertMethod: insertMathOperator,
+    },
+    { math: sqrt, insertMethod: insertMathOperator },
+    { math: openCurly, insertMethod: insertMathOperator },
+    { math: closedCurly, insertMethod: insertMathBlock },
+  ];
   return (
     <>
-      <Button
-        reversed
-        onMouseDown={(event) => {
-          event.preventDefault();
-          EditorPlugins.insertMathBlock(editor, alpha);
-        }}
-      >
-        <Icon>
-          <Math tex={alpha}></Math>
-        </Icon>
-      </Button>
-      <Button
-        reversed
-        onMouseDown={(event) => {
-          event.preventDefault();
-          EditorPlugins.insertMathBlock(editor, mathRawString2);
-        }}
-      >
-        <Icon>
-          <Math tex={mathRawString2}></Math>
-        </Icon>
-      </Button>
-      <Button
-        reversed
-        onMouseDown={(event) => {
-          event.preventDefault();
-          EditorPlugins.insertMathBlock(editor, mathRawString3);
-        }}
-      >
-        <Icon>
-          <Math tex={mathRawString3}></Math>
-        </Icon>
-      </Button>
-      <Button
-        reversed
-        onMouseDown={(event) => {
-          event.preventDefault();
-          EditorPlugins.insertMathBlock(editor, division.tex);
-        }}
-      >
-        <Icon>
-          <Math tex={division.tex}></Math>
-        </Icon>
-      </Button>
-      <Button
-        reversed
-        onMouseDown={(event) => {
-          event.preventDefault();
-          EditorPlugins.insertMathBlock(editor, sqrt);
-        }}
-      >
-        <Icon>
-          <Math tex={sqrt}></Math>
-        </Icon>
-      </Button>
+      {mathArr.map(({ math, insertMethod }) => {
+        return (
+          <Button
+            key={math}
+            reversed
+            onMouseDown={(event) => {
+              event.preventDefault();
+              insertMethod(editor, math);
+            }}
+          >
+            <Icon>
+              <Math tex={math}></Math>
+            </Icon>
+          </Button>
+        );
+      })}
     </>
   );
 };
