@@ -2,11 +2,10 @@ import "react-app-polyfill/ie9";
 import "react-app-polyfill/ie11";
 import "core-js";
 
-
 import React from "react";
 import ReactDOM from "react-dom";
 import "./index.css";
-
+import "./fonts/Poppins/Poppins-Regular.ttf";
 import App from "./components/App";
 import * as serviceWorker from "./serviceWorker";
 import { BrowserRouter } from "react-router-dom";

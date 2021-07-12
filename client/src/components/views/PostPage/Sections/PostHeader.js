@@ -3,11 +3,13 @@ import { Link } from "react-router-dom";
 import { PageHeader, Button, Menu, Typography, Tag, Affix } from "antd";
 import { SettingOutlined } from "@ant-design/icons";
 import { useDispatch } from "react-redux";
-import { setPostTitle } from "../../../../_actions/post_actions";
+import { editPost } from "../../../../_actions/post_actions";
+import TitleEditor from "../../../editor/TitleEditor/TitleEditor";
 const { Text } = Typography;
 
 export default function PostHeader(props) {
   const { post } = props;
+  const [title, setTitle] = useState(props.post.name);
   const [editableStr, setEditableStr] = useState(props.post.name);
   const dispatch = useDispatch();
   const HEIGHT_OF_NAVBAR = 70;
@@ -16,13 +18,13 @@ export default function PostHeader(props) {
     setEditableStr(props.post.name);
   }, [props]);
 
-  const handlePostTitle = (newTitle) => {
+  const savePost = () => {
     const variables = {
       postId: props.post._id,
-      newTitle,
+      editArr: [{ editType: "name", editValue: title }],
     };
-    console.log(`variables`, variables);
-    dispatch(setPostTitle(variables));
+
+    dispatch(editPost(variables));
   };
 
   return (
@@ -30,17 +32,17 @@ export default function PostHeader(props) {
       <PageHeader
         ghost={false}
         title={
-          <Text
-            style={{ fontSize: "25px", minWidth: "150px", color: "black" }}
-            editable={{
-              onChange: (e) => {
-                setEditableStr(e);
-                handlePostTitle(e);
-              },
-            }}
+          <div
+            onBlur={savePost}
+            style={{ minWidth: "200px", minHeight: "42px" }}
           >
-            {editableStr}
-          </Text>
+            <TitleEditor
+              title={title}
+              setTitle={setTitle}
+              placeHolder={"Title.."}
+              size={1}
+            />
+          </div>
         }
         onBack={() => {
           window.history.back();

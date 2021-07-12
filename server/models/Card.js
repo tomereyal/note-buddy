@@ -16,6 +16,7 @@ const Tag = mongoose.model("Tag", tagSchema);
 
 const cardSchema = mongoose.Schema(
   {
+    title: { type: String, default: "" },
     order: { type: Number, default: 0 },
     content: { type: [Schema.Types.Mixed], default: [] },
     location: {

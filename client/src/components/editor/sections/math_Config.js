@@ -33,19 +33,21 @@ export const mathConfig = {
       tex: String.raw`{}`,
       keydownShortcut: "{", //ctrl
       typingShortcuts: [],
-      regex: /^\{/gm,
+      regex: /^\{.+/gm,
     },
     squareBrackets: {
       label: "Square Brackets",
       tex: String.raw`[]`,
       keydownShortcut: "[", //ctrl
       typingShortcuts: [],
+      regex: /^\[.+/gm,
     },
     isClosedGroup,
   },
   greekLetter: [],
   expression: {
     fraction: {
+      label: "Fraction",
       tex: String.raw`\frac{\bigcirc}{\bigcirc}`,
       regex: /^\\frac{.+}{.+}$/gm,
     },

@@ -37,7 +37,9 @@ export default function Math({ tex, display = false }) {
       .then(function (node) {
         // `mathElement.replaceWith(node)` would be nicer markup-wise, but that
         // seems to mess with React's diffing logic.
+
         mathElement.appendChild(node);
+
         // Update the global MathJax CSS to account for this new element.
         MathJax.startup.document.clear();
         MathJax.startup.document.updateDocument();

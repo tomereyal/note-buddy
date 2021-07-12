@@ -6,37 +6,21 @@ import React, {
   useCallback,
   useRef,
 } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 //---------SLATE-EDITOR-IMPORTS----------------------//
-
-import { createEditor, Editor, Transforms, Range, Descendant } from "slate";
+import { createEditor, Editor, Transforms, Range } from "slate";
 // Import the Slate components and React plugin.
-import {
-  Slate,
-  Editable,
-  useSlateStatic,
-  useSelected,
-  useFocused,
-  withReact,
-  ReactEditor,
-} from "slate-react";
+import { Slate, Editable, withReact, ReactEditor } from "slate-react";
 //Import the actual editor and its methods..
 import { withHistory } from "slate-history";
 import { EditorPlugins } from "./EditorPlugins";
-//----------STYLE-IMPORTS-------------------------------//
-import { css } from "@emotion/css";
-
-//---------ANTD-COMPONENTS-IMPORTS----------------------//
-import { DownCircleOutlined } from "@ant-design/icons";
 //---------MY-COMPONENTS-IMPORTS------------------------//
 import EditorHoverToolbar, {
   Portal,
 } from "./sections/EditorToolBar/EditorHoverToolbar";
 import EditorMainToolbar from "./sections/EditorToolBar/EditorMainToolBar";
 import { mathConfig } from "./sections/math_Config";
-// import NoteMentions from "./sections/NoteMentions";
-// import EditorSelector from "./sections/EditorSelector";
-// import EditorTag from "./sections/EditorTag";
+
 //--------SERVER-RELATED-IMPORTS-----------------------//
 import axios from "axios";
 import {
@@ -48,6 +32,7 @@ import { getCards } from "../../api/index";
 //------MY-SLATE-ELEMENTS-------------------------//
 import {
   DefaultElement,
+  Leaf,
   Image,
   Mention,
   CodeElement,
@@ -61,24 +46,24 @@ import {
   StepNode,
   EditableVoid,
   MathBlock,
+  CardHeader,
+  CardToolbar,
 } from "./sections/EditorElements";
+import TitleEditor from "./TitleEditor/TitleEditor";
 //-----------------------------------------------------//
 
 export default function SlateEditor(props) {
-  const { card, listId, sectionId, postId, order } = props;
+  const { card, order, bgc } = props;
+  const { location, _id } = card;
+  const { post, section, list } = location;
+  const cardData = {
+    postId: post,
+    sectionId: section,
+    listId: list,
+    cardId: _id,
+  };
+
   const defaultBgc = "#FFFFFF";
-  // const mathRawString = String.raw`e^{i \theta} = cos\theta + isin\theta`;
-  // let initContent =
-  //   card.content && card.content.length > 0
-  //     ? card.content
-  //     : [
-  //         {
-  //           type: "math-block",
-  //           backgroundColor: defaultBgc,
-  //           math: mathRawString,
-  //           children: [{ text: "" }],
-  //         },
-  //       ];
   let initContent =
     card.content && card.content.length > 0
       ? card.content
@@ -86,11 +71,12 @@ export default function SlateEditor(props) {
           {
             type: "paragraph",
             backgroundColor: defaultBgc,
-            children: [{ text: "N" }],
+            children: [{ text: "" }],
           },
         ];
 
   const {
+    withCardData,
     withMentions,
     withImages,
     withSteps,
@@ -98,29 +84,44 @@ export default function SlateEditor(props) {
     getNodes,
     withTitledCardLayout,
     withMathBlock,
+    withFractionMathBlock,
     insertMathBlock,
-    insertMathOperator,
+    withCardHeader,
   } = EditorPlugins;
   const ref = useRef();
+  const [cardTitle, setCardTitle] = useState(card.title);
   const [value, setValue] = useState(initContent);
-  const writersTags = useSelector((state) => card.tags);
+  // const writersTags = useSelector((state) => card.tags);
   const [userTags, setUserTags] = useState();
   const [fetchedIcons, setFetchedIcons] = useState([]);
   const [target, setTarget] = useState();
   const [index, setIndex] = useState(0);
   const [search, setSearch] = useState("");
+  const [previousMathEl, setPreviousMathEl] = useState("");
+
   const dispatch = useDispatch();
   const withCustomLayout = withTitledCardLayout; //make a switch case, switch(props.cardType)
   const editor = useMemo(
     () =>
-      withMathBlock(
-        // withCustomLayout(
-        withEditableVoids(
-          withMentions(
-            withSteps(withImages(withHistory(withReact(createEditor()))))
+      withFractionMathBlock(
+        withMathBlock(
+          // withCustomLayout(
+          withEditableVoids(
+            withMentions(
+              withSteps(
+                withImages(
+                  withCardHeader(
+                    withCardData(
+                      withHistory(withReact(createEditor())),
+                      cardData
+                    )
+                  )
+                )
+              )
+              // )
+            )
           )
         )
-        // )
       ),
     []
   );
@@ -134,22 +135,6 @@ export default function SlateEditor(props) {
           .slice(0, 10)
       : [];
 
-  const texExpressions = [
-    {
-      label: ["divided by", "divide", "לחלק ב", "לחלק"],
-      value: "GET_INNER_VALUE",
-    },
-  ];
-
-  const matchTexOptions = (search) => {
-    const result = texExpressions.find((expr) => {
-      return expr.label.toLowerCase().startsWith(search.toLowerCase());
-    });
-  };
-  //this is  a helper function for extracting the inner expressions of operators such as frac,square root..
-
-  const getInnerValue = (operator, exp1, exp2) => {};
-
   useEffect(() => {
     if (target && chars.length > 0) {
       const el = ref.current;
@@ -158,7 +143,10 @@ export default function SlateEditor(props) {
       el.style.top = `${rect.top + window.pageYOffset + 24}px`;
       el.style.left = `${rect.left + window.pageXOffset}px`;
     }
-  }, [chars.length, editor, index, search, target, props]);
+
+    //removing props dependency made component NOT rerender 6 time on every saveNote
+    //removing previous math dependency made component Not rerender on every delete
+  }, [chars.length, editor, index, search, target]);
 
   const renderElement = useCallback((props) => {
     const { children, attributes, element } = props;
@@ -189,6 +177,10 @@ export default function SlateEditor(props) {
         return <ListItem {...props} />;
       case "math-block":
         return <MathBlock {...props} />;
+      case "card-header":
+        return <CardHeader {...props} />;
+      case "card-toolbar":
+        return <CardToolbar {...props} />;
       default:
         return <DefaultElement {...props} />;
     }
@@ -202,27 +194,13 @@ export default function SlateEditor(props) {
   }, []);
 
   /////////////EVENTS/////////////////
+
   const onKeyDown = useCallback(
     (event) => {
       if (event.key === "@") {
         getIconsFromDB();
-        // const expression = String.raw` \lim_{x \to \infty} \exp(-x) = 0`;
-        // const math = `$$ \lim_{x \to \infty} \exp(-x) = 0$$`;
+      }
 
-        // EditorPlugins.insertMathBlock(math);
-      }
-      if (event.key === "{") {
-        event.preventDefault();
-        insertMathOperator(editor, String.raw`\{`);
-      }
-      if (event.key === "}") {
-        event.preventDefault();
-        insertMathBlock(editor, String.raw`\}`);
-      }
-      if (event.key === "/") {
-        event.preventDefault();
-        insertMathOperator(editor, String.raw`/`);
-      }
       if (target) {
         switch (event.key) {
           case "ArrowDown":
@@ -280,19 +258,23 @@ export default function SlateEditor(props) {
             break;
         }
       }
+      if (event.key === "`") {
+        event.preventDefault();
+        EditorPlugins.insertMathBlock(editor);
+      }
 
       if (event.ctrlKey) {
         const { division, root } = mathConfig.operator;
         switch (event.key) {
           case division.keydownShortcut: {
             event.preventDefault();
-            EditorPlugins.insertMathBlock(editor, division.tex);
+            EditorPlugins.insertMathChar(editor, division.tex);
             break;
           }
 
           case root.keydownShortcut: {
             event.preventDefault();
-            EditorPlugins.insertMathBlock(editor, root.tex);
+            EditorPlugins.insertMathChar(editor, root.tex);
             break;
           }
           case "`": {
@@ -328,7 +310,7 @@ export default function SlateEditor(props) {
         }
       }
     },
-    [index, search, target]
+    [index, search, target, previousMathEl]
   );
   ////////////////////
   const saveNewTags = async (randomIcon) => {
@@ -378,11 +360,11 @@ export default function SlateEditor(props) {
     if (!value) return;
 
     const variables = {
-      postId: postId,
-      sectionId: sectionId,
-      listId: listId,
-      cardId: card._id,
-      editArr: [{ editType: "content", editValue: value }],
+      ...cardData,
+      editArr: [
+        { editType: "content", editValue: value },
+        { editType: "title", editValue: cardTitle },
+      ],
     };
     dispatch(editNote(variables));
   };
@@ -443,32 +425,31 @@ export default function SlateEditor(props) {
             getCardTagNamesFromServer();
 
             return;
-          } else {
-            const beforeMatch2 =
-              beforeText &&
-              beforeText.match(/^#([a-zA-Z0-9_*\u0590-\u05fe\u200f\u200e]+)$/);
-            if (beforeMatch2 && afterMatch) {
-              console.log(`beforeMatch for math`, beforeMatch2);
-              setTarget(beforeRange);
-              // setSearch(beforeMatch[1]);
-              // setIndex(0);
-              // getCardTagNamesFromServer();
-
-              return;
-            }
           }
         }
 
         setTarget(null);
       }}
     >
-      {props.isMenuShown && <EditorMainToolbar></EditorMainToolbar>}
-      {/* <EditorHoverToolbar></EditorHoverToolbar> */}
+      {props.isCardHovered && (
+        <div style={{ position: "absolute", right: 0, zIndex: 10 }}>
+          {" "}
+          <EditorMainToolbar cardData={cardData}></EditorMainToolbar>
+        </div>
+      )}
+      <TitleEditor
+        title={cardTitle}
+        setTitle={setCardTitle}
+        bgc={"#ffffff"}
+        darkenBgc={true}
+        size={4}
+      ></TitleEditor>
+      <EditorHoverToolbar></EditorHoverToolbar>
       <Editable
         renderElement={renderElement}
         renderLeaf={renderLeaf}
         readOnly={props.isReadOnly}
-        placeholder="Enter some text..."
+        placeholder="Note..."
         spellCheck
         onBlur={(e) => saveNote()}
         onDOMBeforeInput={(event) => {
@@ -538,19 +519,3 @@ export default function SlateEditor(props) {
     </Slate>
   );
 }
-
-// Define a React component to render leaves with bold text.
-const Leaf = ({ attributes, children, leaf }) => {
-  if (leaf.bold) {
-    children = <strong>{children}</strong>;
-  }
-
-  if (leaf.italic) {
-    children = <em>{children}</em>;
-  }
-
-  if (leaf.underlined) {
-    children = <u>{children}</u>;
-  }
-  return <span {...attributes}>{children}</span>;
-};

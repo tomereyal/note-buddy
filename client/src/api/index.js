@@ -19,16 +19,16 @@ export const getUserSettings = (userId) => {
 export const fetchPosts = () => axios.get(`${POST_SERVER}/fetchPosts`);
 export const deletePost = (postId) =>
   axios.delete(`${POST_SERVER}/deletePost/${postId}`);
-export const setPostTitle = (variables) =>
-  axios.post(`${POST_SERVER}/setPostTitle`, variables);
+export const editPost = (variables) =>
+  axios.post(`${POST_SERVER}/editPost`, variables);
 export const createPostInServer = (variables) =>
   axios.post(`${POST_SERVER}/createPost`, variables);
 export const createSectionInPost = (variables) =>
   axios.post(`${POST_SERVER}/createSectionInPost`, variables);
 export const removeSectionFromPost = (variables) =>
   axios.post(`${POST_SERVER}/removeSectionFromPost`, variables);
-export const setSectionTitle = (variables) =>
-  axios.post(`${POST_SERVER}/setSectionTitle`, variables);
+export const editSection = (variables) =>
+  axios.post(`${POST_SERVER}/editSection`, variables);
 export const setSectionBgc = (variables) =>
   axios.post(`${POST_SERVER}/setSectionBgc`, variables);
 export const setSectionPattern = (variables) =>
@@ -37,8 +37,8 @@ export const createListInSection = (variables) =>
   axios.post(`${POST_SERVER}/createListInSection`, variables);
 export const removeListFromSection = (variables) =>
   axios.post(`${POST_SERVER}/removeListFromSection`, variables);
-export const setListTitle = (variables) =>
-  axios.post(`${POST_SERVER}/setListTitle`, variables);
+export const editList = (variables) =>
+  axios.post(`${POST_SERVER}/editList`, variables);
 export const createCardInList = (variables) =>
   axios.post(`${POST_SERVER}/createCardInList`, variables);
 export const removeCardFromList = (variables) =>

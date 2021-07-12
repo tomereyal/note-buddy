@@ -17,26 +17,21 @@ import {
   UnorderedListOutlined,
   DownOutlined,
   DeleteFilled,
+  EditOutlined,
 } from "@ant-design/icons";
 import { Popover, Tooltip, Button as AntdButton } from "antd";
-import Math from "../../../views/TestPage/Math";
+import Math from "../../views/TestPage/Math";
 //===========REACT-COLOR=========================
 import { GithubPicker } from "react-color";
 //===========LOCAL-FILES=========================
-import { mathConfig } from "../math_Config";
-import { EditorPlugins } from "../../EditorPlugins";
-import { removeCardFromList } from "../../../../_actions/post_actions";
+import { mathConfig } from "../sections/math_Config";
+import { EditorPlugins } from "../EditorPlugins";
 
 //--------------------------------------------------------------------------------------
 
-export default function EditorMainToolbar(props) {
+export default function EditorTitleToolbar(props) {
   const ref = useRef();
-  const { cardData } = props;
-  const dispatch = useDispatch();
-  const removeCard = () => {
-    const variables = cardData;
-    dispatch(removeCardFromList(variables));
-  };
+
   const content = (
     <Menu
       ref={ref}
@@ -49,17 +44,6 @@ export default function EditorMainToolbar(props) {
         transition: opacity 0.75s;
       `}
     >
-      <Tooltip title="Remove Note">
-        <AntdButton
-          type="danger"
-          shape="circle"
-          size="small"
-          icon={<DeleteFilled />}
-          onClick={() => {
-            removeCard();
-          }}
-        />
-      </Tooltip>
       <BlockButton format="block-quote" icon='" "' />
       <BlockButton format="numbered-list" icon={<OrderedListOutlined />} />
       <BlockButton format="bulleted-list" icon={<UnorderedListOutlined />} />
@@ -71,7 +55,7 @@ export default function EditorMainToolbar(props) {
   return (
     <Popover content={content} title="Title" trigger="hover">
       <Button icon={<DownOutlined />}>
-        <DownOutlined />
+        <EditOutlined />
       </Button>
     </Popover>
   );

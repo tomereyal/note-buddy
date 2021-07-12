@@ -33,6 +33,7 @@ router.post("/editNote", (req, res) => {
   const { cardId, editArr } = req.body;
   Card.findById(cardId, function (err, card) {
     if (err) return res.status(400).send(err);
+
     editArr.forEach(({ editType, editValue }) => {
       switch (editType) {
         default:

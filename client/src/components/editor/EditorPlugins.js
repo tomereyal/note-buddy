@@ -11,21 +11,30 @@ import {
   Point,
   Element as SlateElement,
 } from "slate";
+import { ReactEditor } from "slate-react";
 import imageExtensions from "image-extensions";
 import isUrl from "is-url";
 import { mathConfig } from "./sections/math_Config";
+const { stringify } = require("flatted/cjs");
+
 const LIST_TYPES = ["numbered-list", "bulleted-list"];
 
 export const EditorPlugins = {
+  withCardData(editor, cardData) {
+    if (!cardData) return editor;
+    editor.cardData = cardData;
+    return editor;
+  },
+
   withTitledCardLayout(editor) {
-    const { normalizeNode } = editor;
+    const { normalizeNode, cardData } = editor;
 
     editor.normalizeNode = ([node, path]) => {
       if (path.length === 0) {
         if (editor.children.length < 1) {
           const title = {
-            type: "heading-two",
-            children: [{ text: "Untitled" }],
+            type: "card-header",
+            children: [{ text: "" }],
           };
           Transforms.insertNodes(editor, title, { at: path.concat(0) });
         }
@@ -39,16 +48,22 @@ export const EditorPlugins = {
         }
 
         for (const [child, childPath] of Node.children(editor, path)) {
-          const type = childPath[0] === 0 ? "heading-two" : "paragraph";
-
+          const type = childPath[0] === 0 ? "card-header" : "paragraph";
           if (SlateElement.isElement(child) && child.type !== type) {
             const newProperties = { type };
             Transforms.setNodes(editor, newProperties, { at: childPath });
           }
         }
       }
-
       return normalizeNode([node, path]);
+    };
+
+    return editor;
+  },
+  withCardHeader(editor) {
+    const { isInline, isVoid } = editor;
+    editor.isVoid = (element) => {
+      return element.type === "card-header" ? true : isVoid(element);
     };
 
     return editor;
@@ -93,6 +108,28 @@ export const EditorPlugins = {
     });
 
     return !!match;
+  },
+
+  saveMathToElement(editor, math, options) {
+    const { selection } = editor;
+    console.log(`Saving this mathBlock :`, math);
+    if (selection && Range.isCollapsed(selection)) {
+      console.log(`I found  match her ein editorPLugins!`);
+      Transforms.setNodes(
+        editor,
+        { math: math },
+        {
+          match: (n, path) =>
+            !Editor.isEditor(n) &&
+            SlateElement.isElement(n) &&
+            n.type === "math-block",
+        }
+      );
+      if (options && options.exitOnSave) {
+        ReactEditor.focus(editor);
+        Transforms.move(editor);
+      }
+    }
   },
 
   toggleBlock(editor, format) {
@@ -188,19 +225,23 @@ export const EditorPlugins = {
       return;
     }
     const nodeBefore = Editor.previous(editor, selection.anchor.path);
+
     const previousElement = nodeBefore ? nodeBefore[0] : null;
-    return previousElement && previousElement.math ? previousElement : null;
+    return previousElement && previousElement.math
+      ? { ...previousElement, path: nodeBefore[1] }
+      : null;
   },
-  insertMathOperator(editor, math) {
+
+  insertMathOperator(editor, previousMath, math, operatorType) {
     //saves mathParent before it and inserts operator tex
+    console.log(`math`, math);
     const { selection } = editor;
     const { root } = mathConfig.operator;
     if (!(selection && Range.isCollapsed(selection))) {
       return;
     }
-    const previousMathElement = EditorPlugins.getPreviousMathElement(editor);
 
-    let mathParent = previousMathElement.math;
+    let mathParent = previousMath;
     let mathOutput = String.raw`${math}`;
     if (math === root.tex && mathParent) {
       Editor.deleteBackward(editor);
@@ -211,6 +252,7 @@ export const EditorPlugins = {
     const mathBlock = {
       type: "math-block",
       math: mathOutput,
+      operator: operatorType,
       mathParent, //by defualt will be itself
       children: [text],
     };
@@ -219,95 +261,68 @@ export const EditorPlugins = {
     Transforms.move(editor);
   },
 
-  insertMathExpression() {},
-  insertMathAfterDivisionOperator(editor, math, previousMathElement) {
-    const { grouper, expression } = mathConfig;
-    const { fraction } = expression;
-    const { isClosedGroup } = grouper;
-    //on "/", "sqrt",.., we save a mathParent to current operation and it's growing math string
-
-    let { mathParent } = previousMathElement;
-    console.log(`mathParent`, mathParent);
-    let previousMath = previousMathElement.math;
-    let mathOutput = String.raw`${math}`;
-    let numerator, denominator;
-    if (!isClosedGroup("{", "}", previousMath + math)) {
-      //if the denominator expression is not closed
-      Editor.deleteBackward(editor);
-      mathOutput = String.raw`${previousMath + math}`;
-    } else if (isClosedGroup("{", "}", previousMath + math)) {
-      Editor.deleteBackward(editor);
-      Editor.deleteBackward(editor);
-      numerator = previousMathElement.mathParent;
-      denominator = previousMath.substring(1) + math;
-      mathOutput = String.raw`\frac{${numerator}}{${denominator}}`;
-      mathParent = "";
-    }
-
+  insertMathExpression(editor, deleteIndex, math, mathType) {
+    const { selection } = editor;
     const text = { text: "" };
-
+    console.log(`math insertMathexpression wants to inject`, math);
     const mathBlock = {
       type: "math-block",
-      math: mathOutput,
-      mathParent, //by defualt will be itself
-      numerator,
-      denominator,
+      math: math,
+      mathType,
       children: [text],
     };
+    while (deleteIndex > 0) {
+      Editor.deleteBackward(editor);
+      deleteIndex--;
+    }
 
-    Transforms.insertNodes(editor, mathBlock);
+    Editor.insertNode(editor, mathBlock);
     Transforms.move(editor);
   },
-  insertMathBlock(editor, math) {
+  editMathBlock(editor, deleteCount, operatorElement, math) {
+    if (!operatorElement) {
+      alert("no operator element found");
+    }
+
+    const { division } = mathConfig.operator;
+    const { fraction } = mathConfig.expression;
+    const { operator, mathParent } = operatorElement;
+
+    if (operator) {
+      console.log(`mathParent of operator`, mathParent);
+      switch (operator) {
+        case division.label:
+          const numerator = mathParent;
+          const denominator = math;
+          const mathExpression = String.raw`\frac{${numerator}}{${denominator}}`;
+          console.log(`mathExpression from editMathBlock`, mathExpression);
+          EditorPlugins.insertMathExpression(
+            editor,
+            deleteCount,
+            mathExpression,
+            fraction.label
+          );
+          break;
+
+        default:
+          break;
+      }
+    }
+  },
+  insertMathChar(editor, previousMath, math) {
     const { selection } = editor;
     if (!(selection && Range.isCollapsed(selection))) {
       return;
     }
-    const previousMathElement = EditorPlugins.getPreviousMathElement(editor);
     let mathOutput = math;
-    let mathParent, numerator, denominator;
-    const { operator, grouper, expression } = mathConfig;
-    const { division } = operator;
-    const { isClosedGroup, curlyBrackets } = grouper;
+    let currentOperator, mathParent, numerator, denominator;
+    const { operator } = mathConfig;
+
     //check if user current string starts with an operator"/","+","sqrt" or an "{" save previous
-    if (previousMathElement) {
-      const previousMath = previousMathElement.math;
 
-      if (previousMath.match(division.regex)) {
-        //DIVIDE EXPRESSION FROM MATHPARENT
-        //to divide "/"
-        EditorPlugins.insertMathAfterDivisionOperator(
-          editor,
-          math,
-          previousMathElement
-        );
-        return;
-      }
-
-      if (previousMath.match(curlyBrackets.regex)) {
-        //CONNECT/MULT EXPRESSION BY MATHPARENT
-        console.log(`previousMath to add to bracket`, previousMath);
-        if (!isClosedGroup("{", "}", previousMath + math)) {
-          //if the expression is not closed
-          Editor.deleteBackward(editor);
-          mathOutput = String.raw`${previousMath + math}`;
-        } else if (isClosedGroup("{", "}", previousMath + math)) {
-          console.log(
-            `previousMathElement.mathParent`,
-            previousMathElement.mathParent
-          );
-          //if the expression is closed than check mathParent of operation if it is a fraction
-          if (previousMathElement.mathParent.match(expression.fraction.regex)) {
-            Editor.deleteBackward(editor);
-            Editor.deleteBackward(editor);
-            console.log(`i should add this to numerator: `, math);
-            let numerator = previousMathElement.numerator + previousMath + math;
-            let denominator = previousMathElement.denominator;
-            mathOutput = String.raw`\frac{${numerator}}{${denominator}}`;
-            mathParent = mathOutput;
-          }
-        }
-      }
+    if (previousMath) {
+      mathOutput = previousMath + ` ` + math;
+      Editor.deleteBackward(editor);
     }
 
     const text = { text: "" };
@@ -323,6 +338,36 @@ export const EditorPlugins = {
 
     Transforms.insertNodes(editor, mathBlock);
     Transforms.move(editor);
+  },
+  insertFractionMathBlock(editor, previousMath, math, numerator, denominator) {
+    const { selection } = editor;
+    if (!(selection && Range.isCollapsed(selection))) {
+      return;
+    }
+    const text = { text: "" };
+
+    const mathBlock = {
+      type: "fraction-math-block",
+      math: math,
+      numerator,
+      denominator,
+      children: [text],
+    };
+    Editor.deleteBackward(editor);
+    Transforms.insertNodes(editor, mathBlock);
+    Transforms.move(editor);
+  },
+
+  insertMathBlock(editor) {
+    const text = { text: "" };
+
+    const mathBlock = {
+      type: "math-block",
+      math: "",
+      children: [text],
+    };
+
+    Transforms.insertNodes(editor, mathBlock);
   },
 
   withMentions(editor) {
@@ -339,7 +384,7 @@ export const EditorPlugins = {
     return editor;
   },
   withMathBlock(editor) {
-    const { isInline, isVoid, selection } = editor;
+    const { isInline, isVoid } = editor;
 
     editor.isInline = (element) => {
       return element.type === "math-block" ? true : isInline(element);
@@ -347,6 +392,20 @@ export const EditorPlugins = {
 
     editor.isVoid = (element) => {
       return element.type === "math-block" ? true : isVoid(element);
+    };
+
+    return editor;
+  },
+
+  withFractionMathBlock(editor) {
+    const { isInline, isVoid } = editor;
+
+    editor.isInline = (element) => {
+      return element.type === "fraction-math-block" ? true : isInline(element);
+    };
+
+    editor.isVoid = (element) => {
+      return element.type === "fraction-math-block" ? true : isVoid(element);
     };
 
     return editor;

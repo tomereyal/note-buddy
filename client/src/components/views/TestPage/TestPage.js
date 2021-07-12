@@ -1,12 +1,13 @@
 import React from "react";
 import Math from "./Math";
+import MathEditor from "../../editor/MathEditor";
+import TitleEditor from "../../editor/TitleEditor/TitleEditor";
 export default function TestPage() {
   return (
     <div>
       <h1>Testing Page</h1>
       <div>
-        <Math tex="e^{i \pi} = -1" />
-        <Math display tex="e^{i \theta} = \cos\theta + i\sin\theta" />
+        <TitleEditor></TitleEditor>
       </div>
     </div>
   );

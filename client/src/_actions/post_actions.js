@@ -5,13 +5,13 @@ import {
   CREATE_POST,
   CREATE_SECTION_IN_POST,
   REMOVE_SECTION_FROM_POST,
-  SET_POST_TITLE,
+  EDIT_POST,
   SET_SECTION_BGC,
   SET_SECTION_PATTERN,
-  SET_SECTION_TITLE,
+  EDIT_SECTION,
   CREATE_LIST_IN_SECTION,
   REMOVE_LIST_FROM_SECTION,
-  SET_LIST_TITLE,
+  EDIT_LIST,
   CREATE_CARD_IN_LIST,
   REMOVE_CARD_FROM_LIST,
   EDIT_NOTE,
@@ -44,10 +44,10 @@ export const createPost = (postVariables, post) => async (dispatch) => {
     console.log(error.message);
   }
 };
-export const setPostTitle = (variables) => async (dispatch) => {
+export const editPost = (variables) => async (dispatch) => {
   try {
-    const { data } = await api.setPostTitle(variables);
-    dispatch({ type: SET_POST_TITLE, payload: data });
+    const { data } = await api.editPost(variables);
+    dispatch({ type: EDIT_POST, payload: data });
   } catch (error) {
     console.log(error.message);
   }
@@ -99,10 +99,10 @@ export const setSectionPattern = (variables) => async (dispatch) => {
     console.log(error.message);
   }
 };
-export const setSectionTitle = (variables) => async (dispatch) => {
+export const editSection = (variables) => async (dispatch) => {
   try {
-    const { data } = await api.setSectionTitle(variables);
-    dispatch({ type: SET_SECTION_TITLE, payload: data });
+    const { data } = await api.editSection(variables);
+    dispatch({ type: EDIT_SECTION, payload: data });
   } catch (error) {
     console.log(error.message);
   }
@@ -126,10 +126,10 @@ export const removeListFromSection = (variables) => async (dispatch) => {
     console.log(error.message);
   }
 };
-export const setListTitle = (variables) => async (dispatch) => {
+export const editList = (variables) => async (dispatch) => {
   try {
-    const { data } = await api.setListTitle(variables);
-    dispatch({ type: SET_LIST_TITLE, payload: data });
+    const { data } = await api.editList(variables);
+    dispatch({ type: EDIT_LIST, payload: data });
   } catch (error) {
     console.log(error.message);
   }

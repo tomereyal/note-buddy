@@ -5,12 +5,12 @@ import {
   CREATE_SECTION_IN_POST,
   SET_SECTION_BGC,
   SET_SECTION_PATTERN,
-  SET_SECTION_TITLE,
-  SET_POST_TITLE,
+  EDIT_SECTION,
+  EDIT_POST,
   REMOVE_SECTION_FROM_POST,
   CREATE_LIST_IN_SECTION,
   REMOVE_LIST_FROM_SECTION,
-  SET_LIST_TITLE,
+  EDIT_LIST,
   CREATE_CARD_IN_LIST,
   REMOVE_CARD_FROM_LIST,
   EDIT_NOTE,
@@ -31,7 +31,7 @@ export default function (posts = [], action) {
     case CREATE_POST:
       return [...posts, action.payload];
 
-    case SET_POST_TITLE:
+    case EDIT_POST:
       return posts.map((post) => {
         return post._id == action.payload._id ? action.payload : post;
       });
@@ -52,7 +52,7 @@ export default function (posts = [], action) {
       return posts.map((post) => {
         return post._id == action.payload._id ? action.payload : post;
       });
-    case SET_SECTION_TITLE:
+    case EDIT_SECTION:
       return posts.map((post) => {
         return post._id == action.payload._id ? action.payload : post;
       });
@@ -64,7 +64,7 @@ export default function (posts = [], action) {
       return posts.map((post) => {
         return post._id == action.payload._id ? action.payload : post;
       });
-    case SET_LIST_TITLE:
+    case EDIT_LIST:
       return posts.map((post) => {
         return post._id == action.payload._id ? action.payload : post;
       });

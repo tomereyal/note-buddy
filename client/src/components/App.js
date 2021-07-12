@@ -12,6 +12,7 @@ import BlogPage from "./views/BlogPage/BlogPage.js";
 import PostPage from "./views/PostPage/PostPage.js";
 import SearchPage from "./views/SearchPage/SearchPage";
 import "./App.css";
+
 import FolderPage from "./views/FolderPage/FolderPage";
 import SettingsPage from "./views/SettingsPage/SettingsPage";
 import { useDispatch, useSelector } from "react-redux";
@@ -23,6 +24,8 @@ import { ConfigProvider } from "antd";
 //null   Anyone Can go inside
 //true   only logged in user can go inside
 //false  logged in user can't go inside
+
+
 
 function App() {
   //this dispatch must be in the app for it to update all the pages..

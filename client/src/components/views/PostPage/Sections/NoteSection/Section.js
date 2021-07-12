@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import NoteList from "../NoteList";
+import TitleEditor from "../../../../editor/TitleEditor/TitleEditor";
 import ColorMenu from "../ColorMenu";
 import {
   List,
@@ -22,7 +23,7 @@ import {
 import { useDispatch } from "react-redux";
 import {
   createSectionInPost,
-  setSectionTitle,
+  editSection,
   removeSectionFromPost,
 } from "../../../../../_actions/post_actions";
 import { css } from "@emotion/css";
@@ -33,7 +34,7 @@ export default function Section(props) {
   const { postId, sectionsLength, index } = props;
   const [section, setSection] = useState(props.section);
   const [pattern, setPattern] = useState(section.backgroundPattern);
-  const [editableStr, setEditableStr] = useState(section.title);
+  const [title, setTitle] = useState(section.title);
   const [backgroundColor, setBackgroundColor] = useState(
     section.backgroundColor
   );
@@ -85,13 +86,13 @@ export default function Section(props) {
   //   });
   // };
 
-  const handleSectionTitle = (newTitle) => {
+  const saveSection = () => {
     const variables = {
       postId,
       sectionId: section._id,
-      newTitle,
+      editArr: [{ editType: "title", editValue: title }],
     };
-    dispatch(setSectionTitle(variables));
+    dispatch(editSection(variables));
   };
 
   return (
@@ -100,6 +101,7 @@ export default function Section(props) {
         className={css`
           background-color: ${backgroundColor};
           ${pattern};
+          padding: 0 20px;
         `}
         // className={sectionBgc}
       >
@@ -111,11 +113,11 @@ export default function Section(props) {
               margin: "2rem 0",
               justifyContent: "center",
               alignItems: "center",
-              backgroundColor: "rgba(0,0,0, 0.5)",
+              // backgroundColor: "rgba(0,0,0, 0.5)",
               borderRadius: "10px",
             }}
           >
-            <Text
+            {/* <Text
               style={{ fontSize: "25px", minWidth: "150px", color: "white" }}
               editable={{
                 onChange: (e) => {
@@ -125,7 +127,16 @@ export default function Section(props) {
               }}
             >
               {editableStr}
-            </Text>
+            </Text> */}
+            <div
+              style={{ minWidth: "200px" }}
+              onBlur={() => {
+                saveSection();
+              }}
+            >
+              {" "}
+              <TitleEditor title={title} setTitle={setTitle} size={2} />{" "}
+            </div>
 
             <ColorMenu
               setPattern={setPattern}
