@@ -8,6 +8,7 @@ const mongoose = require("mongoose");
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
 const axios = require("axios");
+const morgan = require("morgan");
 
 //https://www.freecodecamp.org/news/express-explained-with-examples-installation-routing-middleware-and-more/
 
@@ -115,7 +116,7 @@ if (process.env.NODE_ENV === "production") {
 }
 
 const port = process.env.PORT || 5000;
-
+app.use(morgan("combined"));
 /*The listen method starts our server.
  and it defines where (which port) we (the hosts middleware) will 
  listen to incoming requests from a client*/

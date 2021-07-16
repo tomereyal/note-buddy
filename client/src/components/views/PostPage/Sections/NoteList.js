@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import NoteCard from "./NoteCard";
+import TitleEditor from "../../../editor/TitleEditor/TitleEditor";
 import { List, Avatar, Col, Typography, Row, Button, Tooltip } from "antd";
 import axios from "axios";
 import {
@@ -11,8 +12,8 @@ import {
 } from "@ant-design/icons";
 import {
   createListInSection,
+  editList,
   removeListFromSection,
-  setListTitle,
 } from "../../../../_actions/post_actions";
 import { createCardInList } from "../../../../_actions/post_actions";
 const { Text } = Typography;
@@ -24,7 +25,14 @@ export default function NoteList(props) {
   // const [cards, setCards] = useState(list.cards ? list.cards : []);
   // const [cardCount, setCardCount] = useState(cards.length);
   const [isShown, setIsShown] = useState(true);
-  const [editableStr, setEditableStr] = useState(list.title);
+
+  const { title: listTitle, titleColor, titleBgc, titleFont } = list;
+  const [title, setTitle] = useState({
+    text: listTitle,
+    color: titleColor,
+    bgc: titleBgc,
+    fontStyle: titleFont,
+  });
 
   useEffect(() => {
     setList(props.list);
@@ -54,14 +62,19 @@ export default function NoteList(props) {
     dispatch(removeListFromSection(variables));
   };
 
-  const handleListTitle = (newTitle) => {
+  const saveList = () => {
     const variables = {
       postId,
       sectionId,
       listId: list._id,
-      newTitle,
+      editArr: [
+        { editType: "title", editValue: title.text },
+        { editType: "titleColor", editValue: title.color },
+        { editType: "titleBgc", editValue: title.bgc },
+        { editType: "titleFont", editValue: title.fontStyle },
+      ],
     };
-    dispatch(setListTitle(variables));
+    dispatch(editList(variables));
   };
 
   const createCard = () => {
@@ -81,9 +94,9 @@ export default function NoteList(props) {
       <List
         bordered={true}
         style={{
-          margin: "0 10px",
+          margin: "0 3px",
+          padding: "0 1rem",
           marginBottom: "10px",
-          backgroundColor: "rgba(255,255,255, 0.3)",
         }}
       >
         <div
@@ -94,7 +107,7 @@ export default function NoteList(props) {
             padding: "1rem 0",
           }}
         >
-          <Text
+          {/* <Text
             style={{
               fontSize: "20px",
               minWidth: "150px",
@@ -115,7 +128,18 @@ export default function NoteList(props) {
             }}
           >
             {editableStr}
-          </Text>
+          </Text> */}
+          <div
+            onBlur={() => {
+              saveList();
+            }}
+          >
+            <TitleEditor
+              title={title}
+              setTitle={setTitle}
+              size={3}
+            ></TitleEditor>
+          </div>
 
           <Tooltip title="Add List">
             <Button
@@ -146,9 +170,6 @@ export default function NoteList(props) {
               listCardCount={cards.length}
               card={card}
               index={index}
-              listId={list._id}
-              sectionId={sectionId}
-              postId={postId}
               setList={setList}
             ></NoteCard>
           );

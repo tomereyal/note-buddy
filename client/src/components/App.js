@@ -12,12 +12,14 @@ import BlogPage from "./views/BlogPage/BlogPage.js";
 import PostPage from "./views/PostPage/PostPage.js";
 import SearchPage from "./views/SearchPage/SearchPage";
 import "./App.css";
+
 import FolderPage from "./views/FolderPage/FolderPage";
 import SettingsPage from "./views/SettingsPage/SettingsPage";
 import { useDispatch, useSelector } from "react-redux";
 import { getPosts } from "../_actions/post_actions";
 import { getFolders } from "../_actions/folder_actions";
 import TestPage from "./views/TestPage/TestPage";
+import ProfilePage from "./views/ProfilePage/ProfilePage";
 
 import { ConfigProvider } from "antd";
 //null   Anyone Can go inside
@@ -66,7 +68,11 @@ function App() {
                 path="/settings"
                 component={Auth(SettingsPage, null)}
               />
-
+              <Route
+                exact
+                path="/profile"
+                component={Auth(ProfilePage, null)}
+              />
               <Route exact path="/search" component={Auth(SearchPage, null)} />
               <Route
                 exact

@@ -23,6 +23,10 @@ const userSchema = mongoose.Schema({
     type: String,
     maxlength: 50,
   },
+  // address: {
+  //   type:
+  // }
+  // ,
   role: {
     type: Number,
     default: 0,
@@ -34,6 +38,17 @@ const userSchema = mongoose.Schema({
   tokenExp: {
     type: Number,
   },
+  followers: {
+    type: [mongoose.Schema.Types.ObjectId],
+    default: [],
+    ref: "User",
+  },
+  followings: {
+    type: [mongoose.Schema.Types.ObjectId],
+    default: [],
+    ref: "User",
+  },
+
   // settings: {
   //   type: mongoose.model("Settings").schema,
   // },

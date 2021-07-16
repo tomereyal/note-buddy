@@ -32,6 +32,9 @@ const listSchema = mongoose.Schema(
     // inPost: { type: Schema.Types.ObjectId, ref: "Blog" },
     // inSection: { type: Schema.Types.ObjectId, ref: "Section" },
     title: { type: String, default: "New list" },
+    titleFont: { type: String, default: "" },
+    titleBgc: { type: String, default: "" },
+    titleColor: { type: String, default: "" },
     order: { type: Number, default: 0 },
     cards: [{ type: Schema.Types.ObjectId, ref: "Card" }],
   },
@@ -42,6 +45,9 @@ const sectionSchema = mongoose.Schema(
   {
     // inPost: { type: Schema.Types.ObjectId, ref: "Blog" },
     title: { type: String, default: "" },
+    titleFont: { type: String, default: "" },
+    titleBgc: { type: String, default: "" },
+    titleColor: { type: String, default: "" },
     backgroundColor: { type: String, default: "#fff" },
     backgroundPattern: { type: String, default: "" },
     order: { type: Number, default: 0 },
@@ -55,6 +61,9 @@ const blogSchema = mongoose.Schema(
     //By default, Mongoose adds an _id property to your schemas.
     // folder: { type: Schema.Types.ObjectId, ref: "Folder" },
     name: String,
+    titleFont: { type: String, default: "" },
+    titleBgc: { type: String, default: "" },
+    titleColor: { type: String, default: "" },
     content: { type: String },
     writer: { type: Schema.Types.ObjectId, ref: "User" },
     sections: { type: [sectionSchema], default: [] },
@@ -80,6 +89,9 @@ blogSchema.pre("remove", function (next) {
 // };
 blogSchema.methods.saveAndPopulate = function (cb) {
   return this.save((err, updatedPost) => {
+    if (err) {
+      console.log(`err`, err);
+    }
     updatedPost
       .populate({
         path: "sections",

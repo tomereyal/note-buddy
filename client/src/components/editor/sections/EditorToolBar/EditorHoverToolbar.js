@@ -4,16 +4,17 @@ import { ReactEditor, useSlate } from "slate-react";
 import { Editor } from "slate";
 import { css, cx } from "@emotion/css";
 import { EditorPlugins } from "../../EditorPlugins";
+
 import {
   BoldOutlined,
   FontSizeOutlined,
   ItalicOutlined,
-  OrderedListOutlined,
   UnderlineOutlined,
-  UnorderedListOutlined,
 } from "@ant-design/icons";
-
+import { Select, Popover } from "antd";
 import { Range } from "slate";
+
+const { Option } = Select;
 export default function EditorHoverToolbar() {
   const ref = useRef();
   const editor = useSlate();
@@ -74,9 +75,6 @@ export default function EditorHoverToolbar() {
           format="heading-two"
           icon={<FontSizeOutlined style={{ fontSize: "16px" }} />}
         />
-        <BlockButton format="block-quote" icon='" "' />
-        <BlockButton format="numbered-list" icon={<OrderedListOutlined />} />
-        <BlockButton format="bulleted-list" icon={<UnorderedListOutlined />} />
       </Menu>
     </Portal>
   );

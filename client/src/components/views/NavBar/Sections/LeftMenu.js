@@ -1,21 +1,11 @@
-import React, { useState } from "react";
-import { Menu, Button, Drawer } from "antd";
-import { SettingOutlined } from "@ant-design/icons";
-import QuickSettings from "../../QuickSettings/QuickSettings";
+import React from "react";
+import { Menu } from "antd";
+
 import { withRouter, Link } from "react-router-dom";
-const SubMenu = Menu.SubMenu;
-const MenuItemGroup = Menu.ItemGroup;
+
+
 
 function LeftMenu(props) {
-  const [settingsVisibility, setSettingsVisibility] = useState(false);
-
-  const showDrawer = () => {
-    setSettingsVisibility(true);
-  };
-
-  const onClose = () => {
-    setSettingsVisibility(false);
-  };
 
   return (
     <>
@@ -35,24 +25,7 @@ function LeftMenu(props) {
         <Menu.Item key="search">
           <Link to="/search">Search</Link>
         </Menu.Item>
-        <Menu.Item
-          key="Settings"
-          onClick={showDrawer}
-          itemIcon={<SettingOutlined />}
-        ></Menu.Item>
       </Menu>
-
-      <Drawer
-        title="Quick Settings"
-        placement={"right"}
-        closable={false}
-        onClose={onClose}
-        visible={settingsVisibility}
-        key={"right"}
-        width="35%"
-      >
-        <QuickSettings></QuickSettings>
-      </Drawer>
     </>
   );
 }

@@ -3,7 +3,7 @@ const Schema = mongoose.Schema;
 
 const tagSchema = mongoose.Schema(
   {
-    name: { type: String, default: "" },
+    name: { type: String, default: "", unique: true },
     style: {
       color: { type: String, default: "" },
       size: { type: String, default: "" },
@@ -16,7 +16,12 @@ const Tag = mongoose.model("Tag", tagSchema);
 
 const cardSchema = mongoose.Schema(
   {
+    title: { type: String, default: "" },
+    titleFont: { type: String, default: "" },
+    titleBgc: { type: String, default: "" },
+    titleColor: { type: String, default: "" },
     order: { type: Number, default: 0 },
+    conditions: { type: Schema.Types.Array, default: [] },
     content: { type: [Schema.Types.Mixed], default: [] },
     location: {
       post: { type: Schema.Types.ObjectId },

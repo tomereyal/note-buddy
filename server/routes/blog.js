@@ -123,14 +123,17 @@ router.post("/getPost", (req, res) => {
     });
 });
 
-router.post("/setPostTitle", (req, res) => {
-  const { postId, newTitle } = req.body;
+router.post("/editPost", (req, res) => {
+  const { postId, editArr } = req.body;
   Blog.findById(postId, function (err, post) {
     if (err) {
       console.log(err);
     }
-    post.name = newTitle;
-    post.save((err, result) => {
+
+    editArr.forEach(({ editType, editValue }) => {
+      post[editType] = editValue;
+    });
+    post.saveAndPopulate((err, result) => {
       if (err) return res.json({ success: false, err });
       res.status(200).json(result);
     });
@@ -236,7 +239,7 @@ router.post("/setSectionBgc", (req, res) => {
     let section = post.sections.id(sectionId);
     post.sections.id(sectionId).backgroundColor = backgroundColor;
     // section.backgroundColor = backgroundColor;
-    post.save((err, result) => {
+    post.saveAndPopulate((err, result) => {
       if (err) return res.json({ success: false, err });
       res.status(200).json(result);
     });
@@ -258,20 +261,19 @@ router.post("/setSectionPattern", (req, res) => {
   });
 });
 
-router.post("/setSectionTitle", (req, res) => {
-  const { postId, sectionId, newTitle } = req.body;
+router.post("/editSection", (req, res) => {
+  const { postId, sectionId, newTitle, editArr } = req.body;
   Blog.findById(postId, function (err, post) {
     if (err) {
       console.log(err);
     }
-    console.log(`postId`, postId);
-    console.log(`sectionId`, sectionId);
-    console.log(`newTitle`, newTitle);
+
     let section = post.sections.id(sectionId);
-    post.sections.id(sectionId).title = newTitle;
-    // section.backgroundColor = backgroundColor;
-    console.log(`section`, section);
-    post.save((err, result) => {
+    editArr.forEach(({ editType, editValue }) => {
+      section[editType] = editValue;
+    });
+
+    post.saveAndPopulate((err, result) => {
       if (err) return res.json({ success: false, err });
       res.status(200).json(result);
     });
@@ -328,14 +330,21 @@ router.post("/removeListFromSection", (req, res) => {
   });
 });
 
-router.post("/setListTitle", (req, res) => {
-  const { postId, sectionId, listId, newTitle } = req.body;
+router.post("/editList", (req, res) => {
+  const { postId, sectionId, listId, newTitle, editArr } = req.body;
   Blog.findById(postId, function (err, post) {
     if (err) {
       console.log(err);
     }
-    post.sections.id(sectionId).lists.id(listId).title = newTitle;
-    post.save((err, result) => {
+    let list = post.sections.id(sectionId).lists.id(listId);
+    editArr.forEach(({ editType, editValue }) => {
+      switch (editType) {
+        default:
+          list[editType] = editValue;
+          break;
+      }
+    });
+    post.saveAndPopulate((err, result) => {
       if (err) return res.json({ success: false, err });
       res.status(200).json(result);
     });

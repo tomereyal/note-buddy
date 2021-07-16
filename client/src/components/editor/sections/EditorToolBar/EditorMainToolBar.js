@@ -1,64 +1,97 @@
 import React, { useRef, useState, useEffect } from "react";
 import ReactDOM from "react-dom";
-import { ReactEditor, useSlate } from "slate-react";
-import { Editor } from "slate";
+//===========REDUX=========================
+import { useDispatch } from "react-redux";
+//===========SLATE=========================
+import { useSlate } from "slate-react";
+//===========EMOTION-CSS=========================
 import { css, cx } from "@emotion/css";
-import { EditorPlugins } from "../../EditorPlugins";
+//===========ANTD=========================
+
 import {
-  BoldOutlined,
   BorderOutlined,
   BgColorsOutlined,
   CloseCircleOutlined,
-  FontSizeOutlined,
   FontColorsOutlined,
-  ItalicOutlined,
   OrderedListOutlined,
-  UnderlineOutlined,
   UnorderedListOutlined,
-  FunctionOutlined,
+  DownOutlined,
+  DeleteFilled,
 } from "@ant-design/icons";
-// import ColorPicker from "./Sections/ColorPicker";
-import { Popover, Button as AntdButton } from "antd";
+import { Popover, Tooltip, Button as AntdButton } from "antd";
 import Math from "../../../views/TestPage/Math";
+//===========REACT-COLOR=========================
 import { GithubPicker } from "react-color";
+//===========LOCAL-FILES=========================
 import { mathConfig } from "../math_Config";
-// import { Range } from "slate";
-export default function EditorMainToolbar() {
+import { EditorPlugins } from "../../EditorPlugins";
+import { removeCardFromList } from "../../../../_actions/post_actions";
+
+//--------------------------------------------------------------------------------------
+
+export default function EditorMainToolbar(props) {
   const ref = useRef();
-
-  //   const editor = useSlate();
-
-  return (
+  const { cardData } = props;
+  const dispatch = useDispatch();
+  const removeCard = () => {
+    const variables = cardData;
+    dispatch(removeCardFromList(variables));
+  };
+  const content = (
     <Menu
       ref={ref}
       className={css`
         padding: 8px 7px 6px;
         z-index: 1;
-        margin-top: -6px;
         opacity: 1;
-        /* background-color: #222; */
+        background-color: #222;
         border-radius: 4px;
         transition: opacity 0.75s;
       `}
     >
-      <FormatButton format="bold" icon={<BoldOutlined />} />
-      <FormatButton format="italic" icon={<ItalicOutlined />} />
-      <FormatButton format="underlined" icon={<UnderlineOutlined />} />
-      <BlockButton
-        format="heading-one"
-        icon={<FontSizeOutlined style={{ fontSize: "20px" }} />}
-      />
-      <BlockButton
-        format="heading-two"
-        icon={<FontSizeOutlined style={{ fontSize: "16px" }} />}
-      />
-
+      <Tooltip title="Remove Note">
+        <AntdButton
+          type="danger"
+          shape="circle"
+          size="small"
+          icon={<DeleteFilled />}
+          onClick={() => {
+            removeCard();
+          }}
+        />
+      </Tooltip>
       <BlockButton format="block-quote" icon='" "' />
       <BlockButton format="numbered-list" icon={<OrderedListOutlined />} />
       <BlockButton format="bulleted-list" icon={<UnorderedListOutlined />} />
-      <InsertMathButton icon={<FunctionOutlined />} />
+      <InsertCondition format="block-condition" icon="C" />
       <PaintBlockButton icon={<BgColorsOutlined />} />
     </Menu>
+  );
+
+  return (
+    <div
+      style={{
+        height: "100%",
+        width: "100%",
+        display: "flex",
+        justifyContent: "space-evenly",
+        flexDirection: "column",
+        alignItems: "center",
+      }}
+    >
+      <Popover content={content} title="Title" trigger="hover">
+        <Button
+          style={{
+            color: "black",
+            width: "100%",
+            display: "flex",
+            justifyContent: "center",
+          }}
+        >
+          <DownOutlined />
+        </Button>
+      </Popover>
+    </div>
   );
 }
 
@@ -92,71 +125,103 @@ const BlockButton = ({ format, icon }) => {
     </Button>
   );
 };
-const InsertMathButton = ({ format, icon }) => {
+
+const InsertCondition = ({ format, icon }) => {
+  const editor = useSlate();
+  return (
+    <Button
+      reversed
+      onMouseDown={(event) => {
+        event.preventDefault();
+        EditorPlugins.insertCondition(editor);
+      }}
+    >
+      <Icon>{icon}</Icon>
+    </Button>
+  );
+};
+const InsertMathButton = ({ format, icon, previousMath }) => {
   const { division, root } = mathConfig.operator;
   const editor = useSlate();
+  const { insertMathChar, insertMathOperator, insertFractionMathBlock } =
+    EditorPlugins;
   const mathRawString = String.raw`e^{i \theta} = cos\theta + isin\theta`;
   const mathRawString2 = String.raw`\sqrt{ab}`;
-  const mathRawString3 = String.raw`(a+x)`;
+  const mathRawString3 = String.raw`{(a+x)}`;
   const fraction = String.raw`/`;
+  const fractionExample = String.raw`\frac{ \sqrt[n]{ab}}{\sin{\alpha}+3^e}`;
   const alpha = String.raw`\alpha`;
+  const openCurly = String.raw`\{`;
+  const closedCurly = String.raw`\}`;
   const sqrt = String.raw`\sqrt{\bigcirc}`;
   // const fraction = String.raw`{\frac{a}{\<span>ds</span>}}`;
+  const mathArr = [
+    { math: alpha, insertMethod: insertMathChar },
+    {
+      math: mathRawString,
+      insertMethod: insertMathChar,
+    },
+    {
+      math: mathRawString2,
+      insertMethod: insertMathChar,
+    },
+    {
+      math: mathRawString3,
+      insertMethod: insertMathChar,
+    },
+    { math: sqrt, insertMethod: insertMathOperator },
+    { math: openCurly, insertMethod: insertMathOperator },
+    { math: closedCurly, insertMethod: insertMathChar },
+  ];
   return (
     <>
+      {mathArr.map(({ math, insertMethod }) => {
+        return (
+          <Button
+            key={math}
+            reversed
+            onMouseDown={(event) => {
+              event.preventDefault();
+              insertMethod(editor, previousMath, math);
+            }}
+          >
+            <Icon>
+              <Math tex={math}></Math>
+            </Icon>
+          </Button>
+        );
+      })}{" "}
       <Button
+        key={fraction}
         reversed
         onMouseDown={(event) => {
           event.preventDefault();
-          EditorPlugins.insertMathBlock(editor, alpha);
+          insertMathOperator(editor, previousMath, fraction, "division");
         }}
       >
         <Icon>
-          <Math tex={alpha}></Math>
+          <Math tex={fraction}></Math>
         </Icon>
       </Button>
       <Button
+        key={String.raw`\frac{a}{b}`}
         reversed
         onMouseDown={(event) => {
           event.preventDefault();
-          EditorPlugins.insertMathBlock(editor, mathRawString2);
+          let numerator = mathRawString2;
+          let denominator = mathRawString3;
+          let math = String.raw`\frac{${numerator}}{${denominator}}`;
+          insertFractionMathBlock(
+            editor,
+            previousMath,
+            math,
+            numerator,
+            denominator
+          );
         }}
       >
         <Icon>
-          <Math tex={mathRawString2}></Math>
-        </Icon>
-      </Button>
-      <Button
-        reversed
-        onMouseDown={(event) => {
-          event.preventDefault();
-          EditorPlugins.insertMathBlock(editor, mathRawString3);
-        }}
-      >
-        <Icon>
-          <Math tex={mathRawString3}></Math>
-        </Icon>
-      </Button>
-      <Button
-        reversed
-        onMouseDown={(event) => {
-          event.preventDefault();
-          EditorPlugins.insertMathBlock(editor, division.tex);
-        }}
-      >
-        <Icon>
-          <Math tex={division.tex}></Math>
-        </Icon>
-      </Button>
-      <Button
-        reversed
-        onMouseDown={(event) => {
-          event.preventDefault();
-          EditorPlugins.insertMathBlock(editor, sqrt);
-        }}
-      >
-        <Icon>
-          <Math tex={sqrt}></Math>
+          <Math tex={String.raw`\frac{a}{b}`}></Math>
         </Icon>
       </Button>
     </>

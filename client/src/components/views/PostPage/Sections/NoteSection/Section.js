@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import NoteList from "../NoteList";
+import TitleEditor from "../../../../editor/TitleEditor/TitleEditor";
 import ColorMenu from "../ColorMenu";
 import {
   List,
@@ -22,7 +23,7 @@ import {
 import { useDispatch } from "react-redux";
 import {
   createSectionInPost,
-  setSectionTitle,
+  editSection,
   removeSectionFromPost,
 } from "../../../../../_actions/post_actions";
 import { css } from "@emotion/css";
@@ -33,7 +34,14 @@ export default function Section(props) {
   const { postId, sectionsLength, index } = props;
   const [section, setSection] = useState(props.section);
   const [pattern, setPattern] = useState(section.backgroundPattern);
-  const [editableStr, setEditableStr] = useState(section.title);
+  const { title: sectionTitle, titleColor, titleBgc, titleFont } = section;
+  const [title, setTitle] = useState({
+    text: sectionTitle,
+    color: titleColor,
+    bgc: titleBgc,
+    fontStyle: titleFont,
+  });
+
   const [backgroundColor, setBackgroundColor] = useState(
     section.backgroundColor
   );
@@ -85,13 +93,18 @@ export default function Section(props) {
   //   });
   // };
 
-  const handleSectionTitle = (newTitle) => {
+  const saveSection = () => {
     const variables = {
       postId,
       sectionId: section._id,
-      newTitle,
+      editArr: [
+        { editType: "title", editValue: title.text },
+        { editType: "titleColor", editValue: title.color },
+        { editType: "titleBgc", editValue: title.bgc },
+        { editType: "titleFont", editValue: title.fontStyle },
+      ],
     };
-    dispatch(setSectionTitle(variables));
+    dispatch(editSection(variables));
   };
 
   return (
@@ -100,59 +113,65 @@ export default function Section(props) {
         className={css`
           background-color: ${backgroundColor};
           ${pattern};
+          padding: 0 20px;
         `}
-        // className={sectionBgc}
       >
+        <div
+          style={{
+            width: "100%",
+            margin: "8px 3px 16px",
+            display: "flex",
+            justifyContent: "flex-end",
+          }}
+        >
+          <ColorMenu
+            setPattern={setPattern}
+            setBackgroundColor={setBackgroundColor}
+            postId={postId}
+            sectionId={section._id}
+          ></ColorMenu>
+          <Tooltip title="Remove Section">
+            <Button
+              type="default"
+              shape="circle"
+              icon={<DeleteRowOutlined />}
+              onClick={() => {
+                removeSection();
+              }}
+            />
+          </Tooltip>
+          <Tooltip title="Add Section">
+            <Button
+              type="primary"
+              shape="circle"
+              icon={<PlusCircleOutlined />}
+              onClick={() => {
+                createSection();
+              }}
+            />
+          </Tooltip>
+        </div>
         <Divider>
           <div
             style={{
               display: "inline-flex",
               padding: "0 1rem",
-              margin: "2rem 0",
+              // margin: "2rem 0",
               justifyContent: "center",
               alignItems: "center",
-              backgroundColor: "rgba(0,0,0, 0.5)",
+              // backgroundColor: "rgba(0,0,0, 0.5)",
               borderRadius: "10px",
             }}
           >
-            <Text
-              style={{ fontSize: "25px", minWidth: "150px", color: "white" }}
-              editable={{
-                onChange: (e) => {
-                  setEditableStr(e);
-                  handleSectionTitle(e);
-                },
+            <div
+              style={{ minWidth: "300px" }}
+              onBlur={() => {
+                saveSection();
               }}
             >
-              {editableStr}
-            </Text>
-
-            <ColorMenu
-              setPattern={setPattern}
-              setBackgroundColor={setBackgroundColor}
-              postId={postId}
-              sectionId={section._id}
-            ></ColorMenu>
-            <Tooltip title="Remove Section">
-              <Button
-                type="default"
-                shape="circle"
-                icon={<DeleteRowOutlined />}
-                onClick={() => {
-                  removeSection();
-                }}
-              />
-            </Tooltip>
-            <Tooltip title="Add Section">
-              <Button
-                type="primary"
-                shape="circle"
-                icon={<PlusCircleOutlined />}
-                onClick={() => {
-                  createSection();
-                }}
-              />
-            </Tooltip>
+              {" "}
+              <TitleEditor title={title} setTitle={setTitle} size={2} />{" "}
+            </div>
           </div>
         </Divider>
 

@@ -1,1 +1,15 @@
 @import "~antd/dist/antd.css";
+
+.font-poppins {
+  font-family: "PoppinsRegular";
+}
+.font-chocolate-cookies {
+  font-family: "ChocolateCookies";
+}
+
+.font-brachella-drumal {
+  font-family: "brachellaDrumal";
+}
+.font-milla-cilla {
+  font-family: "millaCilla";
+}

@@ -27,25 +27,19 @@ router.get("/fetchTaggedCards/:tagName", (req, res) => {
   });
 });
 
-router.post("/editNote", (req, res) => {
+router.put("/:id", (req, res) => {
   //I had an issue that client was sending only an objectId of the card and the card was null..
   // i needed to populate after every post update by creating a custom static method on the blogSchema..
-  const { cardId, editArr } = req.body;
-  Card.findById(cardId, function (err, card) {
-    if (err) return res.status(400).send(err);
-    editArr.forEach(({ editType, editValue }) => {
-      switch (editType) {
-        default:
-          card[editType] = editValue;
-          break;
-      }
-    });
-
-    card.save((err, cardInfo) => {
+  const cardId = req.params.id;
+  Card.findByIdAndUpdate(
+    cardId,
+    { $set: req.body },
+    { new: true },
+    function (err, cardInfo) {
       if (err) return res.json({ success: false, err });
       return res.status(200).json({ success: true, cardInfo });
-    });
-  });
+    }
+  );
 });
 
 router.post("/saveNewNoteTags", (req, res) => {

@@ -24,22 +24,7 @@ function PostPage(props) {
   const [sections, setSections] = useState([]);
 
   const container = useRef(initPost);
-
-  // function getInitPost(props) {
-  //   if (props.match) {
-  //     const postId = props.post ? props.post._id : props.match.params.postId;
-  //     if (posts) {
-  //       return posts.find((post) => {
-  //         return post._id == postId;
-  //       });
-  //     }
-  //   } else {
-  //     return posts.find((post) => {
-  //       return post._id == props.postId;
-  //     });
-  //   }
-  // }
-
+  
   useEffect(() => {
     if (props) {
       setPost(() => {

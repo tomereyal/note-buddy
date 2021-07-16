@@ -11,21 +11,30 @@ import {
   Point,
   Element as SlateElement,
 } from "slate";
+import { ReactEditor } from "slate-react";
 import imageExtensions from "image-extensions";
 import isUrl from "is-url";
 import { mathConfig } from "./sections/math_Config";
+const { stringify } = require("flatted/cjs");
+
 const LIST_TYPES = ["numbered-list", "bulleted-list"];
 
 export const EditorPlugins = {
+  withCardData(editor, cardData) {
+    if (!cardData) return editor;
+    editor.cardData = cardData;
+    return editor;
+  },
+
   withTitledCardLayout(editor) {
-    const { normalizeNode } = editor;
+    const { normalizeNode, cardData } = editor;
 
     editor.normalizeNode = ([node, path]) => {
       if (path.length === 0) {
         if (editor.children.length < 1) {
           const title = {
-            type: "heading-two",
-            children: [{ text: "Untitled" }],
+            type: "card-header",
+            children: [{ text: "" }],
           };
           Transforms.insertNodes(editor, title, { at: path.concat(0) });
         }
@@ -39,16 +48,22 @@ export const EditorPlugins = {
         }
 
         for (const [child, childPath] of Node.children(editor, path)) {
-          const type = childPath[0] === 0 ? "heading-two" : "paragraph";
-
+          const type = childPath[0] === 0 ? "card-header" : "paragraph";
           if (SlateElement.isElement(child) && child.type !== type) {
             const newProperties = { type };
             Transforms.setNodes(editor, newProperties, { at: childPath });
           }
         }
       }
-
       return normalizeNode([node, path]);
+    };
+
+    return editor;
+  },
+  withCardHeader(editor) {
+    const { isInline, isVoid } = editor;
+    editor.isVoid = (element) => {
+      return element.type === "card-header" ? true : isVoid(element);
     };
 
     return editor;
@@ -70,15 +85,19 @@ export const EditorPlugins = {
     return !!match;
   },
   paintBlock(editor, backgroundColor) {
-    console.log(`paintBlock`, backgroundColor);
     const newProperties = {
       backgroundColor: EditorPlugins.isBlockPainted(editor, backgroundColor)
         ? "white"
         : backgroundColor,
     };
-    // const newProperties = { backgroundColor: backgroundColor };
-    console.log(`editor`, editor);
-    console.log(`newProperties`, newProperties);
+    Transforms.setNodes(editor, newProperties);
+  },
+  changeFontFamily(editor, fontFamily) {
+    // ReactEditor.focus(editor);
+    console.log(`editor.selection`, editor.selection);
+    const newProperties = {
+      fontStyle: fontFamily,
+    };
     Transforms.setNodes(editor, newProperties);
   },
   isBlockPainted(editor, backgroundColor) {
@@ -93,6 +112,33 @@ export const EditorPlugins = {
     });
 
     return !!match;
+  },
+  // changeFont(editor) {
+
+  // },
+
+  saveMathToElement(editor, math, options) {
+    const { selection } = editor;
+    console.log(`Saving this mathBlock :`, math);
+    if (selection && Range.isCollapsed(selection)) {
+      console.log(`I found  match her ein editorPLugins!`);
+      Transforms.setNodes(
+        editor,
+        { math: math },
+        {
+          match: (n, path) =>
+            !Editor.isEditor(n) &&
+            SlateElement.isElement(n) &&
+            n.type === "math-block",
+        }
+      );
+      if (options && options.exitOnSave) {
+        ReactEditor.focus(editor);
+        if (options.direction === -1) {
+          Transforms.move(editor, { reverse: true });
+        } else Transforms.move(editor);
+      }
+    }
   },
 
   toggleBlock(editor, format) {
@@ -182,113 +228,31 @@ export const EditorPlugins = {
     Transforms.insertNodes(editor, image);
     Transforms.move(editor);
   },
-  insertMathBlock(editor, math) {
+  getPreviousMathElement(editor) {
     const { selection } = editor;
     if (!(selection && Range.isCollapsed(selection))) {
       return;
     }
-    // const [start] = Range.edges(selection);
-    // const wordBefore = Editor.before(editor, start, { unit: "word" });
-    // console.log(`wordBefore`, wordBefore);
-    // const before = wordBefore && Editor.before(editor, wordBefore);
-    const nodeAfter = Editor.next(editor, selection.anchor.path);
     const nodeBefore = Editor.previous(editor, selection.anchor.path);
+
     const previousElement = nodeBefore ? nodeBefore[0] : null;
-    const nextElement = nodeAfter ? nodeAfter[0] : null;
+    return previousElement && previousElement.math
+      ? { ...previousElement, path: nodeBefore[1] }
+      : null;
+  },
 
-    const previousMath = previousElement.math;
-    const nextMath = nextElement.math;
-    // console.log(`math`, previousMath);
-    // console.log(`currentMath`, math);
-
-    let mathOutput = math;
-    let innerMath = [math];
-    const { division, root } = mathConfig.operator;
-    switch (math) {
-      case division.tex:
-        if (previousElement && previousElement.innerMath) {
-          Editor.deleteBackward(editor);
-          mathOutput = String.raw`\frac{${previousMath}}{1}`;
-          innerMath = [previousMath];
-          console.log(`innerMath`, innerMath);
-        }
-        break;
-
-      default:
-        mathOutput = math;
-    }
-
-    //find regex matching : `\frac{${previousMath}}{}`
-    //if there previousMath is a match then  mathOutput = String.raw`\frac{${previousMath}}{math}`;
-    const regexForDenominator = /^\\frac{.+}{}$/gm;
-    const regexForSquare = /^/;
-    if (previousMath && previousMath.match(regexForDenominator)) {
-      console.log(`matcchhhhhhh`);
-      if (previousElement.innerMath && previousElement.innerMath[0]) {
-        Editor.deleteBackward(editor);
-        mathOutput = String.raw`\frac{${previousElement.innerMath[0]}}{${math}}`;
-        innerMath = [previousElement.innerMath[0], String.raw`${math}`];
-      }
-    }
-
+  insertMathBlock(editor) {
     const text = { text: "" };
 
     const mathBlock = {
       type: "math-block",
-      math: mathOutput,
-      innerMath,
+      math: "",
       children: [text],
     };
 
     Transforms.insertNodes(editor, mathBlock);
-    Transforms.move(editor);
   },
 
-  // insertMathDivisionBlock(editor, math) {
-  //   const { selection } = editor;
-  //   // let mathOutput = math;
-
-  //   if (!(selection && Range.isCollapsed(selection))) {
-  //     return;
-  //   }
-  //   let mathOutput = math;
-
-  //   switch (math) {
-  //     case `{/}`:
-  //       const [start] = Range.edges(selection);
-  //       const wordBefore = Editor.before(editor, start, { unit: "word" });
-  //       console.log(`wordBefore`, wordBefore);
-  //       const before = wordBefore && Editor.before(editor, wordBefore);
-  //       const nodeBefore = before ? Editor.previous(editor, before.path) : null;
-  //       const previousElement = nodeBefore ? nodeBefore[0] : null;
-
-  //       const previousMath = previousElement.math;
-  //       console.log(`math`, previousMath);
-  //       console.log(`currentMath`, math);
-
-  //       Editor.deleteBackward(editor);
-  //       mathOutput = String.raw`\frac{${previousMath}}{}`;
-  //       break;
-  //     default:
-  //       mathOutput = math;
-  //   }
-  //   // if (math === `{/}`) {
-  //   //   mathOutput = String.raw`\frac{${previousMath}}{}`;
-  //   // }
-  //   console.log(`math==={/}`, math === `{/}`);
-  //   console.log(`mathOutput`, mathOutput);
-  //   const text = { text: "" };
-  //   console.log(`math from insertNode transform function`, math);
-  //   const mathBlock = {
-  //     type: "math-block",
-  //     math: mathOutput,
-  //     innerMath: [...previousElement.innerMath, previousMath],
-  //     children: [text],
-  //   };
-
-  //   Transforms.insertNodes(editor, mathBlock);
-  //   Transforms.move(editor);
-  // },
   withMentions(editor) {
     const { isInline, isVoid } = editor;
 
@@ -298,6 +262,61 @@ export const EditorPlugins = {
 
     editor.isVoid = (element) => {
       return element.type === "mention" ? true : isVoid(element);
+    };
+
+    return editor;
+  },
+  withConditions(editor) {
+    const { deleteBackward, insertBreak } = editor;
+    editor.insertBreak = (...args) => {
+      console.log("break");
+      insertBreak(...args);
+      return;
+    };
+    editor.deleteBackward = (...args) => {
+      const { selection } = editor;
+
+      if (selection && Range.isCollapsed(selection)) {
+        const [match] = Editor.nodes(editor, {
+          match: (n, path) =>
+            !Editor.isEditor(n) &&
+            SlateElement.isElement(n) &&
+            n.type === "condition",
+        });
+
+        if (match) {
+          const [node, path] = match;
+          const start = Editor.start(editor, path);
+          const after = Editor.after(editor, path);
+
+          if (Point.equals(selection.anchor, start)) {
+            const newProperties = {
+              type: "paragraph",
+              children: [{ text: "" }],
+            };
+
+            //We will change the node to a paragraph and the lift it up out of the steps div
+            Transforms.setNodes(editor, newProperties, {
+              at: path,
+              match: (n) =>
+                !Editor.isEditor(n) &&
+                SlateElement.isElement(n) &&
+                n.type === "condition",
+            });
+            // we might try Transforms.unwrapNodes(editor: Editor, options?) method...?
+            // Transforms.liftNodes(editor, {
+            //   at: path,
+            //   match: (n) =>
+            //     !Editor.isEditor(n) &&
+            //     SlateElement.isElement(n) &&
+            //     n.type === "paragraph",
+            // });
+            return;
+          }
+        }
+      }
+
+      deleteBackward(...args);
     };
 
     return editor;
@@ -315,6 +334,7 @@ export const EditorPlugins = {
 
     return editor;
   },
+
   getNodes(editor, nodeType) {
     if (!editor || !nodeType || !(typeof nodeType == "string")) {
       return;
@@ -345,6 +365,15 @@ export const EditorPlugins = {
       children: [{ text: "" }],
     };
     Transforms.insertNodes(editor, mention);
+    Transforms.move(editor);
+  },
+  insertCondition(editor) {
+    const condition = {
+      type: "condition",
+      children: [{ text: "If..." }],
+    };
+    Transforms.insertNodes(editor, condition);
+
     Transforms.move(editor);
   },
   insertSteps(editor) {

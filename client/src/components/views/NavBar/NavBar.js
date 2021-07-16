@@ -28,8 +28,9 @@ function NavBar() {
         <div className="menu_left">
           <LeftMenu mode="horizontal" />
         </div>
-        <div className="menu_rigth">
-          <RightMenu mode="horizontal" />
+        <div className="menu_right
+        ">
+          <RightMenu />
         </div>
         <Button
           className="menu__mobile-button"
