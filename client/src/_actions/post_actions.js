@@ -40,6 +40,7 @@ export const createPost = (postVariables, post) => async (dispatch) => {
       }
     }
     dispatch({ type: CREATE_POST, payload: post });
+    return post;
   } catch (error) {
     console.log(error.message);
   }

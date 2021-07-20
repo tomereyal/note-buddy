@@ -55,6 +55,9 @@ router.post("/createPost", (req, res) => {
   let blog = new Blog({
     name: req.body.name,
     writer: req.body.writer,
+    image: req.body.image,
+    components:req.body.components,
+    roles: req.body.roles,
     sections: [defaultSection],
   });
   defaultCard.location = {

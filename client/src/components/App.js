@@ -35,7 +35,6 @@ function App() {
 
   useEffect(() => {
     dispatch(getPosts());
-    dispatch(getFolders());
   }, []);
   const direction = useSelector(
     (state) => state.settings.general_config.direction

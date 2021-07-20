@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, Component } from "react";
 import axios from "axios";
 import Section from "./Sections/NoteSection/Section.js";
 import PostHeader from "./Sections/PostHeader";
@@ -20,11 +20,12 @@ function PostPage(props) {
   const initPost = posts.find((post) => {
     return post._id == postId;
   });
+
   const [post, setPost] = useState(initPost);
   const [sections, setSections] = useState([]);
 
   const container = useRef(initPost);
-  
+
   useEffect(() => {
     if (props) {
       setPost(() => {
@@ -67,7 +68,23 @@ function PostPage(props) {
         ref={container}
       >
         <PostHeader post={post} container={container.current}></PostHeader>
-
+        <div>
+          <Card>
+            {post.components &&
+              components.map((componenet) => {
+                return <Avatar src={componenet.image}></Avatar>;
+              })}
+            ADD section of Monster icons/parts/ things that make up this object,
+            on each part you create make a new post if it does not exist! The
+            new post will include the parent post in its "relatedTo" field.
+            aVATAR GROUP
+          </Card>
+        </div>
+        <div>
+          also make feature that every time you @tag a card it does not create a
+          new tag but searches all the posts you have created and automatically
+          adds to the other post the card aswell..
+        </div>
         {post.sections.map((section, index, sections) => {
           return (
             <Section

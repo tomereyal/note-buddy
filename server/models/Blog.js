@@ -1,32 +1,7 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 require("./Card");
-// const tagSchema = mongoose.Schema(
-//   {
-//     name: String,
-//     style: {
-//       color: { type: String, default: "" },
-//       size: { type: String, default: "" },
-//     },
-//   },
-//   { timestamps: true }
-// );
-// const Tag = mongoose.model("Tag", tagSchema);
 
-// const cardSchema = mongoose.Schema(
-//   {
-//     order: { type: Number, default: 0 },
-//     content: { type: [Schema.Types.Mixed], default: [] },
-//     location: {
-//       post: { type: Schema.Types.ObjectId },
-//       section: { type: Schema.Types.ObjectId },
-//       list: { type: Schema.Types.ObjectId },
-//     },
-//     tags: { type: [tagSchema], default: [] },
-//   },
-//   { timestamps: true }
-// );
-// const Card = mongoose.model("Card", cardSchema);
 const listSchema = mongoose.Schema(
   {
     // inPost: { type: Schema.Types.ObjectId, ref: "Blog" },
@@ -56,17 +31,34 @@ const sectionSchema = mongoose.Schema(
   { timestamps: true }
 );
 
+const roleSchema = mongoose.Schema({
+  in: [
+    {
+      postName: { type: String, default: "" },
+      postId: { type: Schema.Types.ObjectId, default: "" },
+    },
+  ],
+
+  description: { type: [Schema.Types.Mixed], default: [] },
+});
+
 const blogSchema = mongoose.Schema(
   {
     //By default, Mongoose adds an _id property to your schemas.
     // folder: { type: Schema.Types.ObjectId, ref: "Folder" },
     name: String,
+    nickNames: { type: Schema.Types.Array, default: [] },
+    image: { type: String, default: "" },
+    audio: { type: String, default: "" },
     titleFont: { type: String, default: "" },
     titleBgc: { type: String, default: "" },
     titleColor: { type: String, default: "" },
     content: { type: String },
     writer: { type: Schema.Types.ObjectId, ref: "User" },
     sections: { type: [sectionSchema], default: [] },
+    description: { type: [Schema.Types.Mixed], default: [] },
+    components: [{ type: Schema.Types.ObjectId, ref: "Blog", default: [] }],
+    roles: { type: [roleSchema], default: [] }, // the roles of this object in other objects
   },
   { timestamps: true }
 );
@@ -102,6 +94,7 @@ blogSchema.methods.saveAndPopulate = function (cb) {
           populate: { path: "cards", model: "Card" },
         },
       })
+      .populate("components")
       .execPopulate(cb);
   });
 };
@@ -111,4 +104,5 @@ blogSchema.methods.saveAndPopulate = function (cb) {
 const Blog = mongoose.model("Blog", blogSchema);
 const Section = mongoose.model("Section", sectionSchema);
 const List = mongoose.model("List", listSchema);
-module.exports = { Blog, Section, List };
+const Role = mongoose.model("Role", roleSchema);
+module.exports = { Blog, Section, List, Role };

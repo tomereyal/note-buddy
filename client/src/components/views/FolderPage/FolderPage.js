@@ -11,6 +11,7 @@ import {
   createFolder,
   deleteFolder,
   deletePostFromFolder,
+  getFolders,
 } from "../../../_actions/folder_actions";
 
 import { deletePost, createPost } from "../../../_actions/post_actions";
@@ -37,14 +38,16 @@ export default function FolderPage(props) {
   const user = useSelector((state) => state.user);
 
   const [content, setContent] = useState(null);
-  const [selectedPost, setSelectedPost] = useState(null);
+
   const [showFolderInput, setShowFolderInput] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [openKeys, setOpenKeys] = useState(["sub1"]);
   const dispatch = useDispatch();
   let { path, url } = useRouteMatch();
 
-  useEffect(() => {}, [dispatch, posts]);
+  useEffect(() => {
+    dispatch(getFolders());
+  }, [dispatch, posts]);
 
   const newFolderHandler = (folderName) => {
     // if (user.userData && !user.userData.isAuth) {
@@ -112,7 +115,6 @@ export default function FolderPage(props) {
                   key={`folder${index}sub${blogIndex}`}
                   title={blog.name}
                   onClick={() => {
-                    setSelectedPost(blog);
                     props.history.push(`${url}/post/${blog._id}`);
                     // props.history.push(`/folders/post/${blog._id}`);
                     // setContent(<PostPage postId={blog._id} />);
@@ -123,6 +125,7 @@ export default function FolderPage(props) {
                     style={{ zindex: "5", color: "red" }}
                     onClick={(e) => {
                       // e.preventDefault();
+
                       const variables = {
                         postId: blog._id,
                         folderId: folder._id,

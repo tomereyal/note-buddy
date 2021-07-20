@@ -3,7 +3,12 @@ import { LeftCircleOutlined } from "@ant-design/icons";
 import { Dropdown } from "antd";
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 // Import the Slate editor factory.
-import { createEditor } from "slate";
+import {
+  createEditor,
+  Editor,
+  Transforms,
+  Element as SlateElement,
+} from "slate";
 // Import the Slate components and React plugin.
 import { withHistory } from "slate-history";
 import {
@@ -29,6 +34,7 @@ const defaultBgc = "white";
  *  @param {props} darkenBgc boolean: default false.
  * @returns Slate based editor for editing titles + hovertoolbar for styling.
  */
+
 export default function TitleEditor(props) {
   const editor = useMemo(() => withHistory(withReact(createEditor())), []);
   const {
@@ -38,9 +44,8 @@ export default function TitleEditor(props) {
     size = "3",
     darkenBgc = false,
   } = props;
-  const { text, color, bgc = "#ffffff", fontStyle = "" } = title;
+  const { text = "", color, bgc = "#ffffff", fontStyle = "" } = title;
 
-  const initTitle = text ? text : "";
   let initContent = [
     {
       type: "card-title",
@@ -49,10 +54,16 @@ export default function TitleEditor(props) {
       fontStyle,
       size,
       darkenBgc,
-      children: [{ text: initTitle }],
+      children: [{ text }],
     },
   ];
   const [value, setValue] = useState(initContent);
+  useEffect(() => {
+    //problem with rerendering title from postHeader in folder view
+    //the updated title is passed to the editor (initContent is correct)
+    //HOWEVER the state: "value" remains unchanged..
+    //Slate is the problem here.
+  }, [text]);
 
   const [isTitleHovered, setIsTitleHovered] = useState(false);
 
@@ -74,6 +85,15 @@ export default function TitleEditor(props) {
     <div
       style={{ position: "relative" }}
       onMouseEnter={() => {
+        console.log(`value`, value);
+        const [match] = Editor.nodes(editor, {
+          match: (n, path) =>
+            !Editor.isEditor(n) &&
+            SlateElement.isElement(n) &&
+            n.type === "card-title",
+        });
+        console.log(`match`, match);
+
         setIsTitleHovered(true);
       }}
       onMouseLeave={() => {

@@ -13,7 +13,6 @@ const MenuItemGroup = Menu.ItemGroup;
 
 function RightMenu(props) {
   const user = useSelector((state) => state.user);
-  console.log(`user`, user);
   const isUserLoggedIn = user.userData && user.userData.isAuth;
   const [settingsVisibility, setSettingsVisibility] = useState(false);
 
