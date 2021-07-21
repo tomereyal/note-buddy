@@ -32,14 +32,9 @@ const sectionSchema = mongoose.Schema(
 );
 
 const roleSchema = mongoose.Schema({
-  in: [
-    {
-      postName: { type: String, default: "" },
-      postId: { type: Schema.Types.ObjectId, default: "" },
-    },
-  ],
-
-  description: { type: [Schema.Types.Mixed], default: [] },
+  inPostName: { type: String, default: "" },
+  inPostId: { type: Schema.Types.ObjectId, default: "" },
+  description: { type: String, default: "" },
 });
 
 const blogSchema = mongoose.Schema(
@@ -94,7 +89,10 @@ blogSchema.methods.saveAndPopulate = function (cb) {
           populate: { path: "cards", model: "Card" },
         },
       })
-      .populate("components")
+      .populate({
+        path: "components",
+        model: "Blog",
+      })
       .execPopulate(cb);
   });
 };

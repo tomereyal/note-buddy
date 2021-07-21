@@ -29,11 +29,13 @@ const upload = multer({ storage: storage }).single("file");
 //             Blog
 //=================================
 
+
 router.post("/uploadfiles", (req, res) => {
   upload(req, res, (err) => {
     if (err) {
       return res.json({ success: false, err });
     }
+    console.log(`res.req.file.path`, res.req.file.path);
     return res.json({
       success: true,
       url: res.req.file.path,
@@ -56,7 +58,7 @@ router.post("/createPost", (req, res) => {
     name: req.body.name,
     writer: req.body.writer,
     image: req.body.image,
-    components:req.body.components,
+    components: req.body.components,
     roles: req.body.roles,
     sections: [defaultSection],
   });
@@ -67,7 +69,7 @@ router.post("/createPost", (req, res) => {
   };
   defaultCard.save((err, card) => {
     if (err) return res.json({ success: false, err });
-    blog.save((err, postInfo) => {
+    blog.saveAndPopulate((err, postInfo) => {
       if (err) return res.json({ success: false, err });
       return res.status(200).json({ success: true, postInfo });
     });
@@ -101,6 +103,10 @@ router.get("/fetchPosts", (req, res) => {
     .populate({
       path: "writer",
       model: "User",
+    })
+    .populate({
+      path: "components",
+      model: "Blog",
     })
     .populate({
       path: "sections",

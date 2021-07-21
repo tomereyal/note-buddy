@@ -36,7 +36,7 @@ export const createPost = (postVariables, post) => async (dispatch) => {
       // const cardData = await api.createCard();
       const { data } = await api.createPostInServer(postVariables);
       if (data.success) {
-        const post = data.postInfo;
+        post = data.postInfo;
       }
     }
     dispatch({ type: CREATE_POST, payload: post });

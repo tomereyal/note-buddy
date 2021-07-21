@@ -28,6 +28,7 @@ import {
   EditOutlined,
 } from "@ant-design/icons";
 import PostsPage from "../PostsPage/PostsPage";
+import AllPostsPage from "../AllPostsPage/AllPostsPage";
 
 const { Content, Footer, Sider } = Layout;
 const { SubMenu } = Menu;
@@ -204,9 +205,15 @@ export default function FolderPage(props) {
               onOpenChange={onOpenChange}
               mode="inline"
             >
-              {/* <Button>
-                <Link to="/folders/apple">apple</Link>
-              </Button> */}
+              <Menu.Item
+                key={`sub0`}
+                onClick={() => {
+                  props.history.push(`${path}/allPosts`);
+                }}
+              >
+                All Posts
+              </Menu.Item>
+
               {renderFolders}
               {showFolderInput && (
                 <Input
@@ -229,6 +236,12 @@ export default function FolderPage(props) {
       <Layout>
         {/* <Apple></Apple> */}
         <Switch>
+          {/* the order matters.. error finding path of allPosts page when it is last */}
+          <Route
+            exact
+            path={`${path}/allPosts`}
+            children={<AllPostsPage />}
+          ></Route>
           <Route
             exact
             path={`${path}/post/:postId`}
