@@ -83,6 +83,11 @@ function App() {
                 path="/blog/create"
                 component={Auth(CreatePage, null)}
               />
+              <Route
+                exact
+                path="/blog/allPosts"
+                component={Auth(CreatePage, null)}
+              />
               <Route exact path="/blog" component={Auth(BlogPage, null)} />
             </Switch>{" "}
           </div>

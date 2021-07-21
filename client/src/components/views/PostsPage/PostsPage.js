@@ -104,7 +104,7 @@ export default function PostsPage(props) {
                 ]}
               >
                 <Meta
-                  avatar={<Avatar src={user.userData.image} />}
+                  avatar={<Avatar src={blog.image} />}
                   title={blog.name}
                   description="This is the description"
                 />

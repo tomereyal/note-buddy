@@ -6,6 +6,7 @@ import { Card, Avatar, Col, Typography, Row, Button, Tooltip } from "antd";
 import { PlusCircleOutlined } from "@ant-design/icons";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
+import Meta from "antd/lib/card/Meta";
 
 const { Text } = Typography;
 
@@ -67,23 +68,41 @@ function PostPage(props) {
         ref={container}
       >
         <PostHeader post={post} container={container.current}></PostHeader>
-        <div>
-          <Card>
-            {/* {post.components &&
-              components.map((componenet) => {
-                return <Avatar src={componenet.image}></Avatar>;
-              })} */}
-            ADD section of Monster icons/parts/ things that make up this object,
-            on each part you create make a new post if it does not exist! The
-            new post will include the parent post in its "relatedTo" field.
-            aVATAR GROUP
-          </Card>
-        </div>
-        <div>
-          also make feature that every time you @tag a card it does not create a
-          new tag but searches all the posts you have created and automatically
-          adds to the other post the card aswell..
-        </div>
+        {post.components && (
+          <>
+            <Row justify="center">
+              <Col>
+                <h3 style={{ fontFamily: "monospace" }}>Components</h3>
+              </Col>
+            </Row>
+            <Row>
+              {post.components.map((component, index) => {
+                return (
+                  <Col key={component.name + index}>
+                    <Card
+                      onClick={() => {
+                        console.log(`component`, component);
+                      }}
+                    >
+                      <Meta
+                        avatar={
+                          <Avatar src={component.image} size={60}></Avatar>
+                        }
+                        title={component.name}
+                        description={
+                          component.roles.find(({ inPostId }) => {
+                            return inPostId === post._id;
+                          }).description || "no description"
+                        }
+                      />
+                    </Card>
+                  </Col>
+                );
+              })}
+            </Row>
+          </>
+        )}
+
         {post.sections.map((section, index, sections) => {
           return (
             <Section

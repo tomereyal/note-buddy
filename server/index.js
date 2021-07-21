@@ -103,13 +103,6 @@ The following example creates a router as a module, loads a middleware function 
 //https://stackoverflow.com/questions/48914987/send-image-path-from-node-js-express-server-to-react-client
 app.use("/uploads", express.static("uploads"));
 
-app.get("/uploads",(req,res)=>{
-  //check if req has  file url;
-  req.sendFile("http/localhost;")
-})
-app.use('/', express.static('client'));
-
-
 // Serve static assets if in production
 if (process.env.NODE_ENV === "production") {
   // Set static folder
@@ -117,6 +110,7 @@ if (process.env.NODE_ENV === "production") {
   app.use(express.static("client/build"));
 
   // index.html for all page routes    html or routing and naviagtion
+
   app.get("*", (req, res) => {
     res.sendFile(path.resolve(__dirname, "../client", "build", "index.html"));
   });
@@ -131,11 +125,7 @@ app.listen(port, () => {
   console.log(`Server Listening on ${port}`);
 });
 
-
-
-
 //research production/development stages of porject// react is running on localhost:3000
 //my server is running on localhost:5000 .. the reason why my get image file didnt work.. wrong path
-
 
 //npm run build :  will make client a static file on the server

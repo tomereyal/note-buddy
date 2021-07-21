@@ -7,6 +7,8 @@ import { editPost } from "../../../../_actions/post_actions";
 import TitleEditor from "../../../editor/TitleEditor/TitleEditor";
 import { Tooltip } from "antd";
 import ChildPostForm from "../ChildPostForm";
+import Avatar from "antd/lib/avatar/avatar";
+import EditableAvatar from "../../BasicComponents/EditableAvatar";
 
 export default function PostHeader(props) {
   const { post } = props;
@@ -62,6 +64,11 @@ export default function PostHeader(props) {
               alignItems: "center",
             }}
           >
+            <EditableAvatar
+              title={post.name}
+              size={50}
+              src={"https://avatars1.githubusercontent.com/u/8186664?s=460&v=4"}
+            ></EditableAvatar>
             <TitleEditor
               title={initTitle}
               setTitle={setTitle}
@@ -79,25 +86,22 @@ export default function PostHeader(props) {
         tags={<Tag color="blue">Label</Tag>}
         subTitle={`${post.createdAt}`}
         extra={[
-          <Button
-            onClick={() => {
-              setIsComponentModalVisibile(true);
-            }}
-            key="3"
-          >
-            + Part
-          </Button>,
           <Button key="2">
             <Link to={`/post/${post._id}`}>Edit</Link>
           </Button>,
           <Button icon={<SettingOutlined />} key="1" type="primary" />,
         ]}
-        avatar={{
-          src: "https://avatars1.githubusercontent.com/u/8186664?s=460&v=4",
-        }}
         footer={
-          <div style={{ minHeight: "100px" }}>
-            ADD DEFINITION SLATE EDITOR ,<span>section navigator</span>
+          <div>
+            ADD DEFINITION SLATE EDITOR ,<span>section navigator</span>{" "}
+            <Button
+              onClick={() => {
+                setIsComponentModalVisibile(true);
+              }}
+              key="3"
+            >
+              Add Component
+            </Button>
           </div>
         }
       >

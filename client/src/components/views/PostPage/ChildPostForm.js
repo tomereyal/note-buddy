@@ -34,8 +34,11 @@ export default function ChildPostForm({ setModal, parentPost }) {
 
   const [form] = Form.useForm();
   const posts = useSelector((state) => state.posts);
-  const postNames = posts.map(({ name }) => {
-    return { label: name, value: name };
+  const postNames = posts.map((post) => {
+    if (!post) {
+      return;
+    }
+    return { label: post.name, value: post.name };
   });
 
   const [postOptions, setPostOptions] = useState(postNames);
@@ -88,7 +91,7 @@ export default function ChildPostForm({ setModal, parentPost }) {
     console.log(formValues);
     const { roleDescription, name } = formValues;
     const existingChildPost = posts.find(
-      ({ postName }) => postName.toLowerCase() === name.toLowerCase()
+      ({ name: postName }) => postName.toLowerCase() === name.toLowerCase()
     );
     //if childPost.id
     if (existingChildPost) {
@@ -101,7 +104,8 @@ export default function ChildPostForm({ setModal, parentPost }) {
               editValue: [
                 ...existingChildPost.roles,
                 {
-                  in: { postName: parentPost.name, postId: parentPost._id },
+                  inPostName: parentPost.name,
+                  inPostId: parentPost._id,
                   description: roleDescription,
                 },
               ],
@@ -110,22 +114,27 @@ export default function ChildPostForm({ setModal, parentPost }) {
         })
       );
     } else {
+      console.log(`image`, image);
       var newPost = await dispatch(
         createPost({
           name,
+          writer: parentPost.writer,
           image,
           roles: [
             {
-              in: { postName: parentPost.name, postId: parentPost._id },
+              inPostName: parentPost.name,
+              inPostId: parentPost._id,
               description: roleDescription,
             },
           ],
         })
       );
+      console.log(`newPost`, newPost);
     }
 
     //now edit parent post's components:
     const childId = existingChildPost ? existingChildPost._id : newPost;
+    console.log(`childId`, childId);
     dispatch(
       editPost({
         postId: parentPost._id,
