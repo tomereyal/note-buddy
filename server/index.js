@@ -103,6 +103,13 @@ The following example creates a router as a module, loads a middleware function 
 //https://stackoverflow.com/questions/48914987/send-image-path-from-node-js-express-server-to-react-client
 app.use("/uploads", express.static("uploads"));
 
+app.get("/uploads",(req,res)=>{
+  //check if req has  file url;
+  req.sendFile("http/localhost;")
+})
+app.use('/', express.static('client'));
+
+
 // Serve static assets if in production
 if (process.env.NODE_ENV === "production") {
   // Set static folder
@@ -124,14 +131,11 @@ app.listen(port, () => {
   console.log(`Server Listening on ${port}`);
 });
 
-// const headers = {
-//   "Content-Type": "multipart/form-data",
-//   Accept: "application/json",
-// };
-// const apiKey = "ba03cf4b08e7da7f403276f070a4d6db8314d9c0";
-// axios
-//   .post("https://api.flaticon.com/v2/app/authentication", apiKey, headers)
-//   .then((response) => {
-//     console.log(`response.data`, response.data);
-//   });
-// next()
+
+
+
+//research production/development stages of porject// react is running on localhost:3000
+//my server is running on localhost:5000 .. the reason why my get image file didnt work.. wrong path
+
+
+//npm run build :  will make client a static file on the server

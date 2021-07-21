@@ -23,7 +23,6 @@ function PostPage(props) {
 
   const [post, setPost] = useState(initPost);
   const [sections, setSections] = useState([]);
-
   const container = useRef(initPost);
 
   useEffect(() => {
@@ -70,10 +69,10 @@ function PostPage(props) {
         <PostHeader post={post} container={container.current}></PostHeader>
         <div>
           <Card>
-            {post.components &&
+            {/* {post.components &&
               components.map((componenet) => {
                 return <Avatar src={componenet.image}></Avatar>;
-              })}
+              })} */}
             ADD section of Monster icons/parts/ things that make up this object,
             on each part you create make a new post if it does not exist! The
             new post will include the parent post in its "relatedTo" field.
