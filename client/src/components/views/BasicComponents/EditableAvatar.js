@@ -31,7 +31,7 @@ export default function EditableAvatar({ title, src, ...AvatarProps }) {
 
     if (e.file.response) {
       console.log(`uploaded:`, e.file.response.url);
-      setCurSrc(e.file.response.fileName);
+      setCurSrc(e.file.response.url);
     }
     if (Array.isArray(e)) {
       return e;
@@ -58,7 +58,8 @@ export default function EditableAvatar({ title, src, ...AvatarProps }) {
         onCancel={handleCancel}
       >
         <Image
-          src={"1626792684448_cover4.jpg"}
+          //http://localhost:5000/uploads/1626792684448_cover4.jpg
+          src={curSrc}
           preview={false}
           alt={title}
         ></Image>

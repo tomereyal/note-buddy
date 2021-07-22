@@ -29,16 +29,16 @@ const upload = multer({ storage: storage }).single("file");
 //             Blog
 //=================================
 
-
 router.post("/uploadfiles", (req, res) => {
   upload(req, res, (err) => {
     if (err) {
       return res.json({ success: false, err });
     }
-    console.log(`res.req.file.path`, res.req.file.path);
+    console.log(`res.req.file`, res.req.file.filename);
+    const { filename, destination } = res.req.file;
     return res.json({
       success: true,
-      url: res.req.file.path,
+      url: `http://localhost:5000/${destination + filename}`,
       fileName: res.req.file.filename,
     });
   });
