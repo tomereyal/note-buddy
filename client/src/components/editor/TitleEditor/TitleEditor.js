@@ -1,7 +1,12 @@
 // Import React dependencies.
-import { LeftCircleOutlined } from "@ant-design/icons";
-import { Dropdown } from "antd";
-import React, { useEffect, useMemo, useState, useCallback } from "react";
+
+import React, {
+  useEffect,
+  useMemo,
+  useState,
+  useCallback,
+  useRef,
+} from "react";
 // Import the Slate editor factory.
 import {
   createEditor,
@@ -36,34 +41,42 @@ const defaultBgc = "white";
  */
 
 export default function TitleEditor(props) {
-  const editor = useMemo(() => withHistory(withReact(createEditor())), []);
+  const editorRef = useRef();
+  if (!editorRef.current)
+    editorRef.current = withHistory(withReact(createEditor()));
+  const editor = editorRef.current;
+  // const editor = useMemo(() => withHistory(withReact(createEditor())), [props]);
   const {
+    name = "",
+    setName,
     title,
     setTitle,
     placeHolder = "title..",
     size = "3",
     darkenBgc = false,
   } = props;
-  const { text = "", color, bgc = "#ffffff", fontStyle = "" } = title;
 
-  let initContent = [
-    {
-      type: "card-title",
-      backgroundColor: bgc,
-      placeHolder,
-      fontStyle,
-      size,
-      darkenBgc,
-      children: [{ text }],
-    },
-  ];
-  const [value, setValue] = useState(initContent);
+  const [value, setValue] = useState(
+    title.length
+      ? title
+      : [
+          {
+            type: "card-title",
+            backgroundColor: "#ffffff",
+            placeHolder,
+            fontStyle: "",
+            size,
+            darkenBgc,
+            children: [{ text: name }],
+          },
+        ]
+  );
   useEffect(() => {
     //problem with rerendering title from postHeader in folder view
     //the updated title is passed to the editor (initContent is correct)
     //HOWEVER the state: "value" remains unchanged..
     //Slate is the problem here.
-  }, [text]);
+  }, [props]);
 
   const [isTitleHovered, setIsTitleHovered] = useState(false);
 
@@ -85,14 +98,12 @@ export default function TitleEditor(props) {
     <div
       style={{ position: "relative" }}
       onMouseEnter={() => {
-        console.log(`value`, value);
         const [match] = Editor.nodes(editor, {
           match: (n, path) =>
             !Editor.isEditor(n) &&
             SlateElement.isElement(n) &&
             n.type === "card-title",
         });
-        console.log(`match`, match);
 
         setIsTitleHovered(true);
       }}
@@ -105,17 +116,13 @@ export default function TitleEditor(props) {
         value={value}
         onChange={(newValue) => {
           setValue(newValue);
-          setTitle({
-            ...title,
-            text: newValue[0].children[0].text,
-            bgc: newValue[0].backgroundColor,
-            fontStyle: newValue[0].fontStyle,
-          });
+          setTitle(newValue);
+          setName(newValue[0].children[0].text);
         }}
       >
         <EditorTitleToolbar
           isTitleHovered={isTitleHovered}
-          fontStyle={fontStyle}
+          // fontStyle={fontStyle}
         />
 
         <Editable

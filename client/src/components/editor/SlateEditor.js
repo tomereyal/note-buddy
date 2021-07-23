@@ -53,8 +53,13 @@ import {
 import TitleEditor from "./TitleEditor/TitleEditor";
 //-----------------------------------------------------//
 
+/**
+ * @param {content} content Recieves initial content of a slate array of editable objects| default: [DefaultElement]
+ * @param {setContent} Recieves a useState hook to give the parent component access to the updated value
+ * @returns SlateEditor React Component
+ */
 export default function SlateEditor(props) {
-  const { card, order, bgc } = props;
+  const { card, content, setContent } = props;
   const { location, _id } = card;
   const { post, section, list } = location;
   const cardData = {
@@ -64,17 +69,26 @@ export default function SlateEditor(props) {
     cardId: _id,
   };
 
-  const defaultBgc = "#FFFFFF";
-  let initContent =
-    card.content && card.content.length > 0
-      ? card.content
+  const [value, setValue] = useState(
+    content.length
+      ? content
       : [
           {
             type: "paragraph",
-            backgroundColor: defaultBgc,
+            backgroundColor: "FFFFFF",
             children: [{ text: "" }],
           },
-        ];
+        ]
+  );
+  // const writersTags = useSelector((state) => card.tags);
+  const [userTags, setUserTags] = useState();
+  const [fetchedIcons, setFetchedIcons] = useState([]);
+  const [target, setTarget] = useState();
+  const [index, setIndex] = useState(0);
+  const [search, setSearch] = useState("");
+  const [previousMathEl, setPreviousMathEl] = useState("");
+
+  const dispatch = useDispatch();
 
   const {
     withCardData,
@@ -90,25 +104,6 @@ export default function SlateEditor(props) {
     withConditions,
   } = EditorPlugins;
   const ref = useRef();
-
-  const { title, titleColor, titleBgc, titleFont } = card;
-  const [cardTitle, setCardTitle] = useState({
-    text: title,
-    color: titleColor,
-    bgc: titleBgc,
-    fontStyle: titleFont,
-  });
-
-  const [value, setValue] = useState(initContent);
-  // const writersTags = useSelector((state) => card.tags);
-  const [userTags, setUserTags] = useState();
-  const [fetchedIcons, setFetchedIcons] = useState([]);
-  const [target, setTarget] = useState();
-  const [index, setIndex] = useState(0);
-  const [search, setSearch] = useState("");
-  const [previousMathEl, setPreviousMathEl] = useState("");
-
-  const dispatch = useDispatch();
   const withCustomLayout = withTitledCardLayout; //make a switch case, switch(props.cardType)
   const editor = useMemo(
     () =>
@@ -369,19 +364,6 @@ export default function SlateEditor(props) {
     dispatch(saveExistingNoteTags(variables));
   };
 
-  const saveNote = () => {
-    if (!value) return;
-    const updates = {
-      content: value,
-      title: cardTitle.text,
-      titleColor: cardTitle.color,
-      titleBgc: cardTitle.bgc,
-      titleFont: cardTitle.fontStyle,
-    };
-    const variables = { id: card._id, updates };
-    dispatch(editNote(variables));
-  };
-
   async function getCardTagNamesFromServer() {
     const { data } = await getCards();
     const cards = data.cards;
@@ -416,6 +398,7 @@ export default function SlateEditor(props) {
       value={value}
       onChange={async (value) => {
         setValue(value);
+        setContent(value);
         console.log(`value`, value);
         const { selection } = editor;
 
@@ -461,20 +444,12 @@ export default function SlateEditor(props) {
       >
         <EditorMainToolbar cardData={cardData} />
       </div>
-      <TitleEditor
-        title={cardTitle}
-        setTitle={setCardTitle}
-        bgc={"#ffffff"}
-        darkenBgc={true}
-        size={4}
-      />
       <Editable
         renderElement={renderElement}
         renderLeaf={renderLeaf}
         readOnly={props.isReadOnly}
         placeholder="Note..."
         spellCheck
-        onBlur={(e) => saveNote()}
         onDOMBeforeInput={(event) => {
           //Make sure you place the event.preventDefault() inside each case,
           //Else you will disable editing of the note.

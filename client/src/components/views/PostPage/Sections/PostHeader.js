@@ -5,29 +5,37 @@ import { SettingOutlined, SoundOutlined } from "@ant-design/icons";
 import { useDispatch } from "react-redux";
 import { editPost } from "../../../../_actions/post_actions";
 import TitleEditor from "../../../editor/TitleEditor/TitleEditor";
+import TextEditor from "../../../editor/TextEditor";
 import { Tooltip } from "antd";
-import ChildPostForm from "../ChildPostForm";
+import ChildPostForm from "./ChildPostForm";
 import Avatar from "antd/lib/avatar/avatar";
 import EditableAvatar from "../../BasicComponents/EditableAvatar";
 
 export default function PostHeader(props) {
   const { post } = props;
 
-  const { name, titleColor, titleBgc, titleFont } = post;
-  const initTitle = {
-    text: name,
-    color: titleColor,
-    bgc: titleBgc,
-    fontStyle: titleFont,
-  };
-  const [title, setTitle] = useState(initTitle);
+  const {
+    name: initialName,
+    title: initialTitle,
+    image: initialImage,
+    description: initialDescription,
+  } = post;
+  // const initTitle = {
+  //   text: name,
+  //   color: titleColor,
+  //   bgc: titleBgc,
+  //   fontStyle: titleFont,
+  // };
+  const [name, setName] = useState(initialName);
+  const [title, setTitle] = useState(initialTitle);
+  const [image, setImage] = useState(initialImage);
+  const [description, setDescription] = useState(initialDescription);
 
   useEffect(() => {
-    console.log(`initTitle POSTHEADER RECIEVES`, initTitle);
-    // console.log(`title POST HEADER RECIEVES`, title);
-    if (post) {
-      setTitle(initTitle);
-    }
+    // if (post) {
+    //   setTitle(initialTitle);
+    // }
+    console.log("refreshed post header");
   }, [post]);
 
   const [isComponentModalVisibile, setIsComponentModalVisibile] =
@@ -40,10 +48,10 @@ export default function PostHeader(props) {
     const variables = {
       postId: props.post._id,
       editArr: [
-        { editType: "name", editValue: title.text },
-        { editType: "titleColor", editValue: title.color },
-        { editType: "titleBgc", editValue: title.bgc },
-        { editType: "titleFont", editValue: title.fontStyle },
+        { editType: "name", editValue: name },
+        { editType: "title", editValue: title },
+        { editType: "image", editValue: image },
+        { editType: "description", editValue: description },
       ],
     };
 
@@ -51,74 +59,79 @@ export default function PostHeader(props) {
   };
 
   return (
-    <Affix offsetTop={HEIGHT_OF_NAVBAR}>
-      <PageHeader
-        ghost={false}
-        title={
-          <div
-            onBlur={savePost}
-            style={{
-              minWidth: "200px",
-              minHeight: "42px",
-              display: "flex",
-              alignItems: "center",
-            }}
-          >
-            <EditableAvatar
-              title={post.name}
-              size={50}
-              src={"https://avatars1.githubusercontent.com/u/8186664?s=460&v=4"}
-            ></EditableAvatar>
-            <TitleEditor
-              title={initTitle}
-              setTitle={setTitle}
-              placeHolder={"Title.."}
-              size={1}
-            />
-            <Tooltip title={"Hear pronunciation"}>
-              <Button type="text" icon={<SoundOutlined />}></Button>
-            </Tooltip>
-          </div>
-        }
-        onBack={() => {
-          window.history.back();
-        }}
-        tags={<Tag color="blue">Label</Tag>}
-        subTitle={`${post.createdAt}`}
-        extra={[
-          <Button key="2">
-            <Link to={`/post/${post._id}`}>Edit</Link>
-          </Button>,
-          <Button icon={<SettingOutlined />} key="1" type="primary" />,
-        ]}
-        footer={
-          <div>
-            ADD DEFINITION SLATE EDITOR ,<span>section navigator</span>{" "}
-            <Button
-              onClick={() => {
-                setIsComponentModalVisibile(true);
+    <>
+      <Affix offsetTop={HEIGHT_OF_NAVBAR}>
+        <PageHeader
+          ghost={false}
+          title={
+            <div
+              onBlur={savePost}
+              style={{
+                minWidth: "200px",
+                minHeight: "42px",
+                display: "flex",
+                alignItems: "center",
               }}
-              key="3"
             >
-              Add Component
-            </Button>
-          </div>
-        }
-      >
-        <Modal
-          title={"Create a new Component"}
-          style={{ top: 20 }}
-          visible={isComponentModalVisibile}
-          onCancel={() => setIsComponentModalVisibile(false)}
-          okButtonProps={{ style: { opacity: 0 } }}
-          cancelButtonProps={{ style: { opacity: 0 } }}
+              <EditableAvatar
+                title={post.name}
+                size={50}
+                src={image}
+                setImage={setImage}
+              ></EditableAvatar>
+              <TitleEditor
+                name={name}
+                setName={setName}
+                title={title}
+                setTitle={setTitle}
+                placeHolder={"Title.."}
+                size={1}
+              />
+
+              <Tooltip title={"Hear pronunciation"}>
+                <Button type="text" icon={<SoundOutlined />}></Button>
+              </Tooltip>
+            </div>
+          }
+          onBack={() => {
+            window.history.back();
+          }}
+          tags={<Tag color="blue">Label</Tag>}
+          subTitle={`${post.createdAt}`}
+          extra={[
+            <Button key="2">
+              <Link to={`/post/${post._id}`}>Edit</Link>
+            </Button>,
+            <Button icon={<SettingOutlined />} key="1" type="primary" />,
+          ]}
+          footer={
+            <div>
+              <span>section navigator</span>
+              <Button
+                onClick={() => {
+                  setIsComponentModalVisibile(true);
+                }}
+                key="3"
+              >
+                Add Component
+              </Button>
+            </div>
+          }
         >
-          <ChildPostForm
-            setModal={setIsComponentModalVisibile}
-            parentPost={post}
-          ></ChildPostForm>
-        </Modal>
-      </PageHeader>
-    </Affix>
+          <div onBlur={savePost}>
+            <TextEditor
+              content={description}
+              setContent={setDescription}
+            ></TextEditor>
+
+            <ChildPostForm
+              isComponentModalVisibile={isComponentModalVisibile}
+              setIsComponentModalVisibile={setIsComponentModalVisibile}
+              parentPost={post}
+            ></ChildPostForm>
+          </div>
+        </PageHeader>
+      </Affix>
+    </>
   );
 }

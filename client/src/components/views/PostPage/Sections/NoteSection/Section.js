@@ -34,14 +34,9 @@ export default function Section(props) {
   const { postId, sectionsLength, index } = props;
   const [section, setSection] = useState(props.section);
   const [pattern, setPattern] = useState(section.backgroundPattern);
-  const { title: sectionTitle, titleColor, titleBgc, titleFont } = section;
-  const [title, setTitle] = useState({
-    text: sectionTitle,
-    color: titleColor,
-    bgc: titleBgc,
-    fontStyle: titleFont,
-  });
-
+  const { title: initialTitle, name: initialName } = section;
+  const [title, setTitle] = useState(initialTitle);
+  const [name, setName] = useState(initialName);
   const [backgroundColor, setBackgroundColor] = useState(
     section.backgroundColor
   );
@@ -55,7 +50,7 @@ export default function Section(props) {
 
   const createSection = () => {
     const variables = {
-      title: `new section ${sectionsLength + 1}`,
+      name: `new section ${sectionsLength + 1}`,
       backgroundColor,
       backgroundPattern: pattern,
       order: props.index + 1, //We will insert the new section beneath this one..
@@ -98,10 +93,8 @@ export default function Section(props) {
       postId,
       sectionId: section._id,
       editArr: [
-        { editType: "title", editValue: title.text },
-        { editType: "titleColor", editValue: title.color },
-        { editType: "titleBgc", editValue: title.bgc },
-        { editType: "titleFont", editValue: title.fontStyle },
+        { editType: "title", editValue: title },
+        { editType: "name", editValue: name },
       ],
     };
     dispatch(editSection(variables));
@@ -170,7 +163,13 @@ export default function Section(props) {
               }}
             >
               {" "}
-              <TitleEditor title={title} setTitle={setTitle} size={2} />{" "}
+              <TitleEditor
+                name={name}
+                setName={setName}
+                title={title}
+                setTitle={setTitle}
+                size={2}
+              />{" "}
             </div>
           </div>
         </Divider>

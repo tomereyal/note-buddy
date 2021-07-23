@@ -34,7 +34,6 @@ router.post("/uploadfiles", (req, res) => {
     if (err) {
       return res.json({ success: false, err });
     }
-    console.log(`res.req.file`, res.req.file.filename);
     const { filename, destination } = res.req.file;
     return res.json({
       success: true,
@@ -47,12 +46,12 @@ router.post("/uploadfiles", (req, res) => {
 router.post("/createPost", (req, res) => {
   let defaultCard = new Card({});
   let defaultList = new List({
-    title: "new list",
+    name: "new list",
     cards: [defaultCard._id],
   });
   let defaultSection = new Section({
     lists: [defaultList],
-    title: "Section 1",
+    name: "Section 1",
   });
   let blog = new Blog({
     name: req.body.name,
@@ -168,17 +167,16 @@ router.post("/getList", (req, res) => {
 
 router.post("/createSectionInPost", (req, res) => {
   const variables = req.body;
-  const { postId, title, order, backgroundPattern, backgroundColor } =
-    variables;
+  const { postId, name, order, backgroundPattern, backgroundColor } = variables;
 
   const defaultCard = new Card({});
   const defaultList = new List({
-    title: "new list",
+    name: "new list",
     order,
     cards: [defaultCard._id],
   });
   const newSection = new Section({
-    title,
+    name,
     order,
     lists: [defaultList],
     backgroundPattern,
@@ -271,7 +269,7 @@ router.post("/setSectionPattern", (req, res) => {
 });
 
 router.post("/editSection", (req, res) => {
-  const { postId, sectionId, newTitle, editArr } = req.body;
+  const { postId, sectionId, editArr } = req.body;
   Blog.findById(postId, function (err, post) {
     if (err) {
       console.log(err);
@@ -290,10 +288,10 @@ router.post("/editSection", (req, res) => {
 });
 
 router.post("/createListInSection", (req, res) => {
-  const { postId, sectionId, title, order } = req.body;
+  const { postId, sectionId, order } = req.body;
   const defaultCard = new Card({});
   const newList = new List({
-    title: "new list",
+    name: "new list",
     order,
     cards: [defaultCard._id],
   });
@@ -340,7 +338,7 @@ router.post("/removeListFromSection", (req, res) => {
 });
 
 router.post("/editList", (req, res) => {
-  const { postId, sectionId, listId, newTitle, editArr } = req.body;
+  const { postId, sectionId, listId, editArr } = req.body;
   Blog.findById(postId, function (err, post) {
     if (err) {
       console.log(err);

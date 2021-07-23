@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import {
   Avatar,
@@ -9,10 +9,11 @@ import {
   Select,
   AutoComplete,
   Tooltip,
+  Modal,
 } from "antd";
 import { UserOutlined, InfoCircleOutlined } from "@ant-design/icons";
-import { useSelector } from "react-redux";
-import { createPost, editPost } from "../../../_actions/post_actions";
+
+import { createPost, editPost } from "../../../../_actions/post_actions";
 
 const layout = {
   labelCol: {
@@ -29,9 +30,13 @@ const tailLayout = {
   },
 };
 
-export default function ChildPostForm({ setModal, parentPost }) {
+export default function ChildPostForm({
+  setIsComponentModalVisibile,
+  isComponentModalVisibile,
+  parentPost,
+  componentToEdit,
+}) {
   const dispatch = useDispatch();
-
   const [form] = Form.useForm();
   const posts = useSelector((state) => state.posts);
   const postNames = posts.map((post) => {
@@ -42,8 +47,15 @@ export default function ChildPostForm({ setModal, parentPost }) {
   });
 
   const [postOptions, setPostOptions] = useState(postNames);
+  //EDIT COMPONENT-----------------
+  const initialDescription =
+    componentToEdit?.roles.find(({ inPostId }) => inPostId === parentPost._id)
+      .description || "";
+  const initialImage = componentToEdit?.image || "";
+  const initialName = componentToEdit?.name || "";
+
   //NEW POST STATE----------------
-  const [image, setImage] = useState("");
+  const [image, setImage] = useState(initialImage);
   const [childPostId, setChildPostId] = useState("");
   //-------------------------------
   const [fetchedIcons, setFetchedIcons] = useState([]);
@@ -72,7 +84,7 @@ export default function ChildPostForm({ setModal, parentPost }) {
     const { data } = await axios.get("/api/external/fetchIconsInDb");
     const icons = data.doc.icons;
     setFetchedIcons(icons);
-    setRandomIcon(icons);
+    if (!componentToEdit) setRandomIcon(icons);
   }
   const setRandomIcon = (fetchedIcons) => {
     if (fetchedIcons.length === 0) {
@@ -146,14 +158,21 @@ export default function ChildPostForm({ setModal, parentPost }) {
         ],
       })
     );
-    setModal(false);
+    setIsComponentModalVisibile(false);
   };
 
   const onReset = () => {
     form.resetFields();
   };
   return (
-    <div>
+    <Modal
+      title={"Create a new Component"}
+      style={{ top: 20 }}
+      visible={isComponentModalVisibile}
+      onCancel={() => setIsComponentModalVisibile(false)}
+      okButtonProps={{ style: { opacity: 0 } }}
+      cancelButtonProps={{ style: { opacity: 0 } }}
+    >
       <Avatar
         src={image}
         size={140}
@@ -166,6 +185,7 @@ export default function ChildPostForm({ setModal, parentPost }) {
         <Form.Item
           name="name"
           label={`Name of ${parentPost.name}'s part`}
+          initialValue={initialName}
           rules={[
             {
               required: true,
@@ -192,6 +212,7 @@ export default function ChildPostForm({ setModal, parentPost }) {
         <Form.Item
           name="roleDescription"
           label={`Role in ${parentPost.name}`}
+          initialValue={initialDescription}
           rules={[
             {
               required: false,
@@ -210,6 +231,6 @@ export default function ChildPostForm({ setModal, parentPost }) {
           </Button>
         </Form.Item>
       </Form>
-    </div>
+    </Modal>
   );
 }

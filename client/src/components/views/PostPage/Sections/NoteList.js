@@ -26,13 +26,9 @@ export default function NoteList(props) {
   // const [cardCount, setCardCount] = useState(cards.length);
   const [isShown, setIsShown] = useState(true);
 
-  const { title: listTitle, titleColor, titleBgc, titleFont } = list;
-  const [title, setTitle] = useState({
-    text: listTitle,
-    color: titleColor,
-    bgc: titleBgc,
-    fontStyle: titleFont,
-  });
+  const { title: initialTitle, name: initialName } = list;
+  const [title, setTitle] = useState(initialTitle);
+  const [name, setName] = useState(initialName);
 
   useEffect(() => {
     setList(props.list);
@@ -68,10 +64,8 @@ export default function NoteList(props) {
       sectionId,
       listId: list._id,
       editArr: [
-        { editType: "title", editValue: title.text },
-        { editType: "titleColor", editValue: title.color },
-        { editType: "titleBgc", editValue: title.bgc },
-        { editType: "titleFont", editValue: title.fontStyle },
+        { editType: "name", editValue: name },
+        { editType: "title", editValue: title },
       ],
     };
     dispatch(editList(variables));
@@ -135,6 +129,8 @@ export default function NoteList(props) {
             }}
           >
             <TitleEditor
+              name={name}
+              setName={setName}
               title={title}
               setTitle={setTitle}
               size={3}

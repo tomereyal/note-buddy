@@ -16,6 +16,7 @@ import {
   DeleteOutlined,
 } from "@ant-design/icons";
 import { useParams, Link } from "react-router-dom";
+import CreatePostModule from "../CreatePostModule";
 
 const { Header, Content, Footer, Sider } = Layout;
 const { SubMenu } = Menu;
@@ -25,6 +26,8 @@ const { Meta } = Card;
 export default function PostsPage(props) {
   const folders = useSelector((state) => state.folders);
   const posts = useSelector((state) => state.posts);
+  const user = useSelector((state) => state.user);
+
   const { folderId } = useParams();
 
   const initFolder = folders.find((folder) => {
@@ -32,8 +35,8 @@ export default function PostsPage(props) {
   });
 
   const [folder, setFolder] = useState(initFolder ? initFolder : null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
-  const user = useSelector((state) => state.user);
   const history = useHistory();
 
   const dispatch = useDispatch();
@@ -56,15 +59,6 @@ export default function PostsPage(props) {
       setFolder(folder_);
     }
   }, [folderId, folders, dispatch, folder, posts]);
-
-  const addPost = async () => {
-    const postVariables = {
-      writer: folder.writer,
-      name: `Post-${folder.name}-${folder.blogs.length + 1}`,
-    };
-    dispatch(createPostInFolder({ postVariables, folderId }));
-    dispatch(getPosts());
-  };
 
   const removePost = (blogId) => {
     if (!blogId) {
@@ -140,13 +134,18 @@ export default function PostsPage(props) {
                 <PlusSquareTwoTone
                   style={{ fontSize: "60px" }}
                   onClick={() => {
-                    addPost();
+                    setIsModalVisible(true);
                   }}
                 />
                 Add
               </Col>
             </Row>
           </div>
+          <CreatePostModule
+            isModalVisible={isModalVisible}
+            setIsModalVisible={setIsModalVisible}
+            folder={folder}
+          ></CreatePostModule>
         </Content>
       </Layout>
     )

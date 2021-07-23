@@ -16,10 +16,8 @@ const Tag = mongoose.model("Tag", tagSchema);
 
 const cardSchema = mongoose.Schema(
   {
-    title: { type: String, default: "" },
-    titleFont: { type: String, default: "" },
-    titleBgc: { type: String, default: "" },
-    titleColor: { type: String, default: "" },
+    name: { type: String, default: "" },
+    title: { type: [Schema.Types.Mixed], default: [] },
     order: { type: Number, default: 0 },
     conditions: { type: Schema.Types.Array, default: [] },
     content: { type: [Schema.Types.Mixed], default: [] },

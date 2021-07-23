@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef, Component } from "react";
 import axios from "axios";
 import Section from "./Sections/NoteSection/Section.js";
 import PostHeader from "./Sections/PostHeader";
+import PostComponent from "./Sections/PostComponent.js";
 import { Card, Avatar, Col, Typography, Row, Button, Tooltip } from "antd";
 import { PlusCircleOutlined } from "@ant-design/icons";
 import { useSelector } from "react-redux";
@@ -68,6 +69,7 @@ function PostPage(props) {
         ref={container}
       >
         <PostHeader post={post} container={container.current}></PostHeader>
+
         {post.components && (
           <>
             <Row justify="center">
@@ -79,23 +81,10 @@ function PostPage(props) {
               {post.components.map((component, index) => {
                 return (
                   <Col key={component.name + index}>
-                    <Card
-                      onClick={() => {
-                        console.log(`component`, component);
-                      }}
-                    >
-                      <Meta
-                        avatar={
-                          <Avatar src={component.image} size={60}></Avatar>
-                        }
-                        title={component.name}
-                        description={
-                          component.roles.find(({ inPostId }) => {
-                            return inPostId === post._id;
-                          }).description || "no description"
-                        }
-                      />
-                    </Card>
+                    <PostComponent
+                      component={component}
+                      parentPost={post}
+                    ></PostComponent>
                   </Col>
                 );
               })}
