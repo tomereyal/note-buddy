@@ -1,14 +1,20 @@
 import React, { useState, useEffect } from "react";
-import { Card } from "antd";
+import { Button, Card, Tooltip } from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import { editNote } from "../../../../_actions/card_actions";
 import SlateEditor from "../../../editor/SlateEditor";
 import TitleEditor from "../../../editor/TitleEditor/TitleEditor";
+import { removeCardFromList } from "../../../../_actions/post_actions";
+import { DeleteFilled } from "@ant-design/icons";
 
-export default function NoteCard(props) {
+export default function NoteCard({
+  card: initialCard,
+  withTitle = true,
+  index,
+}) {
   const dispatch = useDispatch();
-  const { index } = props;
-  const [card, setCard] = useState(props.card ? props.card : {});
+
+  const [card, setCard] = useState(initialCard ? initialCard : {});
   const {
     location,
     _id,
@@ -29,6 +35,10 @@ export default function NoteCard(props) {
   const [isShown, setIsShown] = useState(true);
   const [isCardHovered, setIsCardHovered] = useState(false);
 
+  const removeCard = () => {
+    const variables = cardData;
+    dispatch(removeCardFromList(variables));
+  };
   //removing the event listener when card unmounts..
 
   // console.log(
@@ -39,10 +49,10 @@ export default function NoteCard(props) {
   useEffect(() => {
     //props will update and to update its children you can useState or
     //give the children below props.cards
-    if (props.card) {
-      setCard(props.card);
+    if (card) {
+      setCard(card);
     }
-  }, [props]);
+  }, [card, index]);
   const saveNote = () => {
     if (!content) return;
     const updates = {
@@ -69,6 +79,17 @@ export default function NoteCard(props) {
         }}
         id={card._id}
       >
+        <Tooltip title="Remove Note">
+          <Button
+            type="danger"
+            shape="circle"
+            size="small"
+            icon={<DeleteFilled />}
+            onClick={() => {
+              removeCard();
+            }}
+          />
+        </Tooltip>
         <Card
           bodyStyle={{ padding: "2px" }}
           style={{ width: "100%" }}
@@ -80,15 +101,17 @@ export default function NoteCard(props) {
             setIsCardHovered(false);
           }}
         >
-          <TitleEditor
-            title={title}
-            setTitle={setTitle}
-            name={name}
-            setName={setName}
-            bgc={"#ffffff"}
-            darkenBgc={true}
-            size={4}
-          />
+          {withTitle && (
+            <TitleEditor
+              title={title}
+              setTitle={setTitle}
+              name={name}
+              setName={setName}
+              bgc={"#ffffff"}
+              darkenBgc={true}
+              size={4}
+            />
+          )}
           <SlateEditor
             card={card}
             key={card._id}

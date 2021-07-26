@@ -5,6 +5,7 @@ require("./Card");
 const listSchema = mongoose.Schema(
   {
     name: { type: String, default: "New list" },
+    type: { type: String, enum: ["LIST", "FLOW", "STEPS"], default: "LIST" },
     title: { type: [Schema.Types.Mixed], default: [] },
     order: { type: Number, default: 0 },
     cards: [{ type: Schema.Types.ObjectId, ref: "Card" }],

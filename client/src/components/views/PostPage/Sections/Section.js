@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import NoteList from "./NoteList";
-import NoteFlow from "../../NoteFlow";
+import NoteFlow from "./NoteFlow/NoteFlow";
 import TitleEditor from "../../../editor/TitleEditor/TitleEditor";
 import ColorMenu from "./ColorMenu";
 import {
@@ -23,6 +23,7 @@ import {
 } from "@ant-design/icons";
 import { useDispatch } from "react-redux";
 import {
+  createListInSection,
   createSectionInPost,
   editSection,
   removeSectionFromPost,
@@ -71,24 +72,16 @@ export default function Section(props) {
     dispatch(removeSectionFromPost(variables));
   };
 
-  // const createList = () => {
-  //   const variables = {
-  //     postId: post._id,
-  //     sectionId: sectionId,
-  //     order: lists.length,
-  //     cards: [],
-  //   };
-  //   axios.post("/api/blog/createList", variables).then((response) => {
-  //     console.log(response);
-  //     if (response.status === 200) {
-  //       const sections = response.data.sections;
-  //       const thisSection = sections.find(
-  //         (section) => section._id === sectionId
-  //       );
-  //       setLists(thisSection.lists);
-  //     }
-  //   });
-  // };
+  const createList = ({ type }) => {
+    const variables = {
+      postId: postId,
+      sectionId: sectionId,
+      order: section?.lists?.length || 1,
+      cards: [],
+      type,
+    };
+    dispatch(createListInSection(variables));
+  };
 
   const saveSection = () => {
     const variables = {
@@ -145,6 +138,36 @@ export default function Section(props) {
               }}
             />
           </Tooltip>
+          <Tooltip title="Add LIST">
+            <Button
+              type="primary"
+              onClick={() => {
+                createList({ type: "LIST" });
+              }}
+            >
+              add list
+            </Button>
+          </Tooltip>
+          <Tooltip title="Add FLOW">
+            <Button
+              type="primary"
+              onClick={() => {
+                createList({ type: "FLOW" });
+              }}
+            >
+              add Flow
+            </Button>
+          </Tooltip>
+          <Tooltip title="Add steps">
+            <Button
+              type="primary"
+              onClick={() => {
+                createList({ type: "STEPS" });
+              }}
+            >
+              add Steps
+            </Button>
+          </Tooltip>
         </div>
         <Divider>
           <div
@@ -176,7 +199,7 @@ export default function Section(props) {
           </div>
         </Divider>
         {/*-----------------------STEPS---------------------*/}
-        {section.lists.map((list, index, lists) => {
+        {/* {section.lists.map((list, index, lists) => {
           return (
             // <Col span={8}>
             // <Col flex="auto" key={index}>
@@ -190,7 +213,7 @@ export default function Section(props) {
             ></NoteSteps>
             // </Col>
           );
-        })}
+        })} */}
         {/*-----------------------FLOW---------------------*/}
         <div style={{ height: 300, width: "100%" }}>
           {section.lists.map((list, index, lists) => {

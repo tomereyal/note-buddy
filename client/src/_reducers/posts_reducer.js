@@ -15,6 +15,7 @@ import {
   REMOVE_CARD_FROM_LIST,
   EDIT_NOTE,
   UPDATE_CARD_IN_POST,
+  ADD_CARD_TO_LIST,
 } from "../_actions/types";
 
 export default function (posts = [], action) {
@@ -69,6 +70,10 @@ export default function (posts = [], action) {
         return post._id == action.payload._id ? action.payload : post;
       });
     case CREATE_CARD_IN_LIST:
+      return posts.map((post) => {
+        return post._id == action.payload._id ? action.payload : post;
+      });
+    case ADD_CARD_TO_LIST:
       return posts.map((post) => {
         return post._id == action.payload._id ? action.payload : post;
       });

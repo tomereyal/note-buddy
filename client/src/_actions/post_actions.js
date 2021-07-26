@@ -13,6 +13,7 @@ import {
   REMOVE_LIST_FROM_SECTION,
   EDIT_LIST,
   CREATE_CARD_IN_LIST,
+  ADD_CARD_TO_LIST,
   REMOVE_CARD_FROM_LIST,
   EDIT_NOTE,
   UPDATE_CARD_IN_POST,
@@ -144,6 +145,16 @@ export const createCardInList = (variables) => async (dispatch) => {
     console.log(error.message);
   }
 };
+export const addCardToList = (variables) => async (dispatch) => {
+  try {
+    const { data } = await api.addCardToList(variables);
+    console.log(`data from addCardToList`, data);
+    dispatch({ type: ADD_CARD_TO_LIST, payload: data });
+  } catch (error) {
+    console.log(error.message);
+  }
+};
+
 export const removeCardFromList = (variables) => async (dispatch) => {
   try {
     const { data } = await api.removeCardFromList(variables);

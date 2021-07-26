@@ -1,14 +1,23 @@
 import React, { useState, useEffect } from "react";
-import { Card } from "antd";
+import { Button, Card, Tooltip } from "antd";
 import { useDispatch, useSelector } from "react-redux";
-import { editNote } from "../../../../_actions/card_actions";
-import SlateEditor from "../../../editor/SlateEditor";
-import TitleEditor from "../../../editor/TitleEditor/TitleEditor";
+import { editNote } from "../../../../../_actions/card_actions";
+import SlateEditor from "../../../../editor/SlateEditor";
+import { useStoreState, useStoreActions } from "react-flow-renderer";
+import {
+  deleteCardFromList,
+  removeCardFromList,
+} from "../../../../../_actions/post_actions";
+import { DeleteFilled } from "@ant-design/icons";
 
-export default function NoteFlowNode(props) {
+export default function NoteFlowNode({ card: initialCard, index }) {
   const dispatch = useDispatch();
-  const { index } = props;
-  const [card, setCard] = useState(props.card ? props.card : {});
+  //   const flowState = useStoreState((store) => store);
+  const nodes = useStoreState((store) => store.nodes);
+  const edges = useStoreState((store) => store.edges);
+  const transform = useStoreState((store) => store.transform);
+
+  const [card, setCard] = useState(initialCard ? initialCard : {});
   const {
     location,
     _id,
@@ -29,20 +38,26 @@ export default function NoteFlowNode(props) {
   const [isShown, setIsShown] = useState(true);
   const [isCardHovered, setIsCardHovered] = useState(false);
 
-  //removing the event listener when card unmounts..
+  const removeCard = () => {
+    const variables = cardData;
+    console.log(`nodes`, nodes);
+    //DELETE ATTACHED EDGES
+    const edgesToDelete = edges
+      .filter(({ source, target }) => source === _id || target === _id)
+      .map(({ id }) => id);
+    if (edgesToDelete.length) {
+      variables.cardIdArr = [card._id, ...edgesToDelete];
+    }
+    dispatch(removeCardFromList(variables));
+  };
 
-  // console.log(
-  //   `the problem is here... in NoteCard which doesnt seem to give slate the updated cards!
-  //   NoteCard is receiving the updated cards arr but is not giving slateEditor the right one
-  //   `
-  // );
   useEffect(() => {
     //props will update and to update its children you can useState or
     //give the children below props.cards
-    if (props.card) {
-      setCard(props.card);
+    if (card) {
+      setCard(card);
     }
-  }, [props]);
+  }, [card, index]);
   const saveNote = () => {
     if (!content) return;
     const updates = {
@@ -69,6 +84,17 @@ export default function NoteFlowNode(props) {
         }}
         id={card._id}
       >
+        <Tooltip title="Remove Note">
+          <Button
+            type="danger"
+            shape="circle"
+            size="small"
+            icon={<DeleteFilled />}
+            onClick={() => {
+              removeCard();
+            }}
+          />
+        </Tooltip>
         <Card
           bodyStyle={{ padding: "2px" }}
           style={{ width: "100%" }}
@@ -80,15 +106,6 @@ export default function NoteFlowNode(props) {
             setIsCardHovered(false);
           }}
         >
-          <TitleEditor
-            title={title}
-            setTitle={setTitle}
-            name={name}
-            setName={setName}
-            bgc={"#ffffff"}
-            darkenBgc={true}
-            size={4}
-          />
           <SlateEditor
             card={card}
             key={card._id}

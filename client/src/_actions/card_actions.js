@@ -5,6 +5,7 @@ import {
   EDIT_NOTE,
   UPDATE_CARD_IN_POST,
   GET_CARDS,
+  CREATE_CARD,
   GET_CARD_TAGS,
   SAVE_NEW_NOTE_TAGS,
   SAVE_EXISTING_NOTE_TAGS,
@@ -56,17 +57,17 @@ export const getCardTags = (variables) => async (dispatch) => {
     console.log(error.message);
   }
 };
-// export const createCard = (variables) => async (dispatch) => {
-//   try {
-//     const { data } = await api.createCard(variables);
-//     dispatch({ type: CREATE_CARD, payload: data.cardInfo });
-//     if (data.success) {
-//       message.success("Card was Created");
-//     }
-//   } catch (error) {
-//     console.log(error.message);
-//   }
-// };
+export const createCard = (variables) => async (dispatch) => {
+  try {
+    const { data } = await api.createCard(variables);
+    dispatch({ type: CREATE_CARD, payload: data.card });
+    if (data.success) {
+      message.success("Card was Created");
+    }
+  } catch (error) {
+    console.log(error.message);
+  }
+};
 
 // export const deleteCard = (folderId) => async (dispatch) => {
 //   try {

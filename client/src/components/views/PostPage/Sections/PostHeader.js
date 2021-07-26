@@ -117,11 +117,11 @@ export default function PostHeader(props) {
             onClick={() => {
               setIsComponentModalVisibile(true);
             }}
-            key="3"
+            key="1"
           >
             Add C
           </Button>
-          <Button onClick={() => {}} key="3">
+          <Button onClick={() => {}} key="2">
             Add Ex
           </Button>
           <Button onClick={() => {}} key="3">

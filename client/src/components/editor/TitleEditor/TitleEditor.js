@@ -47,7 +47,7 @@ export default function TitleEditor(props) {
     setName,
     title,
     setTitle,
-    placeHolder = "title..",
+    placeHolder = "",
     size = "3",
     darkenBgc = false,
   } = props;
@@ -59,7 +59,7 @@ export default function TitleEditor(props) {
           {
             type: "card-title",
             backgroundColor: "#ffffff",
-            placeHolder,
+            // placeHolder,
             fontStyle: "",
             size,
             darkenBgc,

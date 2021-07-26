@@ -14,6 +14,11 @@ const tagSchema = mongoose.Schema(
 );
 const Tag = mongoose.model("Tag", tagSchema);
 
+const positionSchema = mongoose.Schema({
+  x: { type: Number, default: 100 },
+  y: { type: Number, default: 250 },
+});
+
 const cardSchema = mongoose.Schema(
   {
     name: { type: String, default: "" },
@@ -27,6 +32,19 @@ const cardSchema = mongoose.Schema(
       list: { type: Schema.Types.ObjectId },
     },
     tags: { type: [tagSchema], default: [] },
+    flowData: {
+      type: { type: String, enum: ["NODE", "EDGE"], default: "NODE" },
+      position: {
+        type: positionSchema,
+        default: {
+          x: 100,
+          y: 250,
+        },
+      },
+      source: { type: String, default: "" },
+      target: { type: String, default: "" },
+      animated: { type: Boolean, default: true },
+    },
   },
   { timestamps: true }
 );

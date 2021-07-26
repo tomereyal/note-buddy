@@ -1,13 +1,12 @@
 import React, { useEffect, useState, useRef, Component } from "react";
 import axios from "axios";
-import Section from "./Sections/NoteSection/Section.js";
+import Section from "./Sections/Section";
 import PostHeader from "./Sections/PostHeader";
 import PostComponent from "./Sections/PostComponent.js";
-import { Card, Avatar, Col, Typography, Row, Button, Tooltip } from "antd";
+import { Col, Typography, Row } from "antd";
 import { PlusCircleOutlined } from "@ant-design/icons";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
-import Meta from "antd/lib/card/Meta";
 
 const { Text } = Typography;
 

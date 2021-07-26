@@ -12,12 +12,23 @@ router.get("/fetchCards", (req, res) => {
     res.status(200).json({ success: true, cards });
   });
 });
-// router.get("/fetchCardTags", (req, res) => {
-//   Card.find().exec((err, cards) => {
-//     if (err) return res.status(400).send(err);
-//     res.status(200).json({ success: true, cards });
-//   });
-// });
+
+router.post("/createCard", (req, res) => {
+  const { postId, sectionId, listId, tags, order, flowData } = req.body;
+
+  const newCard = new Card({
+    order,
+    tags,
+    location: { post: postId, section: sectionId, list: listId },
+    flowData,
+  });
+  Card.create(newCard, (err, card) => {
+    if (err) return res.status(400).json({ success: false, err });
+
+    return res.status(200).json({ success: true, card });
+  });
+});
+
 router.get("/fetchTaggedCards/:tagName", (req, res) => {
   const tagName = req.params.tagName;
   Card.find({ "tags.name": tagName }).exec((err, cards) => {

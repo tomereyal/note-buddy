@@ -171,7 +171,6 @@ export default function NoteSteps(props) {
         </div>
 
         <Steps
-          bordered={true}
           style={{
             margin: "0 3px",
             padding: "0 1rem",
@@ -187,7 +186,7 @@ export default function NoteSteps(props) {
                 status="Finished"
                 listCardCount={cards.length}
                 index={index}
-                setList={setList}
+                // setList={setList}
               ></NoteSingleStep>
             );
           })}

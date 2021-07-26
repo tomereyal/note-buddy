@@ -1,52 +1,109 @@
-import React from "react";
-import ReactFlow from "react-flow-renderer";
+import React, { useState } from "react";
+import ReactFlow, {
+  useStoreState,
+  ReactFlowProvider,
+  addEdge,
+  removeElements,
+} from "react-flow-renderer";
+import { useDispatch } from "react-redux";
+import {
+  createCardInList,
+  editList,
+} from "../../../../../_actions/post_actions";
 import "react-flow-renderer/dist/style.css";
 import NoteFlowNode from "./NoteFlowNode";
+import FlowToolbar from "./FlowToolbar";
+import TitleEditor from "../../../../editor/TitleEditor/TitleEditor";
 
-export default function NoteFlow({ list }) {
-  // const elements = list.cards.map(card=>{
-  //   return     {
-  //     id: "1",
-  //     type: "input", // input node
-  //     data: { label: "Input Node" },
-  //     position: { x: 250, y: 25 },
-  //   }
+const onElementClick = (event, element) => console.log("click", element);
 
-  // })
+export default function NoteFlow({ postId, sectionId, list }) {
+  const dispatch = useDispatch();
+  const [rfInstance, setRfInstance] = useState(null);
+  const onLoad = (reactFlowInstance) => {
+    console.log("rfInstance:", reactFlowInstance);
+    setRfInstance(reactFlowInstance);
+  };
 
-  const elements = [
-    {
-      id: "1",
-      type: "input", // input node
-      data: { label: "Input Node" },
-      position: { x: 250, y: 25 },
-    },
-    // default node
-    {
-      id: "2",
-      // you can also pass a React component as a label
+  const [elementsToRemove, setElementsToRemove] = useState();
+  const initElements = list.cards.map((card) => {
+    // console.log(`card.flowData`, card.flowData);
+
+    const { _id, flowData } = card;
+    const { type, source, target, animated, position } = flowData;
+    if (type === "EDGE") {
+      return {
+        id: _id,
+        source,
+        target,
+        animated,
+      };
+    }
+    return {
+      id: card._id,
+
       data: {
         label: (
           <div>
-            <NoteFlowNode card={list.cards[0]}></NoteFlowNode>
+            <NoteFlowNode card={card}></NoteFlowNode>
           </div>
         ),
       },
-      position: { x: 100, y: 125 },
-    },
-    {
-      id: "3",
-      type: "output", // output node
-      data: { label: "Output Node" },
-      position: { x: 250, y: 250 },
-    },
-    // animated edge
-    { id: "e1-2", source: "1", target: "2", animated: true },
-    { id: "e2-3", source: "2", target: "3" },
-  ];
+      position,
+    };
+  });
+  console.log(`initElements`, initElements);
+
+  const [elements, setElements] = useState(initElements);
+
+  const onConnect = (params) => {
+    console.log(`params`, params);
+    addEdgeToDB({ target: params.target, source: params.source });
+    setElements((els) => addEdge({ ...params, animated: true }, els));
+  };
+  const onElementsRemove = () => {
+    console.log(`elementsToRemove`, elementsToRemove);
+
+    setElements((els) => {
+      console.log(
+        `removeElements(elementsToRemove, els)`,
+        removeElements(elementsToRemove, els)
+      );
+      removeElements(elementsToRemove, els);
+    });
+  };
+
+  const addEdgeToDB = ({ target, source }) => {
+    const variables = {
+      postId,
+      sectionId,
+      listId: list._id,
+      flowData: {
+        type: "EDGE",
+        source,
+        target,
+      },
+    };
+
+    dispatch(createCardInList(variables));
+  };
+
   return (
-    // <div style={{ height: 300, width: 400 }}>
-    <ReactFlow elements={elements} />
-    // </div>
+    <ReactFlowProvider>
+      <ReactFlow
+        elements={elements}
+        onElementsRemove={onElementsRemove}
+        onConnect={onConnect}
+        onLoad={onLoad}
+        snapToGrid={true}
+      ></ReactFlow>
+      <FlowToolbar
+        elements={elements}
+        setElements={setElements}
+        postId={postId}
+        sectionId={sectionId}
+        listId={list._id}
+      />
+    </ReactFlowProvider>
   );
 }

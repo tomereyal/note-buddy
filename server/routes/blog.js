@@ -288,10 +288,11 @@ router.post("/editSection", (req, res) => {
 });
 
 router.post("/createListInSection", (req, res) => {
-  const { postId, sectionId, order } = req.body;
+  const { postId, sectionId, order, type } = req.body;
   const defaultCard = new Card({});
   const newList = new List({
     name: "new list",
+    type,
     order,
     cards: [defaultCard._id],
   });
@@ -359,9 +360,10 @@ router.post("/editList", (req, res) => {
 });
 
 router.post("/createCardInList", (req, res) => {
-  const { postId, sectionId, listId, order } = req.body;
+  const { postId, sectionId, listId, order, flowData } = req.body;
   const newCard = new Card({
     order,
+    flowData,
     location: { post: postId, section: sectionId, list: listId },
   });
   newCard.save((err, card) => {
@@ -375,31 +377,28 @@ router.post("/createCardInList", (req, res) => {
         if (err) return res.json({ success: false, err });
         res.status(200).json(updatedPost);
       });
-      // post.save((err, updatedPost) => {
-      //   if (err) return res.json({ success: false, err });
-      //   // updatedPost
-      //   //   .populate({
-      //   //     path: "sections",
-      //   //     model: "Section",
-      //   //     populate: {
-      //   //       path: "lists",
-      //   //       model: "List",
-      //   //       populate: { path: "cards", model: "Card" },
-      //   //     },
-      //   //   })
-      //   //   .execPopulate((err, updatedPost) => {
-      //   //     if (err) return res.json({ success: false, err });
-      //   //     res.status(200).json(updatedPost);
-      //   //   });
+    });
+  });
+});
 
-      //   // res.status(200).json(updatedPost);
-      // });
+router.post("/addCardToList", (req, res) => {
+  const { postId, sectionId, listId, cardId } = req.body;
+
+  Blog.findById(postId, function (err, post) {
+    if (err) {
+      console.log(err);
+    }
+    post.sections.id(sectionId).lists.id(listId).cards.push(cardId);
+    post.saveAndPopulate((err, updatedPost) => {
+      if (err) return res.json({ success: false, err });
+      res.status(200).json(updatedPost);
     });
   });
 });
 router.post("/removeCardFromList", (req, res) => {
-  const { postId, sectionId, listId, cardId } = req.body;
-  Card.findByIdAndDelete(cardId, function (err, result) {
+  const { postId, sectionId, listId, cardId, cardIdArr } = req.body;
+  const deleteArr = cardIdArr ? cardIdArr : [cardId];
+  Card.deleteMany({ _id: deleteArr }, function (err, result) {
     if (err) return res.json({ success: false, err });
     Blog.findById(postId, function (err, post) {
       if (err) {
@@ -408,7 +407,7 @@ router.post("/removeCardFromList", (req, res) => {
       let cardsArr = post.sections
         .id(sectionId)
         .lists.id(listId)
-        .cards.filter((card) => card != cardId);
+        .cards.filter((card) => !deleteArr.includes(card));
       post.sections.id(sectionId).lists.id(listId).cards = cardsArr;
       post.saveAndPopulate((err, result) => {
         if (err) return res.json({ success: false, err });
