@@ -77,3 +77,46 @@ export const renameFolder = (folderName) =>
 export const deletePostFromFolder = (variables) =>
   axios.post(`${FOLDER_SERVER}/deletePostFromFolder`, variables);
 //-----------------------------------------
+
+//=========================================
+//                _EXTERNAL
+//=========================================
+
+/**
+ *
+ * @param {String} q name of image request..
+ * @param {Number} pageNumber   page number of results found. Default: 1
+ * @param {Number} pageSize   amount of images recieved. Default: 1
+ * @param {Boolean} autoCorrect should name of image "q" param be corrected on spelling error?. Default: true
+ * @returns {Array} array of image url strings
+ */
+
+export const fetchGoogleImage = async (
+  q,
+  pageNumber = 1,
+  pageSize = 1,
+  autoCorrect = true
+) => {
+  if (!q) {
+    console.log(`No image string provided`);
+    return;
+  }
+  var config = {
+    method: "get",
+    url: `https://contextualwebsearch-websearch-v1.p.rapidapi.com/api/Search/ImageSearchAPI?q=${q}&pageNumber=${pageNumber}&pageSize=${pageSize}&autoCorrect=${autoCorrect}`,
+    headers: {
+      "x-rapidapi-host": "contextualwebsearch-websearch-v1.p.rapidapi.com",
+      "x-rapidapi-key": "9b7e5fef72msh9c35beb155a0d82p148617jsn9c83266cfd54",
+    },
+  };
+
+  return axios(config)
+    .then(function (response) {
+      const imageArray = response.data.value;
+      const urlArray = imageArray.map((image) => image.url);
+      return urlArray;
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+};

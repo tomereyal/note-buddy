@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import NoteList from "../NoteList";
-import TitleEditor from "../../../../editor/TitleEditor/TitleEditor";
-import ColorMenu from "../ColorMenu";
+import NoteList from "./NoteList";
+import NoteFlow from "../../NoteFlow";
+import TitleEditor from "../../../editor/TitleEditor/TitleEditor";
+import ColorMenu from "./ColorMenu";
 import {
   List,
   Card,
@@ -25,8 +26,9 @@ import {
   createSectionInPost,
   editSection,
   removeSectionFromPost,
-} from "../../../../../_actions/post_actions";
+} from "../../../../_actions/post_actions";
 import { css } from "@emotion/css";
+import NoteSteps from "./NoteSteps";
 const { Text } = Typography;
 //Section will make an axious get request to get his lists..
 
@@ -173,8 +175,40 @@ export default function Section(props) {
             </div>
           </div>
         </Divider>
-
+        {/*-----------------------STEPS---------------------*/}
         {section.lists.map((list, index, lists) => {
+          return (
+            // <Col span={8}>
+            // <Col flex="auto" key={index}>
+            <NoteSteps
+              postId={postId}
+              sectionId={props.section._id}
+              listsLength={lists.length}
+              list={list}
+              key={list._id}
+              index={index}
+            ></NoteSteps>
+            // </Col>
+          );
+        })}
+        {/*-----------------------FLOW---------------------*/}
+        <div style={{ height: 300, width: "100%" }}>
+          {section.lists.map((list, index, lists) => {
+            return (
+              <NoteFlow
+                postId={postId}
+                sectionId={props.section._id}
+                listsLength={lists.length}
+                list={list}
+                key={list._id}
+                index={index}
+              ></NoteFlow>
+            );
+          })}
+        </div>
+
+        {/*-----------------------LIST---------------------*/}
+        {/* {section.lists.map((list, index, lists) => {  
           return (
             // <Col span={8}>
             <Col flex="auto" key={index}>
@@ -188,7 +222,7 @@ export default function Section(props) {
               ></NoteList>
             </Col>
           );
-        })}
+        })} */}
       </Row>
     )
   );

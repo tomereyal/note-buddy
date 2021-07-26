@@ -8,11 +8,13 @@ import {
   Tooltip,
   Upload,
   Image,
+  message,
 } from "antd";
 import {
   UserOutlined,
   InfoCircleOutlined,
   InboxOutlined,
+  GoogleCircleFilled,
 } from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -20,7 +22,9 @@ import {
   createPostInFolder,
 } from "../../_actions/folder_actions";
 import { createPost, getPosts } from "../../_actions/post_actions";
+import { fetchGoogleImage } from "../../api";
 import axios from "axios";
+import { set } from "mongoose";
 
 const layout = {
   labelCol: {
@@ -51,6 +55,7 @@ export default function CreatePostModule({
   const posts = useSelector((state) => state.posts);
   const [name, setName] = useState("");
   const [image, setImage] = useState("");
+  const [googleImages, setGoogleImages] = useState({ name: "", images: [] });
   const [writer, setWriter] = useState(user.userData._id);
   const [fetchedIcons, setFetchedIcons] = useState([]);
   const dispatch = useDispatch();
@@ -60,6 +65,25 @@ export default function CreatePostModule({
     }
     return { label: post.name, value: post.name };
   });
+
+  //external api calls
+
+  const searchGoogleImages = async () => {
+    if (!name) return;
+
+    if (!googleImages.name || googleImages.name !== name) {
+      const data = await fetchGoogleImage(name, 1, 20);
+      setGoogleImages({ name: name, images: data });
+      setImage(data[getRandomInt(data.length)]);
+      return;
+    }
+
+    setImage(googleImages.images[getRandomInt(googleImages.images.length)]);
+  };
+
+  function getRandomInt(max) {
+    return Math.floor(Math.random() * max);
+  }
   //form
 
   const [form] = Form.useForm();
@@ -106,6 +130,16 @@ export default function CreatePostModule({
     }
   };
 
+  const checkForDuplicates = (value) => {
+    const postIndex = posts.findIndex((post) => {
+      return post.name === value;
+    });
+
+    if (postIndex > -1) {
+      message.error("Please rename post, this post name is taken.");
+    }
+  };
+
   //module
 
   const handleOk = () => {
@@ -142,6 +176,7 @@ export default function CreatePostModule({
       <Modal
         title="Create New Post  (ctrl n)"
         visible={isModalVisible}
+        onCancel={handleCancel}
         okButtonProps={{ style: { visibility: "hidden" } }}
         cancelButtonProps={{ style: { visibility: "hidden" } }}
       >
@@ -152,6 +187,12 @@ export default function CreatePostModule({
           onFinish={onFormFinish}
         >
           <Image preview={false} src={image} height={200}></Image>
+          <Button
+            onClick={() => {
+              searchGoogleImages();
+            }}
+            icon={<GoogleCircleFilled />}
+          ></Button>
           <Form.Item
             name="name"
             label={`Name:`}
@@ -175,6 +216,12 @@ export default function CreatePostModule({
                   <InfoCircleOutlined style={{ color: "rgba(0,0,0,.45)" }} />
                 </Tooltip>
               }
+              onChange={(e) => {
+                setName(e.target.value);
+              }}
+              onBlur={(e) => {
+                checkForDuplicates(e.target.value);
+              }}
             />
             {/* </AutoComplete> */}
           </Form.Item>

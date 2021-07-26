@@ -54,13 +54,14 @@ import TitleEditor from "./TitleEditor/TitleEditor";
 //-----------------------------------------------------//
 
 /**
+ * @param {container} container Recieves container element of slate editor.
  * @param {content} content Recieves initial content of a slate array of editable objects| default: [DefaultElement]
- * @param {setContent} Recieves a useState hook to give the parent component access to the updated value
+ * @param {setContent} setContent a useState hook to give the parent component access to the updated value
  * @returns SlateEditor React Component
  */
 export default function SlateEditor(props) {
-  const { card, content, setContent } = props;
-  const { location, _id } = card;
+  const { card = {}, content, setContent } = props;
+  const { location = {}, _id = "" } = card;
   const { post, section, list } = location;
   const cardData = {
     postId: post,
@@ -244,18 +245,6 @@ export default function SlateEditor(props) {
                 chars[index].name,
                 chars[index].image
               );
-              // saveExistingTags();
-              // const mentionArr = getNodes(editor, "mention");
-              // const cardHasTag =
-              //   mentionArr.findIndex(
-              //     (mention) => mention.character == chars[index]
-              //   ) == -1
-              //     ? false
-              //     : true;
-              // console.log(`cardHasTag`, cardHasTag);
-              // if (chars[index] && !cardHasTag) {
-              //for example if a card in another blog has this tag
-              //find the tag and copy the tag info to this card
             }
 
             setTarget(null);
@@ -434,6 +423,7 @@ export default function SlateEditor(props) {
         style={{
           position: "absolute",
           right: 0,
+          top: 0,
           zIndex: 10,
           height: "100%",
           backgroundColor: "#DAE4FF",

@@ -4,11 +4,18 @@ import { useDispatch, useSelector } from "react-redux";
 import { editNote } from "../../../../_actions/card_actions";
 import SlateEditor from "../../../editor/SlateEditor";
 import TitleEditor from "../../../editor/TitleEditor/TitleEditor";
+import { Steps, StepProps } from "antd";
+import session from "express-session";
 
-export default function NoteCard(props) {
+const { Step } = Steps;
+export default function NoteSingleStep({
+  card: initialCard,
+  index,
+  listCardCount,
+  ...StepProps
+}) {
   const dispatch = useDispatch();
-  const { index } = props;
-  const [card, setCard] = useState(props.card ? props.card : {});
+  const [card, setCard] = useState(initialCard ? initialCard : {});
   const {
     location,
     _id,
@@ -39,10 +46,10 @@ export default function NoteCard(props) {
   useEffect(() => {
     //props will update and to update its children you can useState or
     //give the children below props.cards
-    if (props.card) {
-      setCard(props.card);
+    if (card) {
+      setCard(card);
     }
-  }, [props]);
+  }, [card]);
   const saveNote = () => {
     if (!content) return;
     const updates = {
@@ -56,30 +63,8 @@ export default function NoteCard(props) {
 
   return (
     isShown && (
-      <div
-        style={{
-          minHeight: "50px",
-        }}
-        onBlur={() => {
-          console.log("card blurred so saving..");
-          saveNote();
-        }}
-        onDoubleClick={(e) => {
-          console.log("focused");
-        }}
-        id={card._id}
-      >
-        <Card
-          bodyStyle={{ padding: "2px" }}
-          style={{ width: "100%" }}
-          hoverable={true}
-          onMouseEnter={() => {
-            setIsCardHovered(true);
-          }}
-          onMouseLeave={() => {
-            setIsCardHovered(false);
-          }}
-        >
+      <Step
+        title={
           <TitleEditor
             title={title}
             setTitle={setTitle}
@@ -89,15 +74,51 @@ export default function NoteCard(props) {
             darkenBgc={true}
             size={4}
           />
-          <SlateEditor
-            card={card}
-            key={card._id}
-            style={{ width: "100%" }}
-            setContent={setContent}
-            content={content}
-          ></SlateEditor>
-        </Card>
-      </div>
+        }
+        subTitle={
+          <div
+            style={{
+              // textAlign: "center",
+              minHeight: "50px",
+              // minWidth: "100%",
+
+              // backgroundColor: "lightblue",
+            }}
+            onBlur={() => {
+              console.log("card blurred so saving..");
+              saveNote();
+            }}
+            onDoubleClick={(e) => {
+              console.log("focused");
+            }}
+            id={card._id}
+          >
+            <Card
+              bodyStyle={{ padding: "2px" }}
+              style={{ width: "100%" }}
+              hoverable={true}
+              onMouseEnter={() => {
+                setIsCardHovered(true);
+              }}
+              onMouseLeave={() => {
+                setIsCardHovered(false);
+              }}
+            >
+              <SlateEditor
+                listCardCount={listCardCount}
+                card={card}
+                order={index}
+                key={card._id}
+                style={{ width: "100%" }}
+                isCardHovered={isCardHovered}
+                setContent={setContent}
+                content={content}
+              ></SlateEditor>
+            </Card>
+          </div>
+        }
+        {...StepProps}
+      ></Step>
     )
   );
 }

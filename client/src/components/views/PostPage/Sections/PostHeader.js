@@ -1,7 +1,21 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { PageHeader, Button, Menu, Typography, Tag, Affix, Modal } from "antd";
-import { SettingOutlined, SoundOutlined } from "@ant-design/icons";
+import {
+  PageHeader,
+  Button,
+  Menu,
+  Typography,
+  Tag,
+  Affix,
+  Modal,
+  Tabs,
+} from "antd";
+import {
+  SettingOutlined,
+  SoundOutlined,
+  AppleOutlined,
+  AndroidOutlined,
+} from "@ant-design/icons";
 import { useDispatch } from "react-redux";
 import { editPost } from "../../../../_actions/post_actions";
 import TitleEditor from "../../../editor/TitleEditor/TitleEditor";
@@ -31,13 +45,6 @@ export default function PostHeader(props) {
   const [image, setImage] = useState(initialImage);
   const [description, setDescription] = useState(initialDescription);
 
-  useEffect(() => {
-    // if (post) {
-    //   setTitle(initialTitle);
-    // }
-    console.log("refreshed post header");
-  }, [post]);
-
   const [isComponentModalVisibile, setIsComponentModalVisibile] =
     useState(false);
 
@@ -59,79 +66,83 @@ export default function PostHeader(props) {
   };
 
   return (
-    <>
-      <Affix offsetTop={HEIGHT_OF_NAVBAR}>
-        <PageHeader
-          ghost={false}
-          title={
-            <div
-              onBlur={savePost}
-              style={{
-                minWidth: "200px",
-                minHeight: "42px",
-                display: "flex",
-                alignItems: "center",
-              }}
-            >
-              <EditableAvatar
-                title={post.name}
-                size={50}
-                src={image}
-                setImage={setImage}
-              ></EditableAvatar>
-              <TitleEditor
-                name={name}
-                setName={setName}
-                title={title}
-                setTitle={setTitle}
-                placeHolder={"Title.."}
-                size={1}
-              />
-
-              <Tooltip title={"Hear pronunciation"}>
-                <Button type="text" icon={<SoundOutlined />}></Button>
-              </Tooltip>
-            </div>
-          }
-          onBack={() => {
-            window.history.back();
+    // <Affix offsetTop={HEIGHT_OF_NAVBAR}>
+    <PageHeader
+      ghost={false}
+      title={
+        <div
+          onBlur={savePost}
+          style={{
+            minWidth: "200px",
+            minHeight: "42px",
+            display: "flex",
+            alignItems: "center",
           }}
-          tags={<Tag color="blue">Label</Tag>}
-          subTitle={`${post.createdAt}`}
-          extra={[
-            <Button key="2">
-              <Link to={`/post/${post._id}`}>Edit</Link>
-            </Button>,
-            <Button icon={<SettingOutlined />} key="1" type="primary" />,
-          ]}
-          footer={
-            <div>
-              <span>section navigator</span>
-              <Button
-                onClick={() => {
-                  setIsComponentModalVisibile(true);
-                }}
-                key="3"
-              >
-                Add Component
-              </Button>
-            </div>
-          }
         >
-          <div onBlur={savePost}>
-            <TextEditor
-              content={description}
-              setContent={setDescription}
-            ></TextEditor>
+          <EditableAvatar
+            title={post.name}
+            size={50}
+            src={image}
+            setImage={setImage}
+          ></EditableAvatar>
+          <TitleEditor
+            name={name}
+            setName={setName}
+            title={title}
+            setTitle={setTitle}
+            placeHolder={"Title.."}
+            size={1}
+          />
 
-            <ChildPostForm
-              isComponentModalVisibile={isComponentModalVisibile}
-              setIsComponentModalVisibile={setIsComponentModalVisibile}
-              parentPost={post}
-            ></ChildPostForm>
-          </div>
-        </PageHeader>
-      </Affix>
-    </>
+          <Tooltip title={"Hear pronunciation"}>
+            <Button type="text" icon={<SoundOutlined />}></Button>
+          </Tooltip>
+        </div>
+      }
+      onBack={() => {
+        window.history.back();
+      }}
+      tags={<Tag color="blue">Label</Tag>}
+      subTitle={`${post.createdAt}`}
+      extra={[
+        <Button key="2">
+          <Link to={`/post/${post._id}`}>Edit</Link>
+        </Button>,
+        <Button icon={<SettingOutlined />} key="1" type="primary" />,
+      ]}
+      footer={
+        <div>
+          <span>section navigator</span>
+          <Button
+            onClick={() => {
+              setIsComponentModalVisibile(true);
+            }}
+            key="3"
+          >
+            Add C
+          </Button>
+          <Button onClick={() => {}} key="3">
+            Add Ex
+          </Button>
+          <Button onClick={() => {}} key="3">
+            Add Que
+          </Button>
+        </div>
+      }
+    >
+      <div onBlur={savePost}>
+        <TextEditor
+          content={description}
+          setContent={setDescription}
+        ></TextEditor>
+
+        <ChildPostForm
+          isComponentModalVisibile={isComponentModalVisibile}
+          setIsComponentModalVisibile={setIsComponentModalVisibile}
+          parentPost={post}
+        ></ChildPostForm>
+      </div>
+    </PageHeader>
+    // </Affix>
   );
 }

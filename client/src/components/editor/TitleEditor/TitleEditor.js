@@ -41,11 +41,7 @@ const defaultBgc = "white";
  */
 
 export default function TitleEditor(props) {
-  const editorRef = useRef();
-  if (!editorRef.current)
-    editorRef.current = withHistory(withReact(createEditor()));
-  const editor = editorRef.current;
-  // const editor = useMemo(() => withHistory(withReact(createEditor())), [props]);
+  const editor = useMemo(() => withHistory(withReact(createEditor())), []);
   const {
     name = "",
     setName,
@@ -71,12 +67,6 @@ export default function TitleEditor(props) {
           },
         ]
   );
-  useEffect(() => {
-    //problem with rerendering title from postHeader in folder view
-    //the updated title is passed to the editor (initContent is correct)
-    //HOWEVER the state: "value" remains unchanged..
-    //Slate is the problem here.
-  }, [props]);
 
   const [isTitleHovered, setIsTitleHovered] = useState(false);
 

@@ -5,7 +5,7 @@ import { editNote } from "../../../../_actions/card_actions";
 import SlateEditor from "../../../editor/SlateEditor";
 import TitleEditor from "../../../editor/TitleEditor/TitleEditor";
 
-export default function NoteCard(props) {
+export default function NoteFlowNode(props) {
   const dispatch = useDispatch();
   const { index } = props;
   const [card, setCard] = useState(props.card ? props.card : {});

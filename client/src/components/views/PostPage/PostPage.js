@@ -57,9 +57,7 @@ function PostPage(props) {
     });
   };
 
-  const testRef = () => {
-    console.log(`container.current:`, container.current);
-  };
+  //IMPORTANT LESSON: WHEN USING REACT_ROUTER_DOM YOU MUST GIVE EACH CHILD A UNIQUE KEY FOR REACT TO WORK OPTIMALLY WITH NO BUGS
 
   if (post && post.writer) {
     return (
@@ -68,9 +66,13 @@ function PostPage(props) {
         style={{ width: "80%", margin: "1rem auto" }}
         ref={container}
       >
-        <PostHeader post={post} container={container.current}></PostHeader>
+        <PostHeader
+          key={post._id}
+          post={post}
+          container={container.current}
+        ></PostHeader>
 
-        {post.components && (
+        {post.components.length > 0 && (
           <>
             <Row justify="center">
               <Col>

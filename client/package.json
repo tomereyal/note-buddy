@@ -20,6 +20,7 @@
     "react-app-polyfill": "^1.0.6",
     "react-color": "^2.19.3",
     "react-dom": "^16.8.6",
+    "react-flow-renderer": "^9.6.5",
     "react-icons": "^3.7.0",
     "react-latex": "^2.0.0",
     "react-mathjax-preview": "^2.2.3",

@@ -4,8 +4,6 @@ require("./Card");
 
 const listSchema = mongoose.Schema(
   {
-    // inPost: { type: Schema.Types.ObjectId, ref: "Blog" },
-    // inSection: { type: Schema.Types.ObjectId, ref: "Section" },
     name: { type: String, default: "New list" },
     title: { type: [Schema.Types.Mixed], default: [] },
     order: { type: Number, default: 0 },
@@ -19,13 +17,13 @@ const sectionSchema = mongoose.Schema(
     // inPost: { type: Schema.Types.ObjectId, ref: "Blog" },
     name: { type: String, default: "" },
     title: { type: [Schema.Types.Mixed], default: [] },
-    // titleFont: { type: String, default: "" },
-    // titleBgc: { type: String, default: "" },
-    // titleColor: { type: String, default: "" },
     backgroundColor: { type: String, default: "#fff" },
     backgroundPattern: { type: String, default: "" },
     order: { type: Number, default: 0 },
-    lists: { type: [listSchema], default: [] },
+    lists: { type: [listSchema], default: [] }, //lists can go in children
+    children: { type: [Schema.Types.Mixed], default: [] },
+    //{title: string, type:string, children:[cardSchema]}
+    //e.g.  {title:"solving linear equation", type:"steps",children:[{cardtitle,cardContent}]}
   },
   { timestamps: true }
 );
@@ -45,9 +43,6 @@ const blogSchema = mongoose.Schema(
     image: { type: String, default: "" },
     audio: { type: String, default: "" },
     title: { type: [Schema.Types.Mixed], default: [] },
-    // titleFont: { type: String, default: "" },
-    // titleBgc: { type: String, default: "" },
-    // titleColor: { type: String, default: "" },
     content: { type: String },
     writer: { type: Schema.Types.ObjectId, ref: "User" },
     sections: { type: [sectionSchema], default: [] },

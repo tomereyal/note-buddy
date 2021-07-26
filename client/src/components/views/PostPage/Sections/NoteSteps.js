@@ -2,11 +2,19 @@ import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import NoteCard from "./NoteCard";
 import TitleEditor from "../../../editor/TitleEditor/TitleEditor";
-import { List, Avatar, Col, Typography, Row, Button, Tooltip } from "antd";
+import {
+  Steps,
+  Avatar,
+  Col,
+  Typography,
+  Row,
+  Button,
+  Tooltip,
+  Popover,
+} from "antd";
 import axios from "axios";
 import {
   DeleteColumnOutlined,
-  PlayCircleFilled,
   PlusCircleFilled,
   PlusSquareTwoTone,
 } from "@ant-design/icons";
@@ -16,14 +24,14 @@ import {
   removeListFromSection,
 } from "../../../../_actions/post_actions";
 import { createCardInList } from "../../../../_actions/post_actions";
+import NoteSingleStep from "./NoteSingleStep";
 const { Text } = Typography;
+const { Step } = Steps;
 
-export default function NoteList(props) {
+export default function NoteSteps(props) {
   const { postId, sectionId, index, listsLength } = props;
   const [list, setList] = useState(props.list);
   const dispatch = useDispatch();
-  // const [cards, setCards] = useState(list.cards ? list.cards : []);
-  // const [cardCount, setCardCount] = useState(cards.length);
   const [isShown, setIsShown] = useState(true);
 
   const { title: initialTitle, name: initialName } = list;
@@ -83,16 +91,21 @@ export default function NoteList(props) {
     dispatch(createCardInList(variables));
   };
 
+  const customDot = (dot, { status, index }) => (
+    <Popover
+      content={
+        <span>
+          step {index} status: {status}
+        </span>
+      }
+    >
+      {dot}
+    </Popover>
+  );
+
   return (
     isShown && (
-      <List
-        bordered={true}
-        style={{
-          margin: "0 3px",
-          padding: "0 1rem",
-          marginBottom: "10px",
-        }}
-      >
+      <>
         <div
           style={{
             display: "flex",
@@ -137,17 +150,6 @@ export default function NoteList(props) {
           </Tooltip>
         </div>
 
-        {list.cards.map((card, index, cards) => {
-          return (
-            <NoteCard
-              key={index}
-              listCardCount={cards.length}
-              card={card}
-              index={index}
-              setList={setList}
-            ></NoteCard>
-          );
-        })}
         <div
           style={{
             display: "flex",
@@ -167,7 +169,30 @@ export default function NoteList(props) {
             />
           </Tooltip>
         </div>
-      </List>
+
+        <Steps
+          bordered={true}
+          style={{
+            margin: "0 3px",
+            padding: "0 1rem",
+            marginBottom: "10px",
+          }}
+          progressDot={customDot}
+        >
+          {list.cards.map((card, index, cards) => {
+            return (
+              <NoteSingleStep
+                key={index}
+                card={card}
+                status="Finished"
+                listCardCount={cards.length}
+                index={index}
+                setList={setList}
+              ></NoteSingleStep>
+            );
+          })}
+        </Steps>
+      </>
     )
   );
 }

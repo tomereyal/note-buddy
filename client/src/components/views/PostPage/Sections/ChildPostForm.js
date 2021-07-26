@@ -95,8 +95,9 @@ export default function ChildPostForm({
   useEffect(() => {
     if (fetchedIcons.length === 0) {
       getIconsFromDB();
+      //MEMORY LEAK HERE, if i click fast enough on a different post getIConsFromDB() tries to update
+      //this components image state but it is already unmounted!
     }
-    console.log(`posts`, posts);
   }, []);
 
   const onFinish = async (formValues) => {
