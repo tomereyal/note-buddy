@@ -189,16 +189,14 @@ export default function Section(props) {
       case "FLOW":
         return (
           <Col flex="auto" key={index}>
-            <div style={{ height: 300, width: 400 }}>
-              <NoteFlow
-                postId={postId}
-                sectionId={props.section._id}
-                listsLength={lists.length}
-                list={list}
-                key={list._id}
-                index={index}
-              ></NoteFlow>
-            </div>
+            <NoteFlow
+              postId={postId}
+              sectionId={props.section._id}
+              listsLength={lists.length}
+              list={list}
+              key={list._id}
+              index={index}
+            ></NoteFlow>
           </Col>
         );
         break;
@@ -296,11 +294,9 @@ export default function Section(props) {
 
         {/*-----------------------CHILDREN---------------------*/}
 
-        <Row>
-          {section.lists.map((list, index, lists) => {
-            return childSwitchRenderer(list, index, lists);
-          })}
-        </Row>
+        {section.lists.map((list, index, lists) => {
+          return childSwitchRenderer(list, index, lists);
+        })}
       </Row>
     )
   );

@@ -95,11 +95,18 @@ export default function NoteSteps(props) {
     <Popover
       content={
         <span>
-          step {index} status: {status}
+          step {index + 1} status: {status}
         </span>
       }
     >
-      {dot}
+      <Button
+        default
+        size={4}
+        shape="circle"
+        style={{ transform: `translateY(-10px)` }}
+      >
+        *
+      </Button>
     </Popover>
   );
 
@@ -177,13 +184,15 @@ export default function NoteSteps(props) {
             marginBottom: "10px",
           }}
           progressDot={customDot}
+          direction="vertical"
+          current={list.cards.length}
         >
           {list.cards.map((card, index, cards) => {
             return (
               <NoteSingleStep
                 key={index}
                 card={card}
-                status="Finished"
+                // status={"progess"}
                 listCardCount={cards.length}
                 index={index}
                 // setList={setList}

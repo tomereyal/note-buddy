@@ -10,11 +10,16 @@ import { editNote } from "../../../../../_actions/card_actions";
 import {
   createCardInList,
   editList,
+  removeListFromSection,
 } from "../../../../../_actions/post_actions";
 import "react-flow-renderer/dist/style.css";
 import NoteFlowNode from "./NoteFlowNode";
 import FlowToolbar from "./FlowToolbar";
 import TitleEditor from "../../../../editor/TitleEditor/TitleEditor";
+import { Button, Row, Tooltip } from "antd";
+
+import { DeleteColumnOutlined } from "@ant-design/icons";
+import { Col } from "antd";
 
 const onElementClick = (event, element) => console.log("click", element);
 
@@ -95,34 +100,63 @@ export default function NoteFlow({ postId, sectionId, list }) {
     dispatch(editNote(variables));
   };
 
+  const removeList = () => {
+    const variables = {
+      postId,
+      sectionId,
+      listId: list._id,
+    };
+    dispatch(removeListFromSection(variables));
+  };
+
   return (
-    <ReactFlowProvider>
-      <ReactFlow
-        elements={elements}
-        onConnect={onConnect}
-        onLoad={onLoad}
-        snapToGrid={true}
-        onDoubleClick={() => {
-          console.log(`rfInstance`, rfInstance);
-          rfInstance.fitView();
-        }}
-        onNodeDragStop={(event, node) => {
-          if (rfInstance) rfInstance.fitView();
-          saveNodePosition(node);
-        }}
-        zoomOnScroll={false}
-        zoomOnDoubleClick={false}
-      >
-        {" "}
-      </ReactFlow>{" "}
-      <FlowToolbar
-        elements={elements}
-        setElements={setElements}
-        postId={postId}
-        sectionId={sectionId}
-        listId={list._id}
-        rfInstance={rfInstance}
-      />
-    </ReactFlowProvider>
+    <div>
+      <Row justify="end">
+        <Col>
+          {" "}
+          <Tooltip title="Remove Flow Chart">
+            <Button
+              type="danger"
+              shape="circle"
+              icon={<span>X</span>}
+              onClick={() => {
+                removeList();
+              }}
+            />
+          </Tooltip>
+        </Col>
+      </Row>
+
+      <div style={{ height: 300, width: "100%" }}>
+        <ReactFlowProvider>
+          <ReactFlow
+            elements={elements}
+            onConnect={onConnect}
+            onLoad={onLoad}
+            snapToGrid={true}
+            onDoubleClick={() => {
+              console.log(`rfInstance`, rfInstance);
+              rfInstance.fitView();
+            }}
+            onNodeDragStop={(event, node) => {
+              if (rfInstance) rfInstance.fitView();
+              saveNodePosition(node);
+            }}
+            zoomOnScroll={false}
+            zoomOnDoubleClick={false}
+          >
+            {" "}
+          </ReactFlow>{" "}
+          <FlowToolbar
+            elements={elements}
+            setElements={setElements}
+            postId={postId}
+            sectionId={sectionId}
+            listId={list._id}
+            rfInstance={rfInstance}
+          />
+        </ReactFlowProvider>
+      </div>
+    </div>
   );
 }

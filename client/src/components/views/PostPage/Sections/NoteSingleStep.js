@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { editNote } from "../../../../_actions/card_actions";
 import SlateEditor from "../../../editor/SlateEditor";
 import TitleEditor from "../../../editor/TitleEditor/TitleEditor";
+import TextEditor from "../../../editor/TextEditor";
 import { Steps, StepProps } from "antd";
 import session from "express-session";
 
@@ -95,7 +96,7 @@ export default function NoteSingleStep({
           >
             <Card
               bodyStyle={{ padding: "2px" }}
-              style={{ width: "100%" }}
+              style={{ width: "100%", minWidth: "100px" }}
               hoverable={true}
               onMouseEnter={() => {
                 setIsCardHovered(true);
@@ -105,12 +106,9 @@ export default function NoteSingleStep({
               }}
             >
               <SlateEditor
-                listCardCount={listCardCount}
                 card={card}
-                order={index}
                 key={card._id}
                 style={{ width: "100%" }}
-                isCardHovered={isCardHovered}
                 setContent={setContent}
                 content={content}
               ></SlateEditor>
