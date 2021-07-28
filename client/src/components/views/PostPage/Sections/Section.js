@@ -14,12 +14,15 @@ import {
   Button,
   Divider,
   Tooltip,
+  Menu,
+  Dropdown,
 } from "antd";
 import {
   DeleteOutlined,
   PlusSquareTwoTone,
   PlusCircleOutlined,
   DeleteRowOutlined,
+  DownOutlined,
 } from "@ant-design/icons";
 import { useDispatch } from "react-redux";
 import {
@@ -51,23 +54,11 @@ export default function Section(props) {
     setSection(props.section);
   }, [props]);
 
-  const createSection = () => {
-    const variables = {
-      name: `new section ${sectionsLength + 1}`,
-      backgroundColor,
-      backgroundPattern: pattern,
-      order: props.index + 1, //We will insert the new section beneath this one..
-      postId,
-    };
-    console.log(`variables`, variables);
-    dispatch(createSectionInPost(variables));
-  };
-
   const removeSection = () => {
-    if (sectionsLength <= 1) {
-      alert("A blog must contain atleast 1 section");
-      return;
-    }
+    // if (sectionsLength <= 1) {
+    //   alert("A blog must contain atleast 1 section");
+    //   return;
+    // }
     const variables = { postId, sectionId: section._id };
     dispatch(removeSectionFromPost(variables));
   };
@@ -95,6 +86,140 @@ export default function Section(props) {
     dispatch(editSection(variables));
   };
 
+  const menu = (
+    <Menu>
+      <Menu.Item key="1">
+        {" "}
+        <Tooltip title="Add LIST">
+          <Button
+            type="primary"
+            onClick={() => {
+              createList({ type: "LIST" });
+            }}
+          >
+            add list
+          </Button>
+        </Tooltip>
+      </Menu.Item>
+      <Menu.Item key="2">
+        <Tooltip title="Add CHEATSHEET">
+          <Button
+            type="primary"
+            onClick={() => {
+              createList({ type: "LIST" });
+            }}
+          >
+            add cheat-sheet
+          </Button>
+        </Tooltip>
+      </Menu.Item>
+      <Menu.Item key="4">
+        <Tooltip title="Add FLOW">
+          <Button
+            type="primary"
+            onClick={() => {
+              createList({ type: "FLOW" });
+            }}
+          >
+            add Flow
+          </Button>
+        </Tooltip>
+      </Menu.Item>
+      <Menu.Item key="5">
+        <Tooltip title="Add steps">
+          <Button
+            type="primary"
+            onClick={() => {
+              createList({ type: "STEPS" });
+            }}
+          >
+            add Steps
+          </Button>
+        </Tooltip>
+      </Menu.Item>
+      <Menu.Item key="6">
+        {" "}
+        <Tooltip title="Add card">
+          <Button
+            type="primary"
+            // onClick={() => {
+            //  createcard
+            // }}
+          >
+            add Card
+          </Button>
+        </Tooltip>
+      </Menu.Item>
+    </Menu>
+  );
+
+  const childSwitchRenderer = (list, index, lists) => {
+    const { type } = list;
+    console.log(`type`, type);
+    console.log(`list.cards`, list.cards);
+    switch (type) {
+      case "LIST":
+        return (
+          <Col flex="auto" key={index}>
+            <NoteList
+              postId={postId}
+              sectionId={props.section._id}
+              listsLength={lists.length}
+              list={list}
+              key={list._id}
+              index={index}
+            ></NoteList>
+          </Col>
+        );
+        break;
+      case "STEPS":
+        return (
+          <Col flex="auto" key={index}>
+            <NoteSteps
+              postId={postId}
+              sectionId={props.section._id}
+              listsLength={lists.length}
+              list={list}
+              key={list._id}
+              index={index}
+            ></NoteSteps>
+          </Col>
+        );
+        break;
+      case "FLOW":
+        return (
+          <Col flex="auto" key={index}>
+            <div style={{ height: 300, width: 400 }}>
+              <NoteFlow
+                postId={postId}
+                sectionId={props.section._id}
+                listsLength={lists.length}
+                list={list}
+                key={list._id}
+                index={index}
+              ></NoteFlow>
+            </div>
+          </Col>
+        );
+        break;
+
+      default:
+        return (
+          <Col flex="auto" key={index}>
+            <NoteList
+              postId={postId}
+              sectionId={props.section._id}
+              listsLength={lists.length}
+              list={list}
+              key={list._id}
+              index={index}
+            ></NoteList>
+          </Col>
+        );
+        break;
+    }
+  };
+
   return (
     showComponent && (
       <Row
@@ -112,6 +237,15 @@ export default function Section(props) {
             justifyContent: "flex-end",
           }}
         >
+          <Dropdown overlay={menu}>
+            <Button
+              className="ant-dropdown-link"
+              onClick={(e) => e.preventDefault()}
+            >
+              Add To Section <DownOutlined />
+            </Button>
+          </Dropdown>
+
           <ColorMenu
             setPattern={setPattern}
             setBackgroundColor={setBackgroundColor}
@@ -122,51 +256,11 @@ export default function Section(props) {
             <Button
               type="default"
               shape="circle"
-              icon={<DeleteRowOutlined />}
+              icon={<span>X</span>}
               onClick={() => {
                 removeSection();
               }}
             />
-          </Tooltip>
-          <Tooltip title="Add Section">
-            <Button
-              type="primary"
-              shape="circle"
-              icon={<PlusCircleOutlined />}
-              onClick={() => {
-                createSection();
-              }}
-            />
-          </Tooltip>
-          <Tooltip title="Add LIST">
-            <Button
-              type="primary"
-              onClick={() => {
-                createList({ type: "LIST" });
-              }}
-            >
-              add list
-            </Button>
-          </Tooltip>
-          <Tooltip title="Add FLOW">
-            <Button
-              type="primary"
-              onClick={() => {
-                createList({ type: "FLOW" });
-              }}
-            >
-              add Flow
-            </Button>
-          </Tooltip>
-          <Tooltip title="Add steps">
-            <Button
-              type="primary"
-              onClick={() => {
-                createList({ type: "STEPS" });
-              }}
-            >
-              add Steps
-            </Button>
           </Tooltip>
         </div>
         <Divider>
@@ -190,6 +284,7 @@ export default function Section(props) {
               {" "}
               <TitleEditor
                 name={name}
+                bgc={backgroundColor}
                 setName={setName}
                 title={title}
                 setTitle={setTitle}
@@ -198,54 +293,14 @@ export default function Section(props) {
             </div>
           </div>
         </Divider>
-        {/*-----------------------STEPS---------------------*/}
-        {/* {section.lists.map((list, index, lists) => {
-          return (
-            // <Col span={8}>
-            // <Col flex="auto" key={index}>
-            <NoteSteps
-              postId={postId}
-              sectionId={props.section._id}
-              listsLength={lists.length}
-              list={list}
-              key={list._id}
-              index={index}
-            ></NoteSteps>
-            // </Col>
-          );
-        })} */}
-        {/*-----------------------FLOW---------------------*/}
-        <div style={{ height: 300, width: "100%" }}>
-          {section.lists.map((list, index, lists) => {
-            return (
-              <NoteFlow
-                postId={postId}
-                sectionId={props.section._id}
-                listsLength={lists.length}
-                list={list}
-                key={list._id}
-                index={index}
-              ></NoteFlow>
-            );
-          })}
-        </div>
 
-        {/*-----------------------LIST---------------------*/}
-        {/* {section.lists.map((list, index, lists) => {  
-          return (
-            // <Col span={8}>
-            <Col flex="auto" key={index}>
-              <NoteList
-                postId={postId}
-                sectionId={props.section._id}
-                listsLength={lists.length}
-                list={list}
-                key={list._id}
-                index={index}
-              ></NoteList>
-            </Col>
-          );
-        })} */}
+        {/*-----------------------CHILDREN---------------------*/}
+
+        <Row>
+          {section.lists.map((list, index, lists) => {
+            return childSwitchRenderer(list, index, lists);
+          })}
+        </Row>
       </Row>
     )
   );

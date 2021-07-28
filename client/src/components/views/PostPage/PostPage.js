@@ -3,10 +3,11 @@ import axios from "axios";
 import Section from "./Sections/Section";
 import PostHeader from "./Sections/PostHeader";
 import PostComponent from "./Sections/PostComponent.js";
-import { Col, Typography, Row } from "antd";
+import { Col, Typography, Row, Tooltip, Button } from "antd";
 import { PlusCircleOutlined } from "@ant-design/icons";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
+import { createSectionInPost } from "../../../_actions/post_actions";
 
 const { Text } = Typography;
 
@@ -17,43 +18,60 @@ function PostPage(props) {
   // Now this component has access to all the route props (match, location and history).
 
   const { postId } = useParams();
+  console.log(`postId`, postId);
   const posts = useSelector((state) => state.posts);
   const initPost = posts.find((post) => {
-    return post._id == postId;
+    return post._id === postId;
   });
 
+  console.log(`posts`, posts);
   const [post, setPost] = useState(initPost);
   const [sections, setSections] = useState([]);
   const container = useRef(initPost);
-
+  const dispatch = useDispatch();
   useEffect(() => {
-    if (props) {
+    if (posts.length) {
       setPost(() => {
         return posts.find((post) => {
           return post._id == postId;
         });
       });
     }
-  }, [props, posts]);
+    console.log(`post`, post);
+
+    //posts intially is an empty array, and it seems there is not immediate access to it on refresh
+  }, [props, posts, post]);
   //to make child rerender on change in parent, we will pass parent props to child
   //and put [props] as the childs useEffect dependency
 
+  // const createSection = () => {
+  //   const variables = {
+  //     inPost: post._id,
+  //     title: "",
+  //     order: sections.length,
+  //   };
+  //   axios.post("/api/blog/createSection", variables).then((response) => {
+  //     console.log(response);
+  //     console.log(response.data.sections);
+  //     if (response.status == 200) {
+  //       let newArr = response.data.sections;
+  //       setSections((prevArr) => {
+  //         return [...prevArr, newArr[newArr.length - 1]];
+  //       });
+  //     }
+  //   });
+  // };
+
   const createSection = () => {
     const variables = {
-      inPost: post._id,
-      title: "",
-      order: sections.length,
+      name: `subject `,
+      // backgroundColor,
+      // backgroundPattern: pattern,
+      order: sections.length + 1, //We will insert the new section beneath this one..
+      postId,
     };
-    axios.post("/api/blog/createSection", variables).then((response) => {
-      console.log(response);
-      console.log(response.data.sections);
-      if (response.status == 200) {
-        let newArr = response.data.sections;
-        setSections((prevArr) => {
-          return [...prevArr, newArr[newArr.length - 1]];
-        });
-      }
-    });
+    console.log(`variables`, variables);
+    dispatch(createSectionInPost(variables));
   };
 
   //IMPORTANT LESSON: WHEN USING REACT_ROUTER_DOM YOU MUST GIVE EACH CHILD A UNIQUE KEY FOR REACT TO WORK OPTIMALLY WITH NO BUGS
@@ -71,7 +89,7 @@ function PostPage(props) {
           container={container.current}
         ></PostHeader>
 
-        {post.components.length > 0 && (
+        {post.components?.length > 0 && (
           <>
             <Row justify="center">
               <Col>
@@ -104,6 +122,21 @@ function PostPage(props) {
             ></Section>
           );
         })}
+
+        <Row justify="center">
+          <Col>
+            <Tooltip title="Add Section">
+              <Button
+                type="primary"
+                shape="circle"
+                icon={<PlusCircleOutlined />}
+                onClick={() => {
+                  createSection();
+                }}
+              />
+            </Tooltip>
+          </Col>
+        </Row>
       </div>
     );
   } else {

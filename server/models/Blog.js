@@ -50,6 +50,8 @@ const blogSchema = mongoose.Schema(
     description: { type: [Schema.Types.Mixed], default: [] },
     components: [{ type: Schema.Types.ObjectId, ref: "Blog", default: [] }],
     roles: { type: [roleSchema], default: [] }, // the roles of this object in other objects
+    examples: { type: [Schema.Types.Mixed], default: [] },
+    questions: { type: [Schema.Types.Mixed], default: [] },
   },
   { timestamps: true }
 );

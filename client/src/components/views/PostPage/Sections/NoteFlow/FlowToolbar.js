@@ -19,6 +19,7 @@ export default function FlowToolbar({
   setElements,
 }) {
   const dispatch = useDispatch();
+  const rfStoreState = useStoreState((store) => store);
   const nodes = useStoreState((store) => store.nodes);
   const transform = useStoreState((store) => store.transform);
   const setSelectedElements = useStoreActions(
@@ -26,12 +27,13 @@ export default function FlowToolbar({
   );
 
   const selectAll = () => {
+    console.log(`rfStoreState`, rfStoreState);
     setSelectedElements(
       nodes.map((node) => ({ id: node.id, type: node.type }))
     );
   };
 
-  const addNode = useCallback(async () => {
+  const addNode = async () => {
     const variables = {
       postId,
       sectionId,
@@ -40,8 +42,9 @@ export default function FlowToolbar({
       flowData: {
         type: "NODE",
         position: {
-          x: Math.random() * window.innerWidth - 100,
-          y: Math.random() * window.innerHeight,
+          x: nodes[nodes.length - 1]?.position.x + 200 || 100,
+
+          y: nodes[nodes.length - 1]?.position.y || 100,
         },
       },
       tags: [],
@@ -51,23 +54,7 @@ export default function FlowToolbar({
     const newCard = data.card;
 
     dispatch(addCardToList({ postId, sectionId, listId, cardId: newCard._id }));
-
-    const newNode = {
-      id: newCard._id,
-      data: {
-        label: (
-          <div>
-            <NoteFlowNode card={newCard}></NoteFlowNode>
-          </div>
-        ),
-      },
-      position: {
-        x: Math.random() * window.innerWidth - 100,
-        y: Math.random() * window.innerHeight,
-      },
-    };
-    setElements((els) => els.concat(newNode));
-  }, [setElements]);
+  };
 
   return (
     <aside>

@@ -160,6 +160,8 @@ export default function ChildPostForm({
       })
     );
     setIsComponentModalVisibile(false);
+    form.resetFields();
+    setRandomIcon(fetchedIcons);
   };
 
   const onReset = () => {

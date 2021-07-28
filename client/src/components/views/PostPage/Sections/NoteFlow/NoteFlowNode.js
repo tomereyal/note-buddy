@@ -12,11 +12,9 @@ import { DeleteFilled } from "@ant-design/icons";
 
 export default function NoteFlowNode({ card: initialCard, index }) {
   const dispatch = useDispatch();
-  //   const flowState = useStoreState((store) => store);
-  const nodes = useStoreState((store) => store.nodes);
+
   const edges = useStoreState((store) => store.edges);
   const transform = useStoreState((store) => store.transform);
-
   const [card, setCard] = useState(initialCard ? initialCard : {});
   const {
     location,
@@ -32,15 +30,16 @@ export default function NoteFlowNode({ card: initialCard, index }) {
     listId: list,
     cardId: _id,
   };
+
   const [title, setTitle] = useState(initialTitle);
   const [name, setName] = useState(initialName);
   const [content, setContent] = useState(initialContent);
+  const [position, setPosition] = useState();
   const [isShown, setIsShown] = useState(true);
   const [isCardHovered, setIsCardHovered] = useState(false);
 
   const removeCard = () => {
     const variables = cardData;
-    console.log(`nodes`, nodes);
     //DELETE ATTACHED EDGES
     const edgesToDelete = edges
       .filter(({ source, target }) => source === _id || target === _id)
@@ -48,6 +47,9 @@ export default function NoteFlowNode({ card: initialCard, index }) {
     if (edgesToDelete.length) {
       variables.cardIdArr = [card._id, ...edgesToDelete];
     }
+    console.log(`card._id`, card._id);
+    console.log(`edgesToDelete`, edgesToDelete);
+    console.log(`removinggg`, variables);
     dispatch(removeCardFromList(variables));
   };
 
@@ -58,6 +60,7 @@ export default function NoteFlowNode({ card: initialCard, index }) {
       setCard(card);
     }
   }, [card, index]);
+
   const saveNote = () => {
     if (!content) return;
     const updates = {
@@ -73,28 +76,14 @@ export default function NoteFlowNode({ card: initialCard, index }) {
     isShown && (
       <div
         style={{
-          minHeight: "50px",
+          height: "100%",
         }}
         onBlur={() => {
           console.log("card blurred so saving..");
           saveNote();
         }}
-        onDoubleClick={(e) => {
-          console.log("focused");
-        }}
         id={card._id}
       >
-        <Tooltip title="Remove Note">
-          <Button
-            type="danger"
-            shape="circle"
-            size="small"
-            icon={<DeleteFilled />}
-            onClick={() => {
-              removeCard();
-            }}
-          />
-        </Tooltip>
         <Card
           bodyStyle={{ padding: "2px" }}
           style={{ width: "100%" }}
@@ -106,6 +95,21 @@ export default function NoteFlowNode({ card: initialCard, index }) {
             setIsCardHovered(false);
           }}
         >
+          {isCardHovered && (
+            <div style={{ position: "absolute", zIndex: 100 }}>
+              <Tooltip title="Remove Note">
+                <Button
+                  type="danger"
+                  shape="circle"
+                  size="small"
+                  icon={<DeleteFilled />}
+                  onClick={() => {
+                    removeCard();
+                  }}
+                />
+              </Tooltip>
+            </div>
+          )}
           <SlateEditor
             card={card}
             key={card._id}

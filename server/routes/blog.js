@@ -133,6 +133,7 @@ router.post("/getPost", (req, res) => {
 
 router.post("/editPost", (req, res) => {
   const { postId, editArr } = req.body;
+
   Blog.findById(postId, function (err, post) {
     if (err) {
       console.log(err);

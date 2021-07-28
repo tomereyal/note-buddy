@@ -28,7 +28,7 @@ addStyles();
 const defaultBgc = "white";
 export const DefaultElement = ({ attributes, children, element }) => {
   const bcg = element.backgroundColor ? element.backgroundColor : defaultBgc;
-
+  const style = element.style;
   return (
     <p
       {...attributes}
@@ -37,6 +37,7 @@ export const DefaultElement = ({ attributes, children, element }) => {
         margin: 0,
         padding: "0 16px",
         fontSize: "1rem",
+        ...style,
       }}
     >
       {children}

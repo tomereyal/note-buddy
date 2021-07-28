@@ -5,7 +5,7 @@ import { createFolder } from "../../../_actions/folder_actions";
 import { useSelector, useDispatch } from "react-redux";
 import axios from "axios";
 
-import { Button } from "antd";
+import { Button, Input, Pagination } from "antd";
 function LandingPage() {
   const dispatch = useDispatch();
   const state = useSelector((state) => state);
@@ -13,6 +13,8 @@ function LandingPage() {
   const [icons, setIcons] = useState([]);
   const [allIcons, setAllIcons] = useState([]);
   const [iconsInDB, setIconsInDB] = useState();
+  const [pageNumber, setPageNumber] = useState(1);
+  const [searchedIcon, setSearchedIcon] = useState("");
   useEffect(() => {
     async function getIconsInDB() {
       const { data } = await axios.get("/api/external/fetchIconsInDb");
@@ -23,14 +25,14 @@ function LandingPage() {
     getIconsInDB();
   }, []);
 
-  const getFlatIcon = async (iconName) => {
+  const getFlatIcon = async (iconName, page = 1) => {
     var headers = {
       Accept: "application/json",
       Authorization: "string",
     };
     console.log(`hi`);
     const { data } = await axios
-      .get(`/api/external/getFlatIcon/q=${iconName}&page=10`)
+      .get(`/api/external/getFlatIcon/q=${iconName}&page=${page}`)
       .then((response) => {
         if (!response) {
           throw new Error("Oh no!");
@@ -86,14 +88,48 @@ function LandingPage() {
     console.log(`bye`);
     console.log(`token`, token);
   };
+  function copyToClp(txt) {
+    var m = document;
+    txt = m.createTextNode(txt);
+    var w = window;
+    var b = m.body;
+    b.appendChild(txt);
+    if (b.createTextRange) {
+      var d = b.createTextRange();
+      d.moveToElementText(txt);
+      d.select();
+      m.execCommand("copy");
+    } else {
+      var d = m.createRange();
+      var g = w.getSelection;
+      d.selectNodeContents(txt);
+      g().removeAllRanges();
+      g().addRange(d);
+      m.execCommand("copy");
+      g().removeAllRanges();
+    }
+    txt.remove();
+  }
 
   const renderIcons = icons
     ? icons.map((svg, index) => {
         return (
-          <img height="30px" width="30px" src={svg} key={index + svg[3]} />
+          <Button
+            onClick={() => {
+              console.log(`svg`, svg);
+              copyToClp(svg);
+            }}
+            style={{ height: "60px" }}
+            key={index}
+          >
+            {" "}
+            <img height="50px" width="50px" src={svg} key={index + svg[3]} />
+          </Button>
         );
       })
     : null;
+
+  //
 
   return (
     <>
@@ -108,38 +144,51 @@ function LandingPage() {
         >
           Let's Start Coding! (click to check state)
         </span>
-        <p
+        <Input
+          onChange={(e) => {
+            setSearchedIcon(e.target.value);
+          }}
+        ></Input>
+        <Button
           onClick={() => {
             getFlatIconToken();
           }}
         >
           Click to get flatIconApiToken
-        </p>
-        <p
+        </Button>
+        <Button
           onClick={() => {
-            getFlatIcon("monster");
+            getFlatIcon(searchedIcon);
           }}
         >
-          Click to get animal icons
-        </p>
+          Click to get {searchedIcon} icons
+        </Button>
         <Button
           onClick={async () => {
             console.log(`allIcons`, allIcons);
-            const data = await axios.post("/api/external/saveIcons", {
-              allIcons,
-            });
-            console.log(`data`, data);
+            // const data = await axios.post("/api/external/saveIcons", {
+            //   allIcons,
+            // });
+            // console.log(`data`, data);
           }}
         >
           save icons to db
         </Button>
+        <Pagination
+          current={pageNumber}
+          onChange={(page) => {
+            getFlatIcon(searchedIcon, page);
+            setPageNumber(page);
+          }}
+          total={100}
+        />
         {icons ? (
           <div
             style={{
               display: "flex",
               flexWrap: "wrap",
-              width: "420px",
-              height: "420px",
+              width: "720px",
+              // height: "420px",
             }}
           >
             {" "}

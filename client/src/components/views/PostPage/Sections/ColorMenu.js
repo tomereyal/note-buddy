@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Popover, Button } from "antd";
-import Icon from "@ant-design/icons";
+import Icon, { BgColorsOutlined } from "@ant-design/icons";
 import { TwitterPicker } from "react-color";
 import { useDispatch } from "react-redux";
 import {
@@ -62,9 +62,7 @@ export default function ColorMenu(props) {
             console.log(`variables`, variables);
             dispatch(setSectionPattern(variables));
           }}
-        >
-          
-        </Button>
+        ></Button>
       </div>
     );
   });
@@ -78,7 +76,7 @@ export default function ColorMenu(props) {
         <Button
           className={"sun-tornado"}
           shape="circle"
-          icon={<HeartIcon style={{ color: "hotpink" }} />}
+          icon={<BgColorsOutlined style={{ color: "hotpink" }} />}
         ></Button>
       </Popover>{" "}
     </span>

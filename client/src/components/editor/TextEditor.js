@@ -31,6 +31,7 @@ import {
 
 /**
  *
+ * @param {style} style Recieves a style object | Default: none
  * @param {content} content Recieves an array with a slate editor object | Default: [DefaultElement]
  * @param {setContent} initContent Recieves a setState hook to enable parent to access the slate editor value| Default: null
  * @param {isReadOnly} isReadOnly Recieves a boolean whether to allow editing | Default : false
@@ -39,9 +40,11 @@ import {
 export default function TextEditor({
   content,
   setContent,
+  style,
   isReadOnly = false,
 }) {
   const { withImages, withMathBlock, withTitledCardLayout } = EditorPlugins;
+
   const [value, setValue] = useState(
     content.length
       ? content
@@ -50,6 +53,7 @@ export default function TextEditor({
             type: "paragraph",
             backgroundColor: "#FFFFFF",
             children: [{ text: "" }],
+            style,
           },
         ]
   );
@@ -151,7 +155,7 @@ export default function TextEditor({
         renderElement={renderElement}
         renderLeaf={renderLeaf}
         readOnly={isReadOnly}
-        placeholder="Note..."
+        placeholder={<span>...add description</span>}
         spellCheck
         onDOMBeforeInput={(event) => {
           //Make sure you place the event.preventDefault() inside each case,

@@ -438,7 +438,6 @@ export default function SlateEditor(props) {
         renderElement={renderElement}
         renderLeaf={renderLeaf}
         readOnly={props.isReadOnly}
-        placeholder="Note..."
         spellCheck
         onDOMBeforeInput={(event) => {
           //Make sure you place the event.preventDefault() inside each case,

@@ -19,23 +19,25 @@ export default function PostComponent({ parentPost, component }) {
     const componentIndex = parentPost.components.findIndex((comp) => {
       return comp._id === component._id;
     });
-    const newComponentsArr = parentPost.components.splice(componentIndex, 1);
+    const newComponentsArr = parentPost.components.map((post) => post._id);
+    newComponentsArr.splice(componentIndex, 1);
     //update parent post
     dispatch(
       editPost({
         postId: parentPostId,
-        editArr: [{ editType: "components", editvalue: newComponentsArr }],
+        editArr: [{ editType: "components", editValue: newComponentsArr }],
       })
     );
     //update component post
     const roleIndex = component.roles.findIndex((role) => {
       return role.inPostId === parentPostId;
     });
-    const newRolesArr = component.roles.splice(roleIndex, 1);
+    const newRolesArr = component.roles.concat();
+    newRolesArr.splice(roleIndex, 1);
     dispatch(
       editPost({
         postId: componentId,
-        editArr: [{ editType: "roles", editvalue: newRolesArr }],
+        editArr: [{ editType: "roles", editValue: newRolesArr }],
       })
     );
   };

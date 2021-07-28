@@ -50,6 +50,7 @@ export default function TitleEditor(props) {
     placeHolder = "",
     size = "3",
     darkenBgc = false,
+    bgc = "#ffffff",
   } = props;
 
   const [value, setValue] = useState(
@@ -58,7 +59,7 @@ export default function TitleEditor(props) {
       : [
           {
             type: "card-title",
-            backgroundColor: "#ffffff",
+            backgroundColor: bgc,
             // placeHolder,
             fontStyle: "",
             size,
@@ -119,7 +120,7 @@ export default function TitleEditor(props) {
           renderElement={renderElement}
           renderLeaf={renderLeaf}
           // readOnly={props.isReadOnly}
-          placeholder="Enter some text..."
+          placeholder={<span>title</span>}
           spellCheck
         />
       </Slate>

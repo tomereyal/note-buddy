@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { DateTime } from "luxon";
 import { Link } from "react-router-dom";
 import {
   PageHeader,
@@ -15,6 +16,7 @@ import {
   SoundOutlined,
   AppleOutlined,
   AndroidOutlined,
+  PlusCircleOutlined,
 } from "@ant-design/icons";
 import { useDispatch } from "react-redux";
 import { editPost } from "../../../../_actions/post_actions";
@@ -103,7 +105,9 @@ export default function PostHeader(props) {
         window.history.back();
       }}
       tags={<Tag color="blue">Label</Tag>}
-      subTitle={`${post.createdAt}`}
+      subTitle={` ${DateTime.fromISO(post.createdAt).toFormat(
+        "HH:mm dd LLL yyyy"
+      )}`}
       extra={[
         <Button key="2">
           <Link to={`/post/${post._id}`}>Edit</Link>
@@ -112,29 +116,80 @@ export default function PostHeader(props) {
       ]}
       footer={
         <div>
-          <span>section navigator</span>
+          {/* <span>section navigator</span> */}
           <Button
             onClick={() => {
               setIsComponentModalVisibile(true);
             }}
             key="1"
+            icon={
+              <img
+                height="20px"
+                width="20px"
+                src={
+                  "https:img-premium.flaticon.com/svg/1180/1180929.svg?token=exp=1627428466~hmac=8f028cff04afe241f5501e0885d65b8c"
+                }
+              />
+            }
           >
-            Add C
+            Parts
           </Button>
-          <Button onClick={() => {}} key="2">
-            Add Ex
+          <Button
+            onClick={() => {}}
+            key="2"
+            icon={
+              <img
+                height="20px"
+                width="20px"
+                src={
+                  "https://img-premium.flaticon.com/svg/3534/3534076.svg?token=exp=1627468788~hmac=3908e9ef7a96c1961b81758402c60cfc"
+                }
+              />
+            }
+          >
+            E.g's
           </Button>
-          <Button onClick={() => {}} key="3">
-            Add Que
+          <Button
+            onClick={() => {}}
+            key="3"
+            icon={
+              <img
+                height="20px"
+                width="20px"
+                src={
+                  "https://img-premium.flaticon.com/svg/2784/2784530.svg?token=exp=1627468531~hmac=bf3960fd6660658841969e0cb9ebfede"
+                }
+              />
+            }
+          >
+            Q&A
+          </Button>
+          <Button
+            onClick={() => {}}
+            key="4"
+            icon={
+              <img
+                height="20px"
+                width="20px"
+                src={
+                  "https://img-premium.flaticon.com/svg/3830/3830031.svg?token=exp=1627469019~hmac=a055410c99ce39b4cc11433a2bf095ba"
+                }
+              />
+            }
+          >
+            Interactions
           </Button>
         </div>
       }
     >
-      <div onBlur={savePost}>
-        <TextEditor
-          content={description}
-          setContent={setDescription}
-        ></TextEditor>
+      <div style={{ marginTop: "0" }} onBlur={savePost}>
+        <div style={{ margin: "0 50px" }}>
+          <TextEditor
+            content={description}
+            setContent={setDescription}
+            style={{ fontSize: "18px" }}
+          ></TextEditor>
+        </div>
 
         <ChildPostForm
           isComponentModalVisibile={isComponentModalVisibile}
