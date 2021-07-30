@@ -40,7 +40,7 @@ const blogSchema = mongoose.Schema(
     //By default, Mongoose adds an _id property to your schemas.
     // folder: { type: Schema.Types.ObjectId, ref: "Folder" },
     name: String,
-    nickNames: { type: Schema.Types.Array, default: [] },
+    nicknames: { type: Schema.Types.Array, default: [] },
     image: { type: String, default: "" },
     audio: { type: String, default: "" },
     title: { type: [Schema.Types.Mixed], default: [] },
@@ -50,8 +50,13 @@ const blogSchema = mongoose.Schema(
     description: { type: [Schema.Types.Mixed], default: [] },
     components: [{ type: Schema.Types.ObjectId, ref: "Blog", default: [] }],
     roles: { type: [roleSchema], default: [] }, // the roles of this object in other objects
-    examples: { type: [Schema.Types.Mixed], default: [] },
+    examples: { type: [Schema.Types.Mixed], default: [] }, //add the reason why each item is an example
     questions: { type: [Schema.Types.Mixed], default: [] },
+    derivatives: [{ type: Schema.Types.ObjectId, ref: "Card", default: [] }],
+    // derivates: "e.g. if i (this blog name) am a "sin(alpha)" function THEN I have a limit"
+    //  will contain contain cards, cards may contain conditions, and the derivates
+    //in the examples above, the derivative is : " i have a limit (a limit exists)"
+    //the derivates will show up via a pop up for any post detected by the app
   },
   { timestamps: true }
 );

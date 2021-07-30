@@ -2,13 +2,14 @@ import React, { useEffect, useState, useRef, Component } from "react";
 import axios from "axios";
 import Section from "./Sections/Section";
 import PostHeader from "./Sections/PostHeader";
-import PostComponent from "./Sections/PostComponent.js";
-import { Col, Typography, Row, Tooltip, Button } from "antd";
+import { Col, Typography, Row, Tooltip, Button, Tabs } from "antd";
 import { PlusCircleOutlined } from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { createSectionInPost } from "../../../_actions/post_actions";
-
+import PartsSection from "./PartsSection";
+import DerivativesSection from "./DerivativesSection";
+const { TabPane } = Tabs;
 const { Text } = Typography;
 
 function PostPage(props) {
@@ -62,6 +63,143 @@ function PostPage(props) {
   //   });
   // };
 
+  const initialPanes = [
+    {
+      title: (
+        <span>
+          <img
+            height="20px"
+            width="20px"
+            src={
+              "https:img-premium.flaticon.com/svg/1180/1180929.svg?token=exp=1627428466~hmac=8f028cff04afe241f5501e0885d65b8c"
+            }
+          />
+          Parts
+        </span>
+      ),
+      content: <PartsSection post={post}></PartsSection>,
+      key: "1",
+    },
+    {
+      title: (
+        <span>
+          <img
+            height="20px"
+            width="20px"
+            src={
+              "https://img-premium.flaticon.com/svg/3534/3534076.svg?token=exp=1627468788~hmac=3908e9ef7a96c1961b81758402c60cfc"
+            }
+          />
+          E.g
+        </span>
+      ),
+      content:
+        "Examples Section ... reasons why each is considered a type of this object",
+      key: "2",
+    },
+    {
+      title: (
+        <span>
+          <img
+            height="20px"
+            width="20px"
+            src={
+              "https://img-premium.flaticon.com/svg/2784/2784530.svg?token=exp=1627468531~hmac=bf3960fd6660658841969e0cb9ebfede"
+            }
+          />
+          Q&A
+        </span>
+      ),
+      content: "Questions and Answers Section",
+      key: "3",
+    },
+    {
+      title: (
+        <span>
+          <img
+            height="20px"
+            width="20px"
+            src={
+              "https://img-premium.flaticon.com/svg/3830/3830031.svg?token=exp=1627469019~hmac=a055410c99ce39b4cc11433a2bf095ba"
+            }
+          />
+          Interactions
+        </span>
+      ),
+      content: "Interactions Section",
+      key: "4",
+    },
+    {
+      title: <span>Derivatives</span>,
+      content: <DerivativesSection post={post} />,
+      key: "5",
+    },
+  ];
+
+  const newTabIndex = 0;
+  const [tabState, setTabState] = useState({
+    activeKey: initialPanes[0].key,
+    panes: initialPanes,
+  });
+
+  const onChange = (activeKey) => {
+    setTabState({ ...tabState, activeKey });
+  };
+
+  const onEdit = (targetKey, action) => {
+    console.log(`action`, action);
+    switch (action) {
+      case "add":
+        add();
+        break;
+      case "remove":
+        remove(targetKey);
+        break;
+
+      default:
+        break;
+    }
+    // this[action](targetKey);
+  };
+
+  const add = () => {
+    const { panes } = tabState;
+    const newActiveKey = `newTab${newTabIndex + 1}`;
+    const newPanes = [...panes];
+    newPanes.push({
+      title: "New",
+      content: "Content of new Tab",
+      key: newActiveKey,
+    });
+    setTabState({
+      panes: newPanes,
+      activeKey: newActiveKey,
+    });
+  };
+
+  const remove = (targetKey) => {
+    const { panes, activeKey } = tabState;
+    let newActiveKey = activeKey;
+    let lastIndex;
+    panes.forEach((pane, i) => {
+      if (pane.key === targetKey) {
+        lastIndex = i - 1;
+      }
+    });
+    const newPanes = panes.filter((pane) => pane.key !== targetKey);
+    if (newPanes.length && newActiveKey === targetKey) {
+      if (lastIndex >= 0) {
+        newActiveKey = newPanes[lastIndex].key;
+      } else {
+        newActiveKey = newPanes[0].key;
+      }
+    }
+    setTabState({
+      panes: newPanes,
+      activeKey: newActiveKey,
+    });
+  };
+
   const createSection = () => {
     const variables = {
       name: `subject `,
@@ -88,28 +226,18 @@ function PostPage(props) {
           post={post}
           container={container.current}
         ></PostHeader>
-
-        {post.components?.length > 0 && (
-          <>
-            <Row justify="center">
-              <Col>
-                <h3 style={{ fontFamily: "monospace" }}>Components</h3>
-              </Col>
-            </Row>
-            <Row>
-              {post.components.map((component, index) => {
-                return (
-                  <Col key={component.name + index}>
-                    <PostComponent
-                      component={component}
-                      parentPost={post}
-                    ></PostComponent>
-                  </Col>
-                );
-              })}
-            </Row>
-          </>
-        )}
+        <Tabs
+          type="editable-card"
+          onChange={onChange}
+          activeKey={tabState.activeKey}
+          onEdit={onEdit}
+        >
+          {tabState?.panes.map((pane) => (
+            <TabPane tab={pane.title} key={pane.key} closable={pane.closable}>
+              {pane.content}
+            </TabPane>
+          ))}
+        </Tabs>
 
         {post.sections.map((section, index, sections) => {
           return (

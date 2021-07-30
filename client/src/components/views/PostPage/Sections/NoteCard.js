@@ -118,6 +118,7 @@ export default function NoteCard({
             style={{ width: "100%" }}
             setContent={setContent}
             content={content}
+            isCardHovered={isCardHovered}
           ></SlateEditor>
         </Card>
       </div>

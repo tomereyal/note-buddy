@@ -184,7 +184,7 @@ export default function NoteSteps(props) {
             marginBottom: "10px",
           }}
           progressDot={customDot}
-          direction="vertical"
+          // direction="vertical"
           current={list.cards.length}
         >
           {list.cards.map((card, index, cards) => {
