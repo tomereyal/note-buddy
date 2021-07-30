@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import NoteCard from "./NoteCard";
 import TitleEditor from "../../../editor/TitleEditor/TitleEditor";
+import ContainerWithMenu from "../../BasicComponents/ContainerWithMenu";
 import {
   Steps,
   Avatar,
@@ -14,6 +15,8 @@ import {
 } from "antd";
 import axios from "axios";
 import {
+  ArrowDownOutlined,
+  ArrowRightOutlined,
   DeleteColumnOutlined,
   PlusCircleFilled,
   PlusSquareTwoTone,
@@ -32,15 +35,14 @@ export default function NoteSteps(props) {
   const { postId, sectionId, index, listsLength } = props;
   const [list, setList] = useState(props.list);
   const dispatch = useDispatch();
-  const [isShown, setIsShown] = useState(true);
-
   const { title: initialTitle, name: initialName } = list;
   const [title, setTitle] = useState(initialTitle);
   const [name, setName] = useState(initialName);
-
+  const [direction, setDirection] = useState("horizontal");
   useEffect(() => {
     setList(props.list);
-  }, [props]);
+    console.log(`list`, list);
+  }, [props, listsLength]);
 
   const createList = () => {
     if (listsLength >= 3) {
@@ -91,37 +93,75 @@ export default function NoteSteps(props) {
     dispatch(createCardInList(variables));
   };
 
-  const customDot = (dot, { status, index }) => (
-    <Popover
-      content={
-        <span>
-          step {index + 1} status: {status}
-        </span>
-      }
-    >
+  const customDot = (dot, { status, title, description, index }) => (
+    <Popover content={<span>step {index + 1}</span>}>
       <Button
         default
         size={4}
         shape="circle"
         style={{ transform: `translateY(-10px)` }}
-      >
-        *
-      </Button>
+        icon={<span>{index + 1}</span>}
+      />
     </Popover>
   );
 
+  const menu = (
+    <div>
+      <Tooltip title="Change steps view">
+        <Button
+          shape="circle"
+          icon={
+            direction === "vertical" ? (
+              <ArrowDownOutlined />
+            ) : (
+              <ArrowRightOutlined />
+            )
+          }
+          onClick={() => {
+            setDirection((prev) => {
+              return prev === "horizontal" ? "vertical" : "horizontal";
+            });
+          }}
+        />
+      </Tooltip>
+      <Tooltip title="Add Card">
+        <Button
+          type="default"
+          shape="circle"
+          icon={<PlusCircleFilled />}
+          onClick={() => {
+            createCard();
+          }}
+        />
+      </Tooltip>
+      <Tooltip title="Remove List">
+        <Button
+          shape="circle"
+          icon={<span>X</span>}
+          onClick={() => {
+            removeList();
+          }}
+        />
+      </Tooltip>
+    </div>
+  );
+
   return (
-    isShown && (
-      <>
-        <div
+    <>
+      <ContainerWithMenu
+        menu={menu}
+        key={"steps" + list._id}
+        onDoubleClick={(e) => {
+          createCard();
+        }}
+      >
+        <Row
+          justify="center"
           style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
             padding: "1rem 0",
           }}
         >
-          <div
+          <Col
             onBlur={() => {
               saveList();
             }}
@@ -133,49 +173,8 @@ export default function NoteSteps(props) {
               setTitle={setTitle}
               size={3}
             ></TitleEditor>
-          </div>
-
-          <Tooltip title="Add List">
-            <Button
-              type="primary"
-              shape="circle"
-              icon={<PlusSquareTwoTone />}
-              onClick={() => {
-                createList();
-              }}
-            />
-          </Tooltip>
-          <Tooltip title="Remove List">
-            <Button
-              type="danger"
-              shape="circle"
-              icon={<DeleteColumnOutlined />}
-              onClick={() => {
-                removeList();
-              }}
-            />
-          </Tooltip>
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            padding: "1rem 0",
-          }}
-        >
-          <Tooltip title="Add Card">
-            <Button
-              type="default"
-              shape="circle"
-              icon={<PlusCircleFilled />}
-              onClick={() => {
-                createCard();
-              }}
-            />
-          </Tooltip>
-        </div>
+          </Col>
+        </Row>
 
         <Steps
           style={{
@@ -184,23 +183,24 @@ export default function NoteSteps(props) {
             marginBottom: "10px",
           }}
           progressDot={customDot}
-          direction="vertical"
+          direction={direction}
           current={list.cards.length}
         >
           {list.cards.map((card, index, cards) => {
             return (
               <NoteSingleStep
-                key={index}
+                key={index + card._id}
                 card={card}
                 // status={"progess"}
                 listCardCount={cards.length}
                 index={index}
+                direction={direction}
                 // setList={setList}
               ></NoteSingleStep>
             );
           })}
         </Steps>
-      </>
-    )
+      </ContainerWithMenu>
+    </>
   );
 }

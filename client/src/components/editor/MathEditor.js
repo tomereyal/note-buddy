@@ -8,7 +8,7 @@ const { saveMathToElement, getNodes } = EditorPlugins;
 addStyles();
 
 //dont really need useRef it was just an experiment
-export default function EditableMathExample({
+export default function MathEditor({
   slateEditor,
   savedMath,
   bcg,
@@ -19,6 +19,8 @@ export default function EditableMathExample({
   const [isMenuShown, setIsMenuShown] = useState(false);
   const [isBlurred, setIsBlurred] = useState(true);
   const [isToolbarHovered, setIsToolbarHovered] = useState(false);
+  const [currentLatex, setCurrentLatex] = useState("");
+  const [insertedLatex, setInsertedLatex] = useState("");
 
   useEffect(() => {
     if (mathFieldFocus) {
@@ -30,21 +32,47 @@ export default function EditableMathExample({
   const onClick = useCallback(() => {
     if (mathField) {
       mathField.cmd("\\sqrt");
-      // mathField.write("1");
     }
   }, [mathField]);
-  // const onNodeClick = useCallback(() => {
-  //   if (mathField) {
-  //     mathField.focus();
-  //   }
-  // }, [mathField]);
 
   const onKeyDown = useCallback(
     (e) => {
       e.stopPropagation();
+
       if (!mathField) {
         return;
       }
+      const key = e.key;
+      const keyCode = e.keyCode;
+      if (keyCode >= 65 && keyCode <= 120) {
+        setCurrentLatex((prev) => {
+          return `${prev + "" + key}`;
+        });
+      }
+      if (e.keyCode === 8) {
+        setCurrentLatex((prev) => {
+          return prev.slice(0, -1);
+        });
+      }
+
+      if (e.keyCode === 32) {
+        //on space reset current latex
+        setCurrentLatex("");
+        return;
+      }
+      if (e.keyCode === 13 && insertedLatex) {
+        e.preventDefault();
+
+        for (let i = 0; i < currentLatex.length; i++) {
+          mathField.keystroke("Backspace");
+        }
+
+        mathField.write(`${insertedLatex}`);
+
+        setCurrentLatex("");
+        setInsertedLatex("");
+      }
+
       if (e.ctrlKey) {
         switch (e.key) {
           case "s": {
@@ -54,7 +82,7 @@ export default function EditableMathExample({
           }
           case "1": {
             e.preventDefault();
-            // mathField.cmd("\\sqrt");
+
             mathField.write(`
             \\sqrt[n]{1+x+x^2+x^3+\\dots+x^n}`);
             break;
@@ -68,8 +96,6 @@ export default function EditableMathExample({
           }
         }
       }
-
-      // mathField.write("1");
     },
     [mathField]
   );
@@ -102,15 +128,16 @@ export default function EditableMathExample({
           setMathField(mathField);
           saveMathToElement(slateEditor, mathField.latex());
         }}
-        // onKeyDown={onKeyDown}
+        onKeyDown={onKeyDown}
         config={{
           handlers: {
             enter: (mathField) => {
-              saveMathToElement(slateEditor, mathField.latex(), {
-                exitOnSave: true,
-              });
+              // saveMathToElement(slateEditor, mathField.latex(), {
+              //   exitOnSave: true,
+              // });
             },
             moveOutOf: (direction, mathField) => {
+              console.log(`mathField.latex()`, mathField.latex());
               saveMathToElement(slateEditor, mathField.latex(), {
                 exitOnSave: true,
                 direction,
@@ -127,6 +154,9 @@ export default function EditableMathExample({
       {((mathField && !isBlurred) || isToolbarHovered) && (
         <MathEditorToolbar
           mathField={mathField}
+          currentLatex={currentLatex}
+          // searchArr={searchArr}
+          setInsertedLatex={setInsertedLatex}
           setIsToolbarHovered={setIsToolbarHovered}
         ></MathEditorToolbar>
       )}
@@ -134,7 +164,21 @@ export default function EditableMathExample({
   );
 }
 
-function MathEditorToolbar({ mathField, setIsToolbarHovered }) {
+function MathEditorToolbar({
+  mathField,
+  currentLatex,
+  setInsertedLatex,
+  setIsToolbarHovered,
+}) {
+  // const [searchArr, setsearchArr] = useState([]);
+  const searchArr =
+    currentLatex === ""
+      ? []
+      : allMath
+          .filter(({ label }) => label.includes(currentLatex))
+          .splice(0, 10);
+
+  setInsertedLatex(searchArr[0]?.value);
   return (
     <span
       style={{
@@ -160,6 +204,35 @@ function MathEditorToolbar({ mathField, setIsToolbarHovered }) {
         }}
         style={{ padding: "10px 12px" }}
       >
+        <TabPane tabKey="1" tab="quick-menu" key="search-math">
+          <div>
+            suggestion: (press enter to select)
+            <div
+              onClick={() => {
+                mathField.write(`${searchArr[0]?.value}`);
+              }}
+              key={searchArr[0]?.label}
+            >
+              <StaticMathField>{searchArr[0]?.value}</StaticMathField>
+            </div>{" "}
+          </div>
+          <div>
+            other results:
+            {searchArr.map(({ label, value, index }) => {
+              return (
+                <div
+                  onClick={() => {
+                    mathField.write(`${value}`);
+                  }}
+                  key={label + index}
+                >
+                  <StaticMathField>{value}</StaticMathField>
+                </div>
+              );
+            })}
+          </div>
+        </TabPane>
+
         <TabPane tab="Greek Letters" key="Greek-Letters">
           <div
             style={{
@@ -312,8 +385,6 @@ const operations = [
   { label: "hat", value: "\\hat{ x }", keyboard: "\\hat{ x }" },
   { label: "acute", value: "\\acute{ x }", keyboard: "\\acute{ x }" },
 ];
-// \  \   \ \  \   \  \   \  \
-// \ \\ \ \ \ \
 
 const relations = [
   { label: " not equal ", value: "\\neq ", keyboard: "\\neq " },
@@ -380,9 +451,6 @@ const relations = [
   { label: "infty", value: "\\infty", keyboard: "\\infty" },
 ];
 
-//  \  \  \  \  \  \  \  \  \  \  \  \  \
-
-//  \  \  \  \  \  \  \  \  \
 const functions = [
   { label: "power", value: "x^{ k }", keyboard: "x^{ k }" },
   { label: "sqrt{ ab }", value: "\\sqrt{ ab }", keyboard: "\\sqrt{ ab }" },
@@ -435,3 +503,6 @@ const functions = [
   { label: "cos^{-1}", value: "\\cos^{-1}", keyboard: "\\cos^{-1}" },
   { label: "tan^{-1}", value: "\\tan^{-1}", keyboard: "\\tan^{-1}" },
 ];
+
+const allMath = greekLetters.concat(operations, relations, functions);
+const allMathLabels = allMath.map(({ label }) => label);

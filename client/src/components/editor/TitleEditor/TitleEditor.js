@@ -34,6 +34,7 @@ const defaultBgc = "white";
  * @param { text, color, bgc = "#ffffff", fontStyle } title object {}.
  * @param {props} setTitle method.
  * @param {props} placeHolder string.
+ * @param {String} justify enum: "start", "center" , "end" | default :"start"
  * @param {props} size number: 1 being the biggest 5 being the smallest.
  * @param {} bgc string: hex number e.g. #ffffff default is none.
  *  @param {props} darkenBgc boolean: default false.
@@ -48,6 +49,7 @@ export default function TitleEditor(props) {
     title,
     setTitle,
     placeHolder = "",
+    justify = "start",
     size = "3",
     darkenBgc = false,
     bgc = "#ffffff",
@@ -61,6 +63,7 @@ export default function TitleEditor(props) {
             type: "card-title",
             backgroundColor: bgc,
             // placeHolder,
+            justify,
             fontStyle: "",
             size,
             darkenBgc,
@@ -101,6 +104,9 @@ export default function TitleEditor(props) {
       onMouseLeave={() => {
         setIsTitleHovered(false);
       }}
+      onDoubleClick={(e) => {
+        e.stopPropagation();
+      }}
     >
       <Slate
         editor={editor}
@@ -132,6 +138,7 @@ const CardTitle = ({ attributes, children, element }) => {
   const {
     placeHolder,
     size,
+    justify,
     backgroundColor = "",
     darkenBgc,
     fontStyle = "",
@@ -157,6 +164,8 @@ const CardTitle = ({ attributes, children, element }) => {
         backgroundColor: titleBgc,
         display: "flex",
         alignItems: "center",
+        justifyContent: justify,
+        textAlign: justify,
         color: color,
         padding: " 6px 28px",
         borderRadius: "2px",

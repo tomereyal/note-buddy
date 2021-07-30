@@ -4,6 +4,8 @@ import NoteCard from "./NoteCard";
 import TitleEditor from "../../../editor/TitleEditor/TitleEditor";
 import { List, Avatar, Col, Typography, Row, Button, Tooltip } from "antd";
 import axios from "axios";
+import ContainerWithMenu from "../../BasicComponents/ContainerWithMenu";
+
 import {
   DeleteColumnOutlined,
   PlayCircleFilled,
@@ -24,7 +26,6 @@ export default function NoteList(props) {
   const dispatch = useDispatch();
   // const [cards, setCards] = useState(list.cards ? list.cards : []);
   // const [cardCount, setCardCount] = useState(cards.length);
-  const [isShown, setIsShown] = useState(true);
 
   const { title: initialTitle, name: initialName } = list;
   const [title, setTitle] = useState(initialTitle);
@@ -83,9 +84,36 @@ export default function NoteList(props) {
     dispatch(createCardInList(variables));
   };
 
+  const menu = (
+    <div>
+      {/* <Tooltip title="Add List">
+        <Button
+          type="primary"
+          shape="circle"
+          icon={<PlusSquareTwoTone />}
+          onClick={() => {
+            createList();
+          }}
+        />
+      </Tooltip> */}
+      <Tooltip title="Remove List">
+        <Button
+          shape="circle"
+          icon={<span>X</span>}
+          onClick={() => {
+            removeList();
+          }}
+        />
+      </Tooltip>
+    </div>
+  );
+
   return (
-    isShown && (
+    <ContainerWithMenu menu={menu}>
       <List
+        onDoubleClick={() => {
+          createCard();
+        }}
         bordered={true}
         style={{
           margin: "0 3px",
@@ -93,15 +121,13 @@ export default function NoteList(props) {
           marginBottom: "10px",
         }}
       >
-        <div
+        <Row
           style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
             padding: "1rem 0",
           }}
+          justify="center"
         >
-          <div
+          <Col
             onBlur={() => {
               saveList();
             }}
@@ -113,29 +139,8 @@ export default function NoteList(props) {
               setTitle={setTitle}
               size={3}
             ></TitleEditor>
-          </div>
-
-          <Tooltip title="Add List">
-            <Button
-              type="primary"
-              shape="circle"
-              icon={<PlusSquareTwoTone />}
-              onClick={() => {
-                createList();
-              }}
-            />
-          </Tooltip>
-          <Tooltip title="Remove List">
-            <Button
-              type="danger"
-              shape="circle"
-              icon={<DeleteColumnOutlined />}
-              onClick={() => {
-                removeList();
-              }}
-            />
-          </Tooltip>
-        </div>
+          </Col>
+        </Row>
 
         {list.cards.map((card, index, cards) => {
           return (
@@ -168,6 +173,6 @@ export default function NoteList(props) {
           </Tooltip>
         </div>
       </List>
-    )
+    </ContainerWithMenu>
   );
 }

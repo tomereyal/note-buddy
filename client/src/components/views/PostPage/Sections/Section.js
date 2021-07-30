@@ -273,22 +273,24 @@ export default function Section(props) {
               borderRadius: "10px",
             }}
           >
-            <div
+            <Row
+              justify="center"
               style={{ minWidth: "300px" }}
               onBlur={() => {
                 saveSection();
               }}
             >
-              {" "}
-              <TitleEditor
-                name={name}
-                bgc={backgroundColor}
-                setName={setName}
-                title={title}
-                setTitle={setTitle}
-                size={2}
-              />{" "}
-            </div>
+              <Col>
+                <TitleEditor
+                  name={name}
+                  bgc={backgroundColor}
+                  setName={setName}
+                  title={title}
+                  setTitle={setTitle}
+                  size={2}
+                />
+              </Col>
+            </Row>
           </div>
         </Divider>
 

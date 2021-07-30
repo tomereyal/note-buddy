@@ -82,7 +82,12 @@ export default function ChildPostForm({
 
   async function getIconsFromDB() {
     const { data } = await axios.get("/api/external/fetchIconsInDb");
-    const icons = data.doc.icons;
+
+    let icons;
+    if (typeof data === "object") icons = data.doc.icons;
+    // dont parse if its object
+    else if (typeof data === "string") icons = JSON.parse(data).doc.icons; // parse if its string
+
     setFetchedIcons(icons);
     if (!componentToEdit) setRandomIcon(icons);
   }
