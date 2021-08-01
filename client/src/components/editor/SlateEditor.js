@@ -10,7 +10,13 @@ import { useDispatch } from "react-redux";
 //---------SLATE-EDITOR-IMPORTS----------------------//
 import { createEditor, Editor, Transforms, Range } from "slate";
 // Import the Slate components and React plugin.
-import { Slate, Editable, withReact, ReactEditor } from "slate-react";
+import {
+  Slate,
+  Editable,
+  withReact,
+  ReactEditor,
+  useSlateStatic,
+} from "slate-react";
 //Import the actual editor and its methods..
 import { withHistory } from "slate-history";
 import { EditorPlugins } from "./EditorPlugins";
@@ -105,6 +111,7 @@ export default function SlateEditor(props) {
     withConditions,
   } = EditorPlugins;
   const ref = useRef();
+
   const withCustomLayout = withTitledCardLayout; //make a switch case, switch(props.cardType)
   const editor = useMemo(
     () =>
@@ -255,9 +262,15 @@ export default function SlateEditor(props) {
             break;
         }
       }
-      if (event.key === "`") {
+      if (event.key === "`" || event.key === ";") {
         event.preventDefault();
         EditorPlugins.insertMathBlock(editor);
+      }
+
+      if (event.altKey) {
+        if (event.shiftKey) {
+          console.log(`lagnuage changed`);
+        }
       }
 
       if (event.ctrlKey) {
@@ -382,127 +395,134 @@ export default function SlateEditor(props) {
   ///////////////////////
 
   return (
-    <Slate
-      editor={editor}
-      value={value}
-      onChange={async (value) => {
-        setValue(value);
-        setContent(value);
-        console.log(`value`, value);
-        const { selection } = editor;
-
-        if (selection && Range.isCollapsed(selection)) {
-          const [start] = Range.edges(selection);
-          const wordBefore = Editor.before(editor, start, { unit: "word" });
-          const before = wordBefore && Editor.before(editor, wordBefore);
-          const beforeRange = before && Editor.range(editor, before, start);
-          const beforeText = beforeRange && Editor.string(editor, beforeRange);
-          const beforeMatch =
-            beforeText &&
-            beforeText.match(/^@([a-zA-Z0-9_*\u0590-\u05fe\u200f\u200e]+)$/);
-          const after = Editor.after(editor, start);
-          const afterRange = Editor.range(editor, start, after);
-          const afterText = Editor.string(editor, afterRange);
-          const afterMatch = afterText.match(/^(\s|$)/);
-          if (beforeMatch && afterMatch) {
-            setTarget(beforeRange);
-            setSearch(beforeMatch[1]);
-            setIndex(0);
-            getCardTagNamesFromServer();
-
-            return;
-          }
-        }
-
-        setTarget(null);
+    <div
+      onDoubleClick={(e) => {
+        e.stopPropagation();
       }}
     >
-      {" "}
-      <EditorHoverToolbar />
-      <div
-        style={{
-          position: "absolute",
-          right: 0,
-          top: 0,
-          zIndex: 10,
-          height: "100%",
-          backgroundColor: "#DAE4FF",
-          opacity: props.isCardHovered ? 1 : 0,
-          width: props.isCardHovered ? "40px" : "0",
-          transition: "linear 0.1s",
+      <Slate
+        editor={editor}
+        value={value}
+        onChange={async (value) => {
+          setValue(value);
+          setContent(value);
+          console.log(`value`, value);
+          const { selection } = editor;
+
+          if (selection && Range.isCollapsed(selection)) {
+            const [start] = Range.edges(selection);
+            const wordBefore = Editor.before(editor, start, { unit: "word" });
+            const before = wordBefore && Editor.before(editor, wordBefore);
+            const beforeRange = before && Editor.range(editor, before, start);
+            const beforeText =
+              beforeRange && Editor.string(editor, beforeRange);
+            const beforeMatch =
+              beforeText &&
+              beforeText.match(/^@([a-zA-Z0-9_*\u0590-\u05fe\u200f\u200e]+)$/);
+            const after = Editor.after(editor, start);
+            const afterRange = Editor.range(editor, start, after);
+            const afterText = Editor.string(editor, afterRange);
+            const afterMatch = afterText.match(/^(\s|$)/);
+            if (beforeMatch && afterMatch) {
+              setTarget(beforeRange);
+              setSearch(beforeMatch[1]);
+              setIndex(0);
+              getCardTagNamesFromServer();
+
+              return;
+            }
+          }
+
+          setTarget(null);
         }}
       >
-        <EditorMainToolbar cardData={cardData} />
-      </div>
-      <Editable
-        renderElement={renderElement}
-        renderLeaf={renderLeaf}
-        readOnly={props.isReadOnly}
-        spellCheck
-        onDOMBeforeInput={(event) => {
-          //Make sure you place the event.preventDefault() inside each case,
-          //Else you will disable editing of the note.
-          switch (event.inputType) {
-            case "formatBold":
-              event.preventDefault();
-              return EditorPlugins.toggleFormat(editor, "bold");
-            case "formatItalic":
-              event.preventDefault();
-              return EditorPlugins.toggleFormat(editor, "italic");
-            case "formatUnderline":
-              event.preventDefault();
-              return EditorPlugins.toggleFormat(editor, "underlined");
-          }
-        }}
-        onKeyDown={onKeyDown}
-      />{" "}
-      {target && (
-        <Portal>
-          <div
-            ref={ref}
-            style={{
-              top: "-9999px",
-              left: "-9999px",
-              position: "absolute",
-              zIndex: 1,
-              padding: "3px",
-              background: "white",
-              borderRadius: "4px",
-              boxShadow: "0 1px 5px rgba(0,0,0,.2)",
-            }}
-          >
-            {chars.length > 0 ? (
-              chars.map((tag, i) => (
+        {" "}
+        <EditorHoverToolbar />
+        <div
+          style={{
+            position: "absolute",
+            right: 0,
+            top: 0,
+            zIndex: 10,
+            height: "100%",
+            backgroundColor: "#DAE4FF",
+            opacity: props.isCardHovered ? 1 : 0,
+            width: props.isCardHovered ? "40px" : "0",
+            transition: "linear 0.1s",
+          }}
+        >
+          <EditorMainToolbar cardData={cardData} />
+        </div>
+        <Editable
+          renderElement={renderElement}
+          renderLeaf={renderLeaf}
+          readOnly={props.isReadOnly}
+          spellCheck
+          onDOMBeforeInput={(event) => {
+            //Make sure you place the event.preventDefault() inside each case,
+            //Else you will disable editing of the note.
+            switch (event.inputType) {
+              case "formatBold":
+                event.preventDefault();
+                return EditorPlugins.toggleFormat(editor, "bold");
+              case "formatItalic":
+                event.preventDefault();
+                return EditorPlugins.toggleFormat(editor, "italic");
+              case "formatUnderline":
+                event.preventDefault();
+                return EditorPlugins.toggleFormat(editor, "underlined");
+            }
+          }}
+          onKeyDown={onKeyDown}
+        />{" "}
+        {target && (
+          <Portal>
+            <div
+              ref={ref}
+              style={{
+                top: "-9999px",
+                left: "-9999px",
+                position: "absolute",
+                zIndex: 1,
+                padding: "3px",
+                background: "white",
+                borderRadius: "4px",
+                boxShadow: "0 1px 5px rgba(0,0,0,.2)",
+              }}
+            >
+              {chars.length > 0 ? (
+                chars.map((tag, i) => (
+                  <div
+                    key={tag.name}
+                    onClick={() => {
+                      console.log(`tag.name`, tag.name);
+                    }}
+                    style={{
+                      padding: "1px 3px",
+                      borderRadius: "3px",
+                      background: i === index ? "#B4D5FF" : "transparent",
+                    }}
+                  >
+                    {tag.name}
+                    {/* <Button>{tag.name}</Button> */}
+                  </div>
+                ))
+              ) : (
                 <div
-                  key={tag.name}
-                  onClick={() => {
-                    console.log(`tag.name`, tag.name);
-                  }}
+                  key={search}
                   style={{
                     padding: "1px 3px",
                     borderRadius: "3px",
-                    background: i === index ? "#B4D5FF" : "transparent",
+                    background: 0 === index ? "#B4D5FF" : "transparent",
                   }}
                 >
-                  {tag.name}
-                  {/* <Button>{tag.name}</Button> */}
+                  {search}
                 </div>
-              ))
-            ) : (
-              <div
-                key={search}
-                style={{
-                  padding: "1px 3px",
-                  borderRadius: "3px",
-                  background: 0 === index ? "#B4D5FF" : "transparent",
-                }}
-              >
-                {search}
-              </div>
-            )}
-          </div>
-        </Portal>
-      )}
-    </Slate>
+              )}
+            </div>
+          </Portal>
+        )}
+      </Slate>
+    </div>
   );
 }

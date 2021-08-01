@@ -113,15 +113,14 @@ export const EditorPlugins = {
 
     return !!match;
   },
-  // changeFont(editor) {
-
-  // },
+  deleteMathElement(editor, math, options) {
+    const { selection } = editor;
+  },
 
   saveMathToElement(editor, math, options) {
     const { selection } = editor;
-    console.log(`Saving this mathBlock :`, math);
+
     if (selection && Range.isCollapsed(selection)) {
-      console.log(`I found  match her ein editorPLugins!`);
       Transforms.setNodes(
         editor,
         { math: math },
@@ -132,6 +131,11 @@ export const EditorPlugins = {
             n.type === "math-block",
         }
       );
+
+      //previous element check for hebrew:
+      const [prevNode, prevLocation] = Editor.previous(editor);
+      console.log(`previous`, prevNode);
+      // const prevText = prevNode[0].text;
       if (options && options.exitOnSave) {
         ReactEditor.focus(editor);
         if (options.direction === -1) {

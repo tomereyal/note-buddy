@@ -17,7 +17,7 @@ import NoteFlowNode from "./NoteFlowNode";
 import FlowToolbar from "./FlowToolbar";
 import TitleEditor from "../../../../editor/TitleEditor/TitleEditor";
 import { Button, Row, Tooltip } from "antd";
-
+import ContainerWithMenu from "../../../BasicComponents/ContainerWithMenu";
 import { DeleteColumnOutlined } from "@ant-design/icons";
 import { Col } from "antd";
 
@@ -109,24 +109,22 @@ export default function NoteFlow({ postId, sectionId, list }) {
     dispatch(removeListFromSection(variables));
   };
 
-  return (
+  const menu = (
     <div>
-      <Row justify="end">
-        <Col>
-          {" "}
-          <Tooltip title="Remove Flow Chart">
-            <Button
-              type="danger"
-              shape="circle"
-              icon={<span>X</span>}
-              onClick={() => {
-                removeList();
-              }}
-            />
-          </Tooltip>
-        </Col>
-      </Row>
+      <Tooltip title="Remove Flow Chart">
+        <Button
+          shape="circle"
+          icon={<span>X</span>}
+          onClick={() => {
+            removeList();
+          }}
+        />
+      </Tooltip>
+    </div>
+  );
 
+  return (
+    <ContainerWithMenu menu={menu}>
       <div style={{ height: 300, width: "100%" }}>
         <ReactFlowProvider>
           <ReactFlow
@@ -157,6 +155,6 @@ export default function NoteFlow({ postId, sectionId, list }) {
           />
         </ReactFlowProvider>
       </div>
-    </div>
+    </ContainerWithMenu>
   );
 }

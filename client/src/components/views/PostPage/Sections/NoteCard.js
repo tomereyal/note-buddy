@@ -6,6 +6,7 @@ import SlateEditor from "../../../editor/SlateEditor";
 import TitleEditor from "../../../editor/TitleEditor/TitleEditor";
 import { removeCardFromList } from "../../../../_actions/post_actions";
 import { DeleteFilled } from "@ant-design/icons";
+import ContainerWithMenu from "../../BasicComponents/ContainerWithMenu";
 
 export default function NoteCard({
   card: initialCard,
@@ -32,8 +33,6 @@ export default function NoteCard({
   const [title, setTitle] = useState(initialTitle);
   const [name, setName] = useState(initialName);
   const [content, setContent] = useState(initialContent);
-  const [isShown, setIsShown] = useState(true);
-  const [isCardHovered, setIsCardHovered] = useState(false);
 
   const removeCard = () => {
     const variables = cardData;
@@ -64,42 +63,39 @@ export default function NoteCard({
     dispatch(editNote(variables));
   };
 
+  const menu = (
+    <div>
+      {" "}
+      <Tooltip title="Remove Note">
+        <Button
+          type="text"
+          shape="circle"
+          size="small"
+          icon={<span>X</span>}
+          onClick={() => {
+            removeCard();
+          }}
+        />
+      </Tooltip>
+    </div>
+  );
+
   return (
-    isShown && (
-      <div
-        style={{
-          minHeight: "50px",
-        }}
-        onBlur={() => {
-          console.log("card blurred so saving..");
-          saveNote();
-        }}
-        onDoubleClick={(e) => {
-          console.log("focused");
-        }}
-        id={card._id}
-      >
-        <Tooltip title="Remove Note">
-          <Button
-            type="danger"
-            shape="circle"
-            size="small"
-            icon={<DeleteFilled />}
-            onClick={() => {
-              removeCard();
-            }}
-          />
-        </Tooltip>
+    <div
+      key={"card" + card._id}
+      style={{
+        minHeight: "50px",
+        position: "relative",
+      }}
+      onBlur={() => {
+        saveNote();
+      }}
+    >
+      <ContainerWithMenu menu={menu}>
         <Card
           bodyStyle={{ padding: "2px" }}
           style={{ width: "100%" }}
           hoverable={true}
-          onMouseEnter={() => {
-            setIsCardHovered(true);
-          }}
-          onMouseLeave={() => {
-            setIsCardHovered(false);
-          }}
         >
           {withTitle && (
             <TitleEditor
@@ -118,10 +114,10 @@ export default function NoteCard({
             style={{ width: "100%" }}
             setContent={setContent}
             content={content}
-            isCardHovered={isCardHovered}
+            // isCardHovered={isCardHovered}
           ></SlateEditor>
         </Card>
-      </div>
-    )
+      </ContainerWithMenu>
+    </div>
   );
 }
