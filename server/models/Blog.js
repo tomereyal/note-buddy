@@ -52,7 +52,7 @@ const blogSchema = mongoose.Schema(
     roles: { type: [roleSchema], default: [] }, // the roles of this object in other objects
     examples: { type: [Schema.Types.Mixed], default: [] }, //add the reason why each item is an example
     questions: { type: [Schema.Types.Mixed], default: [] },
-    derivatives: [{ type: Schema.Types.ObjectId, ref: "Card", default: [] }],
+    derivatives: [{ type: Schema.Types.ObjectId, ref: "Blog", default: [] }],
     // derivates: "e.g. if i (this blog name) am a "sin(alpha)" function THEN I have a limit"
     //  will contain contain cards, cards may contain conditions, and the derivates
     //in the examples above, the derivative is : " i have a limit (a limit exists)"

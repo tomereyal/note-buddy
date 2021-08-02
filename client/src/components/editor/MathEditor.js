@@ -207,6 +207,7 @@ function MathEditorToolbar({
         <TabPane tabKey="1" tab="quick-menu" key="search-math">
           <div>
             suggestion: (press enter to select)
+            {currentLatex}
             <div
               onClick={() => {
                 mathField.write(`${searchArr[0]?.value}`);
@@ -424,7 +425,7 @@ const relations = [
   { label: "in", value: "\\in", keyboard: "\\in" },
   { label: "vdash", value: "\\vdash", keyboard: "\\vdash" },
   { label: "Rightarrow", value: "\\Rightarrow", keyboard: "\\Rightarrow" },
-  { label: "Rightarrow", value: "\\Rightarrow", keyboard: "\\Rightarrow" },
+
   { label: "mapsto", value: "\\mapsto", keyboard: "\\mapsto" },
   {
     label: "longrightarrow",
@@ -449,6 +450,10 @@ const relations = [
   { label: "prime", value: "\\prime", keyboard: "\\prime" },
   { label: "emptyset", value: "\\emptyset", keyboard: "\\emptyset" },
   { label: "infty", value: "\\infty", keyboard: "\\infty" },
+  { label: "real", value: "\\R", keyboard: "\\real" },
+  { label: "rational", value: "\\Q", keyboard: "\\rational" },
+  { label: "natural", value: "N", keyboard: "\\natural" },
+  { label: "complex", value: "\\C", keyboard: "\\complex" },
 ];
 
 const functions = [
@@ -504,5 +509,15 @@ const functions = [
   { label: "tan^{-1}", value: "\\tan^{-1}", keyboard: "\\tan^{-1}" },
 ];
 
-const allMath = greekLetters.concat(operations, relations, functions);
+const commonTerms = [
+  { label: "realnumber", value: "\\in \\R", keyboard: "\\coth" },
+  { label: "coth", value: "\\coth", keyboard: "\\coth" },
+];
+
+const allMath = greekLetters.concat(
+  operations,
+  relations,
+  functions,
+  commonTerms
+);
 const allMathLabels = allMath.map(({ label }) => label);

@@ -108,13 +108,13 @@ export default function NoteCard({
               size={4}
             />
           )}
+          <div> condition#1:  </div>
           <SlateEditor
             card={card}
             key={card._id}
             style={{ width: "100%" }}
             setContent={setContent}
             content={content}
-            // isCardHovered={isCardHovered}
           ></SlateEditor>
         </Card>
       </ContainerWithMenu>

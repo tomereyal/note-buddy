@@ -94,6 +94,7 @@ export default function SlateEditor(props) {
   const [index, setIndex] = useState(0);
   const [search, setSearch] = useState("");
   const [previousMathEl, setPreviousMathEl] = useState("");
+  const [isCardHovered, setIsCardHovered] = useState(false);
 
   const dispatch = useDispatch();
 
@@ -399,6 +400,12 @@ export default function SlateEditor(props) {
       onDoubleClick={(e) => {
         e.stopPropagation();
       }}
+      onMouseEnter={() => {
+        setIsCardHovered(true);
+      }}
+      onMouseLeave={() => {
+        setIsCardHovered(false);
+      }}
     >
       <Slate
         editor={editor}
@@ -446,8 +453,8 @@ export default function SlateEditor(props) {
             zIndex: 10,
             height: "100%",
             backgroundColor: "#DAE4FF",
-            opacity: props.isCardHovered ? 1 : 0,
-            width: props.isCardHovered ? "40px" : "0",
+            opacity: isCardHovered ? 1 : 0,
+            width: isCardHovered ? "40px" : "0",
             transition: "linear 0.1s",
           }}
         >
