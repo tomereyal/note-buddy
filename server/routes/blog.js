@@ -5,6 +5,7 @@ const { Card, Tag } = require("../models/Card");
 
 const { auth } = require("../middleware/auth");
 const multer = require("multer");
+const { Chain } = require("../models/Chain");
 
 // STORAGE MULTER CONFIG
 let storage = multer.diskStorage({
@@ -318,6 +319,9 @@ router.post("/createListInSection", (req, res) => {
     });
   });
 });
+
+
+
 router.post("/removeListFromSection", (req, res) => {
   const { postId, sectionId, listId } = req.body;
   Card.deleteMany({ "location.list": listId }, function (err, result) {

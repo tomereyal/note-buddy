@@ -8,7 +8,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { createSectionInPost } from "../../../_actions/post_actions";
 import PartsSection from "./PartsSection";
-import DerivativesSection from "./DerivativesSection";
+import DerivativesSection from "./ChainsSection";
+import ChainsSection from "./ChainsSection";
 const { TabPane } = Tabs;
 const { Text } = Typography;
 
@@ -24,8 +25,6 @@ function PostPage(props) {
   const initPost = posts.find((post) => {
     return post._id === postId;
   });
-
-  console.log(`posts`, posts);
   const [post, setPost] = useState(initPost);
   const [sections, setSections] = useState([]);
   const container = useRef(initPost);
@@ -36,6 +35,10 @@ function PostPage(props) {
         return posts.find((post) => {
           return post._id == postId;
         });
+      });
+      setTabState({
+        activeKey: initialPanes[0].key,
+        panes: initialPanes,
       });
     }
     console.log(`post`, post);
@@ -130,11 +133,13 @@ function PostPage(props) {
       key: "4",
     },
     {
-      title: <span>Derivatives</span>,
-      content: <DerivativesSection post={post} />,
+      title: <span>Chains</span>,
+      content: <ChainsSection post={post} />,
       key: "5",
     },
   ];
+
+  console.log(`initialPanes`, initialPanes);
 
   const newTabIndex = 0;
   const [tabState, setTabState] = useState({

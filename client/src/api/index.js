@@ -4,6 +4,7 @@ import {
   FOLDER_SERVER,
   USER_SERVER,
   CARD_SERVER,
+  CHAIN_SERVER,
 } from "../components/Config.js";
 
 //=========================================
@@ -43,10 +44,18 @@ export const createCardInList = (variables) =>
   axios.post(`${POST_SERVER}/createCardInList`, variables);
 export const addCardToList = (variables) =>
   axios.post(`${POST_SERVER}/addCardToList`, variables);
-
 export const removeCardFromList = (variables) =>
   axios.post(`${POST_SERVER}/removeCardFromList`, variables);
+
 //-----------------------------------------
+
+//=========================================
+//                _CHAIN
+//=========================================
+export const createChain = (variables) =>
+  axios.post(`${CHAIN_SERVER}/createChain`, variables);
+export const fetchChainsByIds = (variables) =>
+  axios.post(`${CHAIN_SERVER}/fetchChainsByIds`, variables);
 
 //=========================================
 //                _CARD

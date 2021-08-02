@@ -1,0 +1,18 @@
+const mongoose = require("mongoose");
+const Schema = mongoose.Schema;
+require("./Card");
+require("./Blog");
+
+const chainSchema = Schema({
+  heads: [{ type: Schema.Types.ObjectId, ref: "Blog", default: [] }],
+  type: {
+    type: Schema.Types.String,
+    enum: ["uniDirectional", "biDirectional"],
+    default: "uniDirectional",
+  },
+  connector: { type: Schema.Types.ObjectId, ref: "Card", default: null },
+  outcome: { type: Schema.Types.ObjectId, ref: "Blog", default: null },
+});
+
+const Chain = mongoose.model("Chain", chainSchema);
+module.exports = { Chain };
