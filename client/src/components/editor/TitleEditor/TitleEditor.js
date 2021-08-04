@@ -13,6 +13,7 @@ import {
   Editor,
   Transforms,
   Element as SlateElement,
+  Node,
 } from "slate";
 // Import the Slate components and React plugin.
 import { withHistory } from "slate-history";
@@ -23,26 +24,40 @@ import {
   useSelected,
   useFocused,
 } from "slate-react";
-import { Leaf } from "../sections/EditorElements";
+import { Leaf, MathBlock } from "../sections/EditorElements";
 import EditorHoverToolbar from "../sections/EditorToolBar/EditorHoverToolbar";
 import EditorTitleToolbar, { Toolbar } from "./EditorTitleToolbar";
+import { EditorPlugins } from "../EditorPlugins";
 const tinycolor = require("tinycolor2");
 const defaultBgc = "white";
 
+const { withMathBlock, serializeMathAndText, withSingleLinedEditor } =
+  EditorPlugins;
+
 /**
  *
- * @param { text, color, bgc = "#ffffff", fontStyle } title object {}.
- * @param {props} setTitle method.
- * @param {props} placeHolder string.
+ * @param { Object } style .
+ * @param {String} name method.
+ * @param {Function} setName method.
+ * @param {SlateObject} title method.
+ * @param {Function} setTitle method.
+ * @param {String} placeHolder string.
  * @param {String} justify enum: "start", "center" , "end" | default :"start"
- * @param {props} size number: 1 being the biggest 5 being the smallest.
- * @param {} bgc string: hex number e.g. #ffffff default is none.
- *  @param {props} darkenBgc boolean: default false.
+ * @param {Number} size number: 1 being the biggest 5 being the smallest.
+ * @param {String} bgc string: hex number e.g. #ffffff default is none.
+ * @param {Boolean} darkenBgc boolean: default false.
+ * @param {Boolean} isBold boolean: default true.
  * @returns Slate based editor for editing titles + hovertoolbar for styling.
  */
 
 export default function TitleEditor(props) {
-  const editor = useMemo(() => withHistory(withReact(createEditor())), []);
+  const editor = useMemo(
+    () =>
+      withSingleLinedEditor(
+        withMathBlock(withHistory(withReact(createEditor())))
+      ),
+    []
+  );
   const {
     name = "",
     setName,
@@ -50,9 +65,12 @@ export default function TitleEditor(props) {
     setTitle,
     placeHolder = "",
     justify = "start",
-    size = "3",
+    size = 3,
     darkenBgc = false,
     bgc = "#ffffff",
+    isReadOnly = false,
+    isBold = false,
+    style,
   } = props;
 
   const [value, setValue] = useState(
@@ -78,7 +96,11 @@ export default function TitleEditor(props) {
     const { children, attributes, element } = props;
     switch (element.type) {
       case "card-title":
-        return <CardTitle {...props} />;
+        return <CardTitle {...props} element={{ ...props.element, style }} />;
+      case "math-block":
+        return (
+          <MathBlock {...props} element={{ ...props.element, isReadOnly }} />
+        );
       default:
         return <DefaultElement {...props} />;
     }
@@ -88,9 +110,27 @@ export default function TitleEditor(props) {
     return <Leaf {...props} />;
   }, []);
 
+  /////////////EVENTS/////////////////
+
+  const onKeyDown = useCallback((event) => {
+    if (event.key === "`" || event.key === ";") {
+      event.preventDefault();
+      EditorPlugins.insertMathBlock(editor);
+    }
+  }, []);
+  ////////////////////
+  const fontSize = getFontSize(size);
   return (
     <div
-      style={{ position: "relative" }}
+      style={{
+        position: "relative",
+        fontSize,
+        display: "inline-block",
+        fontWeight: isBold ? "bold" : "normal",
+        margin: 0,
+        padding: 0,
+        ...style,
+      }}
       onMouseEnter={() => {
         const [match] = Editor.nodes(editor, {
           match: (n, path) =>
@@ -114,19 +154,19 @@ export default function TitleEditor(props) {
         onChange={(newValue) => {
           setValue(newValue);
           setTitle(newValue);
-          setName(newValue[0].children[0].text);
+          const newName = serializeMathAndText(editor);
+          console.log(`newName`, newName);
+          setName(newName);
         }}
       >
-        <EditorTitleToolbar
-          isTitleHovered={isTitleHovered}
-          // fontStyle={fontStyle}
-        />
+        {!isReadOnly && <EditorTitleToolbar isTitleHovered={isTitleHovered} />}
 
         <Editable
           renderElement={renderElement}
           renderLeaf={renderLeaf}
-          // readOnly={props.isReadOnly}
-          placeholder={<span>title</span>}
+          onKeyDown={onKeyDown}
+          readOnly={props.isReadOnly}
+          // placeholder={<span>title</span>}
           spellCheck
         />
       </Slate>
@@ -142,6 +182,7 @@ const CardTitle = ({ attributes, children, element }) => {
     backgroundColor = "",
     darkenBgc,
     fontStyle = "",
+    style,
   } = element;
   const selected = useSelected();
   const focused = useFocused();
@@ -159,7 +200,7 @@ const CardTitle = ({ attributes, children, element }) => {
   const fontSize = getFontSize(size);
   //=================
   return (
-    <h3
+    <p
       style={{
         backgroundColor: titleBgc,
         display: "flex",
@@ -167,16 +208,18 @@ const CardTitle = ({ attributes, children, element }) => {
         justifyContent: justify,
         textAlign: justify,
         color: color,
-        padding: " 6px 28px",
-        borderRadius: "2px",
-        fontSize: fontSize,
-        boxShadow: selected && focused ? "0 0 0 1px #F4F1F0" : "none",
+        width: "100%",
+        height: "100%",
+        padding: 0,
+        margin: 0,
+        // boxShadow: selected && focused ? "0 0 0 1px #F4F1F0" : "none",
         fontFamily: fontStyle,
+        // ...style,
       }}
       {...attributes}
     >
       {children}
-    </h3>
+    </p>
   );
 };
 

@@ -155,8 +155,6 @@ export default function Section(props) {
 
   const childSwitchRenderer = (list, index, lists) => {
     const { type } = list;
-    console.log(`type`, type);
-    console.log(`list.cards`, list.cards);
     switch (type) {
       case "LIST":
         return (

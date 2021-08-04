@@ -56,7 +56,8 @@ router.get("/fetchFolders", (req, res) => {
     .populate("blogs") //  populate the blogs
     .exec((err, folders) => {
       if (err) return res.status(400).send(err);
-      res.status(200).json({ success: true, folders });
+
+      res.status(200).json({ success: true, folders: folders });
     });
 });
 

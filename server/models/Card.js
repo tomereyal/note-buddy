@@ -27,9 +27,9 @@ const cardSchema = mongoose.Schema(
     conditions: { type: Schema.Types.Array, default: [] },
     content: { type: [Schema.Types.Mixed], default: [] },
     location: {
-      post: { type: Schema.Types.ObjectId },
-      section: { type: Schema.Types.ObjectId },
-      list: { type: Schema.Types.ObjectId },
+      post: { type: Schema.Types.ObjectId, default: null },
+      section: { type: Schema.Types.ObjectId, default: null },
+      list: { type: Schema.Types.ObjectId, default: null },
     },
     tags: { type: [tagSchema], default: [] },
     flowData: {

@@ -26,9 +26,9 @@ export const REMOVE_LIST_FROM_SECTION = "REMOVE_LIST_FROM_SECTION";
 export const EDIT_LIST = "EDIT_LIST";
 export const CREATE_CARD_IN_LIST = "CREATE_CARD_IN_LIST";
 export const ADD_CARD_TO_LIST = "ADD_CARD_TO_LIST";
-
 export const REMOVE_CARD_FROM_LIST = "REMOVE_CARD_FROM_LIST";
 export const UPDATE_CARD_IN_POST = "UPDATE_CARD_IN_POST";
+
 //-----------------------------------------
 
 //=========================================

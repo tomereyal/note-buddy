@@ -6,8 +6,10 @@ import {
   useSlateStatic,
   ReactEditor,
 } from "slate-react";
+
 import { EditorPlugins } from "../EditorPlugins";
 import TitleEditor from "../TitleEditor/TitleEditor";
+
 //----------STYLE-IMPORTS-------------------------------//
 
 import { css } from "@emotion/css";
@@ -18,27 +20,34 @@ import Math from "../../views/TestPage/Math";
 import MathEditor from "../MathEditor";
 import { Button, Modal } from "antd";
 
-import { addStyles, EditableMathField } from "react-mathquill";
+import { addStyles, EditableMathField, StaticMathField } from "react-mathquill";
 import ConditionEditor from "../ConditionEditor";
 import { Portal } from "./EditorToolBar/EditorHoverToolbar";
+import { Editor } from "slate";
 
 addStyles();
 
 //----------------------------------------------------//
 const defaultBgc = "white";
 export const DefaultElement = ({ attributes, children, element }) => {
-  const bcg = element.backgroundColor ? element.backgroundColor : defaultBgc;
+  const bcg = element.backgroundColor ? element.backgroundColor : "";
   const style = element.style;
+  const justify = "start";
   return (
     <p
-      {...attributes}
       style={{
         backgroundColor: bcg,
         margin: 0,
         padding: "0 16px",
         fontSize: "1rem",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: justify,
+        textAlign: justify,
+
         ...style,
       }}
+      {...attributes}
     >
       {children}
     </p>
@@ -144,15 +153,30 @@ export const MathBlock = ({ attributes, children, element }) => {
   const selected = useSelected();
   const focused = useFocused();
   const editor = useSlateStatic();
-  const bcg = element.backgroundColor ? element.backgroundColor : defaultBgc;
+  const { math, backgroundColor = defaultBgc, isReadOnly } = element;
+  const bcg = backgroundColor;
   const [mathFieldFocus, setMathFieldFocus] = useState(false);
-
+  const [mathFieldSelected, setMathFieldSelected] = useState(false);
+  console.log(`isReadOnly`, isReadOnly);
   useEffect(() => {
     if (selected && focused) {
-      console.log(`focus me in `);
-      setMathFieldFocus(true);
+      setMathFieldSelected(true);
+
+      console.log(`editor.selection`, editor.selection);
+      const { anchor, focus } = editor.selection;
+      const [node] = Editor.nodes(editor, {
+        match: (n, path) => n.type === "math-block",
+      });
+      console.log(`math`, node[0].math);
+      console.log(`mathBlock path`, node[1]);
+      console.log(`anchor.path`, anchor.path);
+      console.log(`focus.path`, focus.path);
+
+      if (anchor.path[0] === focus.path[0] && anchor.path[1] === focus.path[1])
+        setMathFieldFocus(true);
     } else {
       setMathFieldFocus(false);
+      setMathFieldSelected(false);
     }
   }, [selected]);
 
@@ -162,10 +186,9 @@ export const MathBlock = ({ attributes, children, element }) => {
       contentEditable={false}
       style={{
         direction: "ltr",
-        display: "inline-block",
         margin: "0 1px",
         verticalAlign: "baseline",
-        display: "inline-block",
+        // display: "inline-block",
         borderRadius: "4px",
         fontWeight: "bold",
         color: "black",
@@ -174,12 +197,19 @@ export const MathBlock = ({ attributes, children, element }) => {
         // boxShadow: selected && focused ? "0 0 0 2px #B4D5FF" : "none",
       }}
     >
-      <MathEditor
-        slateEditor={editor}
-        savedMath={element.math}
-        bcg={bcg}
-        mathFieldFocus={mathFieldFocus}
-      ></MathEditor>
+      {isReadOnly ? (
+        <span>
+          <StaticMathField>{math}</StaticMathField>{" "}
+        </span>
+      ) : (
+        <MathEditor
+          slateEditor={editor}
+          savedMath={math}
+          bcg={bcg}
+          mathFieldFocus={mathFieldFocus}
+          mathFieldSelected={mathFieldSelected}
+        ></MathEditor>
+      )}
       {children}
     </span>
   );

@@ -7,8 +7,10 @@ import { PlusCircleOutlined } from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { createSectionInPost } from "../../../_actions/post_actions";
+import { fetchPost } from "../../../api";
 import PartsSection from "./PartsSection";
-import DerivativesSection from "./DerivativesSection";
+import DerivativesSection from "./ChainsSection";
+import ChainsSection from "./ChainsSection";
 const { TabPane } = Tabs;
 const { Text } = Typography;
 
@@ -21,184 +23,86 @@ function PostPage(props) {
   const { postId } = useParams();
   console.log(`postId`, postId);
   const posts = useSelector((state) => state.posts);
-  const initPost = posts.find((post) => {
-    return post._id === postId;
-  });
-
-  console.log(`posts`, posts);
-  const [post, setPost] = useState(initPost);
+  const [post, setPost] = useState(null);
   const [sections, setSections] = useState([]);
-  const container = useRef(initPost);
   const dispatch = useDispatch();
+  const getPostFromServer = async () => {
+    const { data } = await fetchPost(postId);
+    const { post: fetchedPost } = data;
+    setPost(fetchedPost);
+  };
   useEffect(() => {
-    if (posts.length) {
-      setPost(() => {
-        return posts.find((post) => {
-          return post._id == postId;
-        });
-      });
+    if (!post || post._id !== postId) {
+      getPostFromServer();
+      // console.log(`initialPanes from useEffect`, initialPanes);
+      // setTabState({ ...tabState, panes: initialPanes });
     }
-    console.log(`post`, post);
-
     //posts intially is an empty array, and it seems there is not immediate access to it on refresh
-  }, [props, posts, post]);
+  }, [props, post]);
   //to make child rerender on change in parent, we will pass parent props to child
   //and put [props] as the childs useEffect dependency
 
-  // const createSection = () => {
-  //   const variables = {
-  //     inPost: post._id,
-  //     title: "",
-  //     order: sections.length,
-  //   };
-  //   axios.post("/api/blog/createSection", variables).then((response) => {
-  //     console.log(response);
-  //     console.log(response.data.sections);
-  //     if (response.status == 200) {
-  //       let newArr = response.data.sections;
-  //       setSections((prevArr) => {
-  //         return [...prevArr, newArr[newArr.length - 1]];
-  //       });
-  //     }
+  console.log(`post`, post);
+  const newTabIndex = 0;
+  const [activeKey, setActiveKey] = useState("1");
+
+  const onChange = (activeKey) => {
+    setActiveKey(activeKey);
+  };
+
+  // const onEdit = (targetKey, action) => {
+  //   console.log(`action`, action);
+  //   switch (action) {
+  //     case "add":
+  //       add();
+  //       break;
+  //     case "remove":
+  //       remove(targetKey);
+  //       break;
+
+  //     default:
+  //       break;
+  //   }
+  //   // this[action](targetKey);
+  // };
+
+  // const add = () => {
+  //   const { panes } = tabState;
+  //   const newActiveKey = `newTab${newTabIndex + 1}`;
+  //   const newPanes = [...panes];
+  //   newPanes.push({
+  //     title: "New",
+  //     content: "Content of new Tab",
+  //     key: newActiveKey,
+  //   });
+  //   setTabState({
+  //     panes: newPanes,
+  //     activeKey: newActiveKey,
   //   });
   // };
 
-  const initialPanes = [
-    {
-      title: (
-        <span>
-          <img
-            height="20px"
-            width="20px"
-            src={
-              "https:img-premium.flaticon.com/svg/1180/1180929.svg?token=exp=1627428466~hmac=8f028cff04afe241f5501e0885d65b8c"
-            }
-          />
-          Parts
-        </span>
-      ),
-      content: <PartsSection post={post}></PartsSection>,
-      key: "1",
-    },
-    {
-      title: (
-        <span>
-          <img
-            height="20px"
-            width="20px"
-            src={
-              "https://img-premium.flaticon.com/svg/3534/3534076.svg?token=exp=1627468788~hmac=3908e9ef7a96c1961b81758402c60cfc"
-            }
-          />
-          E.g
-        </span>
-      ),
-      content:
-        "Examples Section ... reasons why each is considered a type of this object",
-      key: "2",
-    },
-    {
-      title: (
-        <span>
-          <img
-            height="20px"
-            width="20px"
-            src={
-              "https://img-premium.flaticon.com/svg/2784/2784530.svg?token=exp=1627468531~hmac=bf3960fd6660658841969e0cb9ebfede"
-            }
-          />
-          Q&A
-        </span>
-      ),
-      content: "Questions and Answers Section",
-      key: "3",
-    },
-    {
-      title: (
-        <span>
-          <img
-            height="20px"
-            width="20px"
-            src={
-              "https://img-premium.flaticon.com/svg/3830/3830031.svg?token=exp=1627469019~hmac=a055410c99ce39b4cc11433a2bf095ba"
-            }
-          />
-          Interactions
-        </span>
-      ),
-      content: "Interactions Section",
-      key: "4",
-    },
-    {
-      title: <span>Derivatives</span>,
-      content: <DerivativesSection post={post} />,
-      key: "5",
-    },
-  ];
-
-  const newTabIndex = 0;
-  const [tabState, setTabState] = useState({
-    activeKey: initialPanes[0].key,
-    panes: initialPanes,
-  });
-
-  const onChange = (activeKey) => {
-    setTabState({ ...tabState, activeKey });
-  };
-
-  const onEdit = (targetKey, action) => {
-    console.log(`action`, action);
-    switch (action) {
-      case "add":
-        add();
-        break;
-      case "remove":
-        remove(targetKey);
-        break;
-
-      default:
-        break;
-    }
-    // this[action](targetKey);
-  };
-
-  const add = () => {
-    const { panes } = tabState;
-    const newActiveKey = `newTab${newTabIndex + 1}`;
-    const newPanes = [...panes];
-    newPanes.push({
-      title: "New",
-      content: "Content of new Tab",
-      key: newActiveKey,
-    });
-    setTabState({
-      panes: newPanes,
-      activeKey: newActiveKey,
-    });
-  };
-
-  const remove = (targetKey) => {
-    const { panes, activeKey } = tabState;
-    let newActiveKey = activeKey;
-    let lastIndex;
-    panes.forEach((pane, i) => {
-      if (pane.key === targetKey) {
-        lastIndex = i - 1;
-      }
-    });
-    const newPanes = panes.filter((pane) => pane.key !== targetKey);
-    if (newPanes.length && newActiveKey === targetKey) {
-      if (lastIndex >= 0) {
-        newActiveKey = newPanes[lastIndex].key;
-      } else {
-        newActiveKey = newPanes[0].key;
-      }
-    }
-    setTabState({
-      panes: newPanes,
-      activeKey: newActiveKey,
-    });
-  };
+  // const remove = (targetKey) => {
+  //   const { panes, activeKey } = tabState;
+  //   let newActiveKey = activeKey;
+  //   let lastIndex;
+  //   panes.forEach((pane, i) => {
+  //     if (pane.key === targetKey) {
+  //       lastIndex = i - 1;
+  //     }
+  //   });
+  //   const newPanes = panes.filter((pane) => pane.key !== targetKey);
+  //   if (newPanes.length && newActiveKey === targetKey) {
+  //     if (lastIndex >= 0) {
+  //       newActiveKey = newPanes[lastIndex].key;
+  //     } else {
+  //       newActiveKey = newPanes[0].key;
+  //     }
+  //   }
+  //   setTabState({
+  //     panes: newPanes,
+  //     activeKey: newActiveKey,
+  //   });
+  // };
 
   const createSection = () => {
     const variables = {
@@ -218,25 +122,89 @@ function PostPage(props) {
     return (
       <div
         className="postPage"
+        key={post._id + "postPage"}
         style={{ width: "80%", margin: "1rem auto" }}
-        ref={container}
       >
-        <PostHeader
-          key={post._id}
-          post={post}
-          container={container.current}
-        ></PostHeader>
+        <PostHeader key={post._id} post={post}></PostHeader>
         <Tabs
+          key={"tabs" + post._id}
           type="editable-card"
           onChange={onChange}
-          activeKey={tabState.activeKey}
-          onEdit={onEdit}
+          activeKey={activeKey}
+          // onEdit={onEdit}
         >
-          {tabState?.panes.map((pane) => (
-            <TabPane tab={pane.title} key={pane.key} closable={pane.closable}>
-              {pane.content}
-            </TabPane>
-          ))}
+          <TabPane tab={<span>Chains</span>} key={"1"}>
+            <ChainsSection post={post} getPostFromServer={getPostFromServer} />
+          </TabPane>
+          <TabPane
+            tab={
+              <span>
+                <img
+                  height="20px"
+                  width="20px"
+                  src={
+                    "https://img-premium.flaticon.com/svg/3534/3534076.svg?token=exp=1627468788~hmac=3908e9ef7a96c1961b81758402c60cfc"
+                  }
+                />
+                E.g
+              </span>
+            }
+            key={"2"}
+          >
+            "Examples Section ... reasons why each is considered a type of this
+            object"
+          </TabPane>
+          <TabPane
+            tab={
+              <span>
+                <img
+                  height="20px"
+                  width="20px"
+                  src={
+                    "https://img-premium.flaticon.com/svg/2784/2784530.svg?token=exp=1627468531~hmac=bf3960fd6660658841969e0cb9ebfede"
+                  }
+                />
+                Q&A
+              </span>
+            }
+            key={"3"}
+          >
+            "Questions and Answers Section"
+          </TabPane>
+          <TabPane
+            tab={
+              <span>
+                <img
+                  height="20px"
+                  width="20px"
+                  src={
+                    "https://img-premium.flaticon.com/svg/3830/3830031.svg?token=exp=1627469019~hmac=a055410c99ce39b4cc11433a2bf095ba"
+                  }
+                />
+                Interactions
+              </span>
+            }
+            key={"4"}
+          >
+            Interactions section
+          </TabPane>
+          <TabPane
+            tab={
+              <span>
+                <img
+                  height="20px"
+                  width="20px"
+                  src={
+                    "https:img-premium.flaticon.com/svg/1180/1180929.svg?token=exp=1627428466~hmac=8f028cff04afe241f5501e0885d65b8c"
+                  }
+                />
+                Parts
+              </span>
+            }
+            key={"5"}
+          >
+            <PartsSection post={post}></PartsSection>
+          </TabPane>
         </Tabs>
 
         {post.sections.map((section, index, sections) => {

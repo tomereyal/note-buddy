@@ -13,6 +13,7 @@ export default function MathEditor({
   savedMath,
   bcg,
   mathFieldFocus,
+  mathFieldSelected,
 }) {
   const [latex, setLatex] = useState(savedMath);
   const [mathField, setMathField] = useState();
@@ -24,11 +25,10 @@ export default function MathEditor({
 
   useEffect(() => {
     if (mathFieldFocus) {
-      console.log(`FOCUSSSS PLEASE`);
       mathField.focus();
       setIsBlurred(false);
     }
-  }, [bcg, mathFieldFocus]);
+  }, [bcg, mathFieldFocus, mathFieldSelected]);
   const onClick = useCallback(() => {
     if (mathField) {
       mathField.cmd("\\sqrt");
@@ -119,6 +119,10 @@ export default function MathEditor({
       onMouseLeave={() => {
         setIsMenuShown(false);
       }}
+      onDoubleClick={() => {
+        mathField.select();
+      }}
+      style={{ backgroundColor: mathFieldSelected ? "lightpink" : "" }}
     >
       <EditableMathField
         style={{ border: "none" }}

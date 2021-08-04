@@ -5,6 +5,7 @@ const { Card, Tag } = require("../models/Card");
 
 const { auth } = require("../middleware/auth");
 const multer = require("multer");
+const { Chain } = require("../models/Chain");
 
 // STORAGE MULTER CONFIG
 let storage = multer.diskStorage({
@@ -116,15 +117,60 @@ router.get("/fetchPosts", (req, res) => {
         populate: { path: "cards", model: "Card" },
       },
     })
+    .populate({
+      path: "chains",
+      model: "Chain",
+      // populate: {
+      //   path: "lists",
+      //   model: "List",
+      //   populate: { path: "cards", model: "Card" },
+      // },
+    })
     .exec((err, blogs) => {
       if (err) return res.status(400).send(err);
       res.status(200).json({ success: true, blogs });
     });
 });
 
-router.post("/getPost", (req, res) => {
-  Blog.findOne({ _id: req.body.postId })
-    .populate("writer")
+router.get("/fetchPost/:postId", (req, res) => {
+  Blog.findOne({ _id: req.params.postId })
+    .populate({
+      path: "components",
+      model: "Blog",
+    })
+    .populate({
+      path: "sections",
+      model: "Section",
+      populate: {
+        path: "lists",
+        model: "List",
+        populate: { path: "cards", model: "Card" },
+      },
+    })
+    .populate({
+      path: "chains",
+      model: "Chain",
+      populate: {
+        path: "heads",
+        model: "Blog",
+      },
+    })
+    .populate({
+      path: "chains",
+      model: "Chain",
+      populate: {
+        path: "connectors",
+        model: "Card",
+      },
+    })
+    .populate({
+      path: "chains",
+      model: "Chain",
+      populate: {
+        path: "outcomes",
+        model: "Blog",
+      },
+    })
     .exec((err, post) => {
       if (err) return res.status(400).send(err);
       res.status(200).json({ success: true, post });
@@ -318,6 +364,7 @@ router.post("/createListInSection", (req, res) => {
     });
   });
 });
+
 router.post("/removeListFromSection", (req, res) => {
   const { postId, sectionId, listId } = req.body;
   Card.deleteMany({ "location.list": listId }, function (err, result) {

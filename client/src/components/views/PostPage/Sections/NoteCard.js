@@ -11,13 +11,14 @@ import ContainerWithMenu from "../../BasicComponents/ContainerWithMenu";
 export default function NoteCard({
   card: initialCard,
   withTitle = true,
+  simpleStyle = false,
   index,
 }) {
   const dispatch = useDispatch();
 
   const [card, setCard] = useState(initialCard ? initialCard : {});
   const {
-    location,
+    location = {},
     _id,
     content: initialContent,
     title: initialTitle,
@@ -104,18 +105,17 @@ export default function NoteCard({
               name={name}
               setName={setName}
               bgc={"#ffffff"}
-              darkenBgc={true}
+              darkenBgc={simpleStyle ? false : true}
               size={4}
+              justify="center"
             />
           )}
-          <div> condition#1:  </div>
           <SlateEditor
             card={card}
             key={card._id}
-            style={{ width: "100%" }}
             setContent={setContent}
             content={content}
-          ></SlateEditor>
+          />
         </Card>
       </ContainerWithMenu>
     </div>

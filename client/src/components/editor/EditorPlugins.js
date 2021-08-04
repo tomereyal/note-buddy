@@ -26,6 +26,14 @@ export const EditorPlugins = {
     return editor;
   },
 
+  withSingleLinedEditor(editor) {
+    editor.insertBreak = () => {
+      console.log(`you pressed enter`);
+    };
+
+    return editor;
+  },
+
   withTitledCardLayout(editor) {
     const { normalizeNode, cardData } = editor;
 
@@ -134,13 +142,30 @@ export const EditorPlugins = {
 
       //previous element check for hebrew:
       const [prevNode, prevLocation] = Editor.previous(editor);
-      console.log(`previous`, prevNode);
+      const { text } = prevNode;
+      let hebrew = false;
+      let i = 0;
+      if (text) {
+        while (!hebrew && i < text.length) {
+          let isHebrew = text[i].match(/([\u0590-\u05fe\u200f\u200e]+)$/);
+          if (isHebrew) {
+            hebrew = true;
+          }
+          i++;
+        }
+      }
       // const prevText = prevNode[0].text;
       if (options && options.exitOnSave) {
         ReactEditor.focus(editor);
-        if (options.direction === -1) {
-          Transforms.move(editor, { reverse: true });
-        } else Transforms.move(editor);
+        if (!hebrew) {
+          if (options.direction === -1) {
+            Transforms.move(editor, { reverse: true });
+          } else Transforms.move(editor);
+        } else {
+          if (options.direction === -1) {
+            Transforms.move(editor);
+          } else Transforms.move(editor, { reverse: true });
+        }
       }
     }
   },
@@ -324,6 +349,21 @@ export const EditorPlugins = {
     };
 
     return editor;
+  },
+  serializeMathAndText(editor) {
+    const childrenArr = editor.children;
+    let string = "";
+    const getChildTextAndMath = (children) => {
+      children.forEach((child) => {
+        if (child.type === "math-block") {
+          string += child.math;
+        } else if (child.text) {
+          string += child.text;
+        }
+      });
+    };
+    getChildTextAndMath(childrenArr[0].children);
+    return string;
   },
   withMathBlock(editor) {
     const { isInline, isVoid } = editor;

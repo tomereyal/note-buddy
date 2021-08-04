@@ -31,10 +31,11 @@ import {
 
 /**
  *
- * @param {style} style Recieves a style object | Default: none
- * @param {content} content Recieves an array with a slate editor object | Default: [DefaultElement]
- * @param {setContent} initContent Recieves a setState hook to enable parent to access the slate editor value| Default: null
- * @param {isReadOnly} isReadOnly Recieves a boolean whether to allow editing | Default : false
+ * @param {Object} style Recieves a style object | Default: none
+ * @param {Array} content Recieves an array with a slate editor object | Default: [DefaultElement]
+ * @param {SlateObject} initContent Recieves a setState hook to enable parent to access the slate editor value| Default: null
+ * @param {Boolean} isReadOnly Recieves a boolean whether to allow editing | Default : false
+ * @param {Number} fontSize text font size. | Default : 14px
  * @returns TextEditor React Component
  */
 export default function TextEditor({
@@ -42,6 +43,7 @@ export default function TextEditor({
   setContent,
   style,
   isReadOnly = false,
+  fontSize,
 }) {
   const { withImages, withMathBlock, withTitledCardLayout } = EditorPlugins;
 
@@ -73,8 +75,6 @@ export default function TextEditor({
   const renderElement = useCallback((props) => {
     const { children, attributes, element } = props;
     switch (element.type) {
-      case "image":
-        return <Image {...props} />;
       case "code":
         return <CodeElement {...props} />;
       case "math-block":
@@ -99,81 +99,69 @@ export default function TextEditor({
       event.preventDefault();
       EditorPlugins.insertMathBlock(editor);
     }
-
-    if (event.ctrlKey) {
-      const { division, root } = mathConfig.operator;
-      switch (event.key) {
-        case division.keydownShortcut: {
-          event.preventDefault();
-          EditorPlugins.insertMathChar(editor, division.tex);
-          break;
-        }
-
-        case root.keydownShortcut: {
-          event.preventDefault();
-          EditorPlugins.insertMathChar(editor, root.tex);
-          break;
-        }
-        case "`": {
-          event.preventDefault();
-          EditorPlugins.toggleCodeBlock(editor);
-          break;
-        }
-
-        case "b": {
-          event.preventDefault();
-          EditorPlugins.toggleFormat(editor, "bold");
-          break;
-        }
-        case "i": {
-          event.preventDefault();
-          EditorPlugins.toggleFormat(editor, "italic");
-          break;
-        }
-        case "u": {
-          event.preventDefault();
-          EditorPlugins.toggleFormat(editor, "underlined");
-          break;
-        }
-      }
-    }
   }, []);
   ////////////////////
 
-  return (
-    <Slate
-      editor={editor}
-      value={value}
-      onChange={(value) => {
-        setValue(value);
-        setContent(value);
-      }}
-    >
-      <EditorHoverToolbar />
+  const inputFontSize = getFontSize(fontSize);
 
-      <Editable
-        renderElement={renderElement}
-        renderLeaf={renderLeaf}
-        readOnly={isReadOnly}
-        placeholder={<span>...add description</span>}
-        spellCheck
-        onDOMBeforeInput={(event) => {
-          //Make sure you place the event.preventDefault() inside each case,
-          //Else you will disable editing of the note.
-          switch (event.inputType) {
-            case "formatBold":
-              event.preventDefault();
-              return EditorPlugins.toggleFormat(editor, "bold");
-            case "formatItalic":
-              event.preventDefault();
-              return EditorPlugins.toggleFormat(editor, "italic");
-            case "formatUnderline":
-              event.preventDefault();
-              return EditorPlugins.toggleFormat(editor, "underlined");
-          }
+  return (
+    <div style={{ position: "relative", fontSize: inputFontSize }}>
+      <Slate
+        editor={editor}
+        value={value}
+        onChange={(value) => {
+          setValue(value);
+          // setContent(value);
         }}
-        onKeyDown={onKeyDown}
-      />
-    </Slate>
+      >
+        <EditorHoverToolbar />
+
+        <Editable
+          renderElement={renderElement}
+          renderLeaf={renderLeaf}
+          readOnly={isReadOnly}
+          placeholder={<span>...add description</span>}
+          spellCheck
+          onDOMBeforeInput={(event) => {
+            //Make sure you place the event.preventDefault() inside each case,
+            //Else you will disable editing of the note.
+            // switch (event.inputType) {
+            //   case "formatBold":
+            //     event.preventDefault();
+            //     return EditorPlugins.toggleFormat(editor, "bold");
+            //   case "formatItalic":
+            //     event.preventDefault();
+            //     return EditorPlugins.toggleFormat(editor, "italic");
+            //   case "formatUnderline":
+            //     event.preventDefault();
+            //     return EditorPlugins.toggleFormat(editor, "underlined");
+            // }
+          }}
+          onKeyDown={onKeyDown}
+        />
+      </Slate>
+    </div>
   );
 }
+
+const getFontSize = (size) => {
+  switch (size) {
+    case 1:
+      return "32px";
+
+    case 2:
+      return "24px";
+
+    case 3:
+      return "18.72px";
+
+    case 4:
+      return "16px";
+
+    case 5:
+      return "13.28px";
+
+    default:
+      return size;
+  }
+};

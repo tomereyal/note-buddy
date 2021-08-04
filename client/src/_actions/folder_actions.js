@@ -13,6 +13,7 @@ import { message } from "antd";
 export const getFolders = () => async (dispatch) => {
   try {
     const { data } = await api.fetchFolders();
+  
     // const action = { type: "FETCH_ALL", payload: [] } _______ I put action object interface directly in dispatch
     dispatch({ type: FETCH_ALL_FOLDERS, payload: data.folders });
   } catch (error) {

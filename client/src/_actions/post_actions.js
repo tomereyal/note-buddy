@@ -17,6 +17,7 @@ import {
   REMOVE_CARD_FROM_LIST,
   EDIT_NOTE,
   UPDATE_CARD_IN_POST,
+  CREATE_POST_CHAIN,
 } from "./types";
 
 export const getPosts = () => async (dispatch) => {
@@ -164,11 +165,3 @@ export const removeCardFromList = (variables) => async (dispatch) => {
     console.log(error.message);
   }
 };
-// export const editNote = (variables) => async (dispatch) => {
-//   try {
-//     const { data } = await api.editNote(variables);
-//     dispatch({ type: EDIT_NOTE, payload: data });
-//   } catch (error) {
-//     console.log(error.message);
-//   }
-// };

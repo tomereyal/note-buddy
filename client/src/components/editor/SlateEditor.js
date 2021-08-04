@@ -107,7 +107,6 @@ export default function SlateEditor(props) {
     getNodes,
     withTitledCardLayout,
     withMathBlock,
-    withFractionMathBlock,
     withCardHeader,
     withConditions,
   } = EditorPlugins;
@@ -406,6 +405,7 @@ export default function SlateEditor(props) {
       onMouseLeave={() => {
         setIsCardHovered(false);
       }}
+      style={{ width: "100%", position: "relative" }}
     >
       <Slate
         editor={editor}
