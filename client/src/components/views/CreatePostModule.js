@@ -17,14 +17,9 @@ import {
   GoogleCircleFilled,
 } from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  addPostToFolder,
-  createPostInFolder,
-} from "../../_actions/folder_actions";
-import { createPost, getPosts } from "../../_actions/post_actions";
+
 import { fetchGoogleImage } from "../../api";
 import axios from "axios";
-import { set } from "mongoose";
 
 const layout = {
   labelCol: {
@@ -42,15 +37,15 @@ const tailLayout = {
 };
 
 /**
- * @param {isModalVisible} boolean Recieves the visibility state | Default : false.
- * @param {setIsModalVisible} function Recieves useState hook for modal visibility state.
+ * @param {Function} createPostFunction Recieves function with params {name:?, image}
+ * @param {ReactComponent} buttonElement Recieves useState hook for modal visibility state.
  */
 
 export default function CreatePostModule({
-  isModalVisible,
-  setIsModalVisible,
-  folder,
+  createPostFunction,
+  buttonElement,
 }) {
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const user = useSelector((state) => state.user);
   const posts = useSelector((state) => state.posts);
   const [name, setName] = useState("");
@@ -88,7 +83,8 @@ export default function CreatePostModule({
 
   const [form] = Form.useForm();
   const onFormFinish = async (formValues) => {
-    addPost(formValues);
+    const postVariables = { name: formValues.name, image, writer };
+    createPostFunction(postVariables);
     form.resetFields();
     setIsModalVisible(false);
   };
@@ -109,25 +105,6 @@ export default function CreatePostModule({
     }
 
     return e && e.fileList;
-  };
-
-  const addPost = async ({ name }) => {
-    console.log(`name`, name);
-    const postVariables = {
-      writer,
-      image,
-      name,
-    };
-
-    if (folder) {
-      dispatch(createPostInFolder({ postVariables, folderId: folder._id }));
-      dispatch(getPosts());
-      return;
-    }
-
-    if (!folder) {
-      dispatch(createPost(postVariables));
-    }
   };
 
   const checkForDuplicates = (value) => {
@@ -171,8 +148,20 @@ export default function CreatePostModule({
     setImage(fetchedIcons[Math.floor(Math.random() * fetchedIcons.length)].svg);
   };
 
+  const ButtonElement = buttonElement ? (
+    buttonElement
+  ) : (
+    <Button>create post</Button>
+  );
   return (
     <>
+      <span
+        onClick={() => {
+          setIsModalVisible(true);
+        }}
+      >
+        {ButtonElement}
+      </span>
       <Modal
         title="Create New Post  (ctrl n)"
         visible={isModalVisible}

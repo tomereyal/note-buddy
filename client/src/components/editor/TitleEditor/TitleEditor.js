@@ -125,7 +125,7 @@ export default function TitleEditor(props) {
       style={{
         position: "relative",
         fontSize,
-        display: "inline-block",
+        // display: "inline-block",
         fontWeight: isBold ? "bold" : "normal",
         margin: 0,
         padding: 0,

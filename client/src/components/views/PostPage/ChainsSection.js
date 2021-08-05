@@ -2,13 +2,14 @@ import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Button, Avatar, Tag, Space, Table, Select } from "antd";
 import { createChain, fetchChainsByIds } from "../../../api";
-import { editPost } from "../../../_actions/post_actions";
+import { createPost, editPost } from "../../../_actions/post_actions";
 import ContainerWithMenu from "../BasicComponents/ContainerWithMenu";
 import SelectWithToggle from "./Sections/SelectWithToggle";
 import { deleteChain, editChain, createCardInChain } from "../../../api";
 import TitleEditor from "../../editor/TitleEditor/TitleEditor";
 import { addStyles, EditableMathField, StaticMathField } from "react-mathquill";
 import NoteCard from "./Sections/NoteCard";
+import CreatePostModule from "../CreatePostModule";
 
 addStyles();
 
@@ -56,6 +57,20 @@ export default function ChainsSection({
       getPostFromServer(_id);
     };
   };
+  const createNewHead = (chainId, chainHeads) => {
+    return async function (postVariables) {
+      const post = await dispatch(createPost(postVariables));
+      console.log(`post returned from createpost`, post);
+
+      const variables = {
+        id: chainId,
+        updates: { heads: [...chainHeads, post._id] },
+      };
+      const { data } = await editChain(variables);
+      getPostFromServer(_id);
+    };
+  };
+
   const addNewOutcome = (chainId, chainOutcomes) => {
     return async function (newChainOutcomeId) {
       const variables = {
@@ -180,6 +195,9 @@ export default function ChainsSection({
               </div>
             );
           })}
+          <CreatePostModule
+            createPostFunction={createNewHead(row.chainId, heads)}
+          />
         </ContainerWithMenu>
       ),
     },
@@ -337,8 +355,9 @@ export default function ChainsSection({
     <div>
       <Table columns={columns} dataSource={data} pagination={false} />
       <div style={{ padding: "6px 4px" }}>
-        <Avatar src={image}></Avatar>
-        <Button onClick={addNewChain}>Add Chain to</Button>
+        <Button onClick={addNewChain}>
+          Add Chain to <Avatar size={20} src={image}></Avatar>
+        </Button>
       </div>
     </div>
   );

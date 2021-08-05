@@ -55,7 +55,7 @@ export default function FolderPage(props) {
     if (!folders.length) {
       dispatch(getFolders());
     }
-  }, [dispatch, posts]);
+  }, [dispatch, posts, folders]);
 
   const newFolderHandler = (folderName) => {
     // if (user.userData && !user.userData.isAuth) {
@@ -141,7 +141,6 @@ export default function FolderPage(props) {
                   blog={blog}
                   folderId={folder._id}
                   history={props.history}
-                
                 />
               ),
               key: blog._id,

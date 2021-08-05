@@ -1,12 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useHistory } from "react-router";
-import { getPosts, deletePost } from "../../../_actions/post_actions";
+import {
+  createPost,
+  getPosts,
+  deletePost,
+} from "../../../_actions/post_actions";
 import {
   getFolders,
   deletePostFromFolder,
   createPostInFolder,
+  addPostToFolder,
 } from "../../../_actions/folder_actions";
+
 import { Button, Layout, Card, Avatar, Col, Typography, Row, Menu } from "antd";
 import {
   SettingOutlined,
@@ -70,6 +76,18 @@ export default function PostsPage(props) {
     dispatch(deletePost(blogId));
   };
 
+  const addPost = async (postVariables) => {
+    if (folder) {
+      dispatch(createPostInFolder({ postVariables, folderId: folder._id }));
+      dispatch(getPosts());
+      return;
+    }
+
+    if (!folder) {
+      dispatch(createPost(postVariables));
+    }
+  };
+
   const renderCards = folder
     ? folder.blogs.map((blog, index) => {
         if (blog.writer) {
@@ -131,21 +149,16 @@ export default function PostsPage(props) {
                   flexDirection: "column",
                 }}
               >
-                <PlusSquareTwoTone
-                  style={{ fontSize: "60px" }}
-                  onClick={() => {
-                    setIsModalVisible(true);
-                  }}
+                <CreatePostModule
+                  folder={folder}
+                  buttonElement={
+                    <PlusSquareTwoTone style={{ fontSize: "60px" }} />
+                  }
+                  createPostFunction={addPost}
                 />
-                Add
               </Col>
             </Row>
           </div>
-          <CreatePostModule
-            isModalVisible={isModalVisible}
-            setIsModalVisible={setIsModalVisible}
-            folder={folder}
-          ></CreatePostModule>
         </Content>
       </Layout>
     )
