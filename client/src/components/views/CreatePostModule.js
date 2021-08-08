@@ -44,14 +44,15 @@ const tailLayout = {
 export default function CreatePostModule({
   createPostFunction,
   buttonElement,
+  folderId,
 }) {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const user = useSelector((state) => state.user);
+  const folders = useSelector((state) => state.folders);
   const posts = useSelector((state) => state.posts);
   const [name, setName] = useState("");
   const [image, setImage] = useState("");
   const [googleImages, setGoogleImages] = useState({ name: "", images: [] });
-  const [writer, setWriter] = useState(user.userData._id);
   const [fetchedIcons, setFetchedIcons] = useState([]);
   const dispatch = useDispatch();
   const postNames = posts.map((post) => {
@@ -83,9 +84,18 @@ export default function CreatePostModule({
 
   const [form] = Form.useForm();
   const onFormFinish = async (formValues) => {
-    const postVariables = { name: formValues.name, image, writer };
-    createPostFunction(postVariables);
+    if (!formValues.name || !user.userData) {
+      return;
+    }
+    const userId = user.userData._id;
+    const postVariables = { name: formValues.name, image, writer: userId };
+    console.log(`postVariables`, postVariables);
+    createPostFunction({
+      postVariables,
+      folderId: folderId || folders[0]?._id,
+    });
     form.resetFields();
+    setRandomIcon();
     setIsModalVisible(false);
   };
 
@@ -142,7 +152,10 @@ export default function CreatePostModule({
     setRandomIcon(icons);
   }
   const setRandomIcon = (fetchedIcons) => {
-    if (fetchedIcons.length === 0) {
+    // if (!fetchedIcons) {
+    //   return;
+    // }
+    if (!fetchedIcons || fetchedIcons?.length === 0) {
       return setImage("");
     }
     setImage(fetchedIcons[Math.floor(Math.random() * fetchedIcons.length)].svg);

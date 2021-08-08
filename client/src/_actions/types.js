@@ -40,12 +40,14 @@ export const GET_CARD_TAGS = "GET_CARD_TAGS";
 export const EDIT_NOTE = "EDIT_NOTE";
 export const SAVE_NEW_NOTE_TAGS = "SAVE_NEW_NOTE_TAGS";
 export const SAVE_EXISTING_NOTE_TAGS = "SAVE_EXISTING_NOTE_TAGS";
+export const DELETE_CARD = "DELETE_CARD";
 //-----------------------------------------
 
 //=========================================
 //                _FOLDER
 //=========================================
 export const FETCH_ALL_FOLDERS = "FETCH_ALL_FOLDERS";
+export const EDIT_FOLDER = "EDIT_FOLDER";
 export const CREATE_FOLDER = "CREATE_FOLDER";
 export const DELETE_FOLDER = "DELETE_FOLDER";
 export const DELETE_POST_FROM_FOLDER = "DELETE_POST_FROM_FOLDER";

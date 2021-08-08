@@ -62,14 +62,15 @@ export const deleteChain = (chainId) =>
   axios.delete(`${CHAIN_SERVER}/deleteChain/${chainId}`);
 export const editChain = (variables) =>
   axios.put(`${CHAIN_SERVER}/${variables.id}`, variables.updates);
-  export const createCardInChain = (variables) =>
-    axios.post(`${CHAIN_SERVER}/createCardInChain`, variables);
+export const createCardInChain = (variables) =>
+  axios.post(`${CHAIN_SERVER}/createCardInChain`, variables);
 //=========================================
 //                _CARD
 //=========================================
 export const getCards = () => axios.get(`${CARD_SERVER}/fetchCards`);
 export const createCard = (variables) =>
   axios.post(`${CARD_SERVER}/createCard`, variables);
+export const deleteCard = (cardId) => axios.delete(`${CARD_SERVER}/${cardId}`);
 export const getCardTags = () => axios.get(`${CARD_SERVER}/fetchCardTags`);
 export const getTaggedCards = (tagName) =>
   axios.get(`${CARD_SERVER}/fetchTaggedCards/${tagName}`);
@@ -86,6 +87,8 @@ export const saveExistingNoteTags = (variables) =>
 //                _FOLDER
 //=========================================
 export const fetchFolders = () => axios.get(`${FOLDER_SERVER}/fetchFolders`);
+export const editFolder = (variables) =>
+  axios.put(`${FOLDER_SERVER}/${variables.folderId}`, variables.updates);
 export const createFolder = (folderVariables) =>
   axios.post(`${FOLDER_SERVER}/createFolder`, folderVariables);
 export const deleteFolder = (folderId) =>

@@ -37,10 +37,11 @@ const { withMathBlock, serializeMathAndText, withSingleLinedEditor } =
 /**
  *
  * @param { Object } style .
+ * @param { Boolean } isReadOnly .
  * @param {String} name method.
- * @param {Function} setName method.
+ * @param {Function} setName? method.
  * @param {SlateObject} title method.
- * @param {Function} setTitle method.
+ * @param {Function} setTitle? method.
  * @param {String} placeHolder string.
  * @param {String} justify enum: "start", "center" , "end" | default :"start"
  * @param {Number} size number: 1 being the biggest 5 being the smallest.
@@ -129,7 +130,7 @@ export default function TitleEditor(props) {
         fontWeight: isBold ? "bold" : "normal",
         margin: 0,
         padding: 0,
-        ...style,
+        // ...style,
       }}
       onMouseEnter={() => {
         const [match] = Editor.nodes(editor, {
@@ -154,9 +155,10 @@ export default function TitleEditor(props) {
         onChange={(newValue) => {
           setValue(newValue);
           setTitle(newValue);
-          const newName = serializeMathAndText(editor);
-          console.log(`newName`, newName);
-          setName(newName);
+          if (setName) {
+            const newName = serializeMathAndText(editor);
+            setName(newName);
+          }
         }}
       >
         {!isReadOnly && <EditorTitleToolbar isTitleHovered={isTitleHovered} />}
@@ -198,6 +200,7 @@ const CardTitle = ({ attributes, children, element }) => {
   }
   //===FONT-STYLE====
   const fontSize = getFontSize(size);
+
   //=================
   return (
     <p
@@ -214,7 +217,7 @@ const CardTitle = ({ attributes, children, element }) => {
         margin: 0,
         // boxShadow: selected && focused ? "0 0 0 1px #F4F1F0" : "none",
         fontFamily: fontStyle,
-        // ...style,
+        ...style,
       }}
       {...attributes}
     >

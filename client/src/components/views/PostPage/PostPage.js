@@ -11,6 +11,7 @@ import { fetchPost } from "../../../api";
 import PartsSection from "./PartsSection";
 import DerivativesSection from "./ChainsSection";
 import ChainsSection from "./ChainsSection";
+import { getCards } from "../../../_actions/card_actions";
 const { TabPane } = Tabs;
 const { Text } = Typography;
 
@@ -36,9 +37,11 @@ function PostPage(props) {
       getPostFromServer();
       // console.log(`initialPanes from useEffect`, initialPanes);
       // setTabState({ ...tabState, panes: initialPanes });
+      dispatch(getCards());
     }
+
     //posts intially is an empty array, and it seems there is not immediate access to it on refresh
-  }, [props, post]);
+  }, [props, post, posts, dispatch]);
   //to make child rerender on change in parent, we will pass parent props to child
   //and put [props] as the childs useEffect dependency
 
@@ -50,60 +53,6 @@ function PostPage(props) {
     setActiveKey(activeKey);
   };
 
-  // const onEdit = (targetKey, action) => {
-  //   console.log(`action`, action);
-  //   switch (action) {
-  //     case "add":
-  //       add();
-  //       break;
-  //     case "remove":
-  //       remove(targetKey);
-  //       break;
-
-  //     default:
-  //       break;
-  //   }
-  //   // this[action](targetKey);
-  // };
-
-  // const add = () => {
-  //   const { panes } = tabState;
-  //   const newActiveKey = `newTab${newTabIndex + 1}`;
-  //   const newPanes = [...panes];
-  //   newPanes.push({
-  //     title: "New",
-  //     content: "Content of new Tab",
-  //     key: newActiveKey,
-  //   });
-  //   setTabState({
-  //     panes: newPanes,
-  //     activeKey: newActiveKey,
-  //   });
-  // };
-
-  // const remove = (targetKey) => {
-  //   const { panes, activeKey } = tabState;
-  //   let newActiveKey = activeKey;
-  //   let lastIndex;
-  //   panes.forEach((pane, i) => {
-  //     if (pane.key === targetKey) {
-  //       lastIndex = i - 1;
-  //     }
-  //   });
-  //   const newPanes = panes.filter((pane) => pane.key !== targetKey);
-  //   if (newPanes.length && newActiveKey === targetKey) {
-  //     if (lastIndex >= 0) {
-  //       newActiveKey = newPanes[lastIndex].key;
-  //     } else {
-  //       newActiveKey = newPanes[0].key;
-  //     }
-  //   }
-  //   setTabState({
-  //     panes: newPanes,
-  //     activeKey: newActiveKey,
-  //   });
-  // };
-
   const createSection = () => {
     const variables = {
       name: `subject `,
@@ -114,6 +63,7 @@ function PostPage(props) {
     };
     console.log(`variables`, variables);
     dispatch(createSectionInPost(variables));
+    getPostFromServer();
   };
 
   //IMPORTANT LESSON: WHEN USING REACT_ROUTER_DOM YOU MUST GIVE EACH CHILD A UNIQUE KEY FOR REACT TO WORK OPTIMALLY WITH NO BUGS

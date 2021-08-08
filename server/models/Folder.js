@@ -2,13 +2,25 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 // const { blogSchema } = require("../models/Blog");
 require("./Blog");
+require("./Card");
+
+const subFolderSchema = Schema({
+  name: { type: String },
+  blogs: [{ type: Schema.Types.ObjectId, ref: "Blog" }],
+  writer: { type: Schema.Types.ObjectId, ref: "User" },
+});
 
 const folderSchema = mongoose.Schema(
   {
     name: { type: String },
     // blogs: { type: [mongoose.model("Blog").schema], default: [] },
     blogs: [{ type: Schema.Types.ObjectId, ref: "Blog" }],
+    cards: [{ type: Schema.Types.ObjectId, ref: "Card" }],
     writer: { type: Schema.Types.ObjectId, ref: "User" },
+    subFolders: {
+      type: [subFolderSchema],
+      default: [{ name: "All Terms" }],
+    },
   },
   { timestamps: true }
 );

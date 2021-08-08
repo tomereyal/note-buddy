@@ -2,6 +2,7 @@ import {
   FETCH_ALL_FOLDERS,
   CREATE_FOLDER,
   DELETE_FOLDER,
+  EDIT_FOLDER,
   CREATE_POST_IN_FOLDER,
   ADD_POST_TO_FOLDER,
   DELETE_POST_FROM_FOLDER,
@@ -18,11 +19,12 @@ export default function (folders = [], action) {
       return action.payload;
 
     case CREATE_FOLDER:
-      console.log(
-        `CREATE_FOLDER: action.payload reducer receives`,
-        action.payload
-      );
       return [...folders, action.payload];
+
+    case EDIT_FOLDER:
+      return folders.map((folder) => {
+        return folder._id === action.payload._id ? action.payload : folder;
+      });
 
     case DELETE_FOLDER:
       console.log(

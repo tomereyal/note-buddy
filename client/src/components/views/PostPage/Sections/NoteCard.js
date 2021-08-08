@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Button, Card, Tooltip } from "antd";
+import { Button, Card, Popconfirm, Tooltip } from "antd";
 import { useDispatch, useSelector } from "react-redux";
-import { editNote } from "../../../../_actions/card_actions";
+import { deleteCard, editNote } from "../../../../_actions/card_actions";
 import SlateEditor from "../../../editor/SlateEditor";
 import TitleEditor from "../../../editor/TitleEditor/TitleEditor";
 import { removeCardFromList } from "../../../../_actions/post_actions";
-import { DeleteFilled } from "@ant-design/icons";
+
 import ContainerWithMenu from "../../BasicComponents/ContainerWithMenu";
 
 export default function NoteCard({
@@ -13,6 +13,9 @@ export default function NoteCard({
   withTitle = true,
   simpleStyle = false,
   index,
+  onRemove = () => {
+    console.log(`remove me`);
+  },
 }) {
   const dispatch = useDispatch();
 
@@ -60,6 +63,7 @@ export default function NoteCard({
       title,
       name,
     };
+    console.log(`content`, content);
     const variables = { id: card._id, updates };
     dispatch(editNote(variables));
   };
@@ -67,17 +71,24 @@ export default function NoteCard({
   const menu = (
     <div>
       {" "}
-      <Tooltip title="Remove Note">
-        <Button
-          type="text"
-          shape="circle"
-          size="small"
-          icon={<span>X</span>}
-          onClick={() => {
-            removeCard();
-          }}
-        />
-      </Tooltip>
+      <Popconfirm
+        placement="bottomRight"
+        title={"Delete Card Permanently"}
+        onConfirm={() => {
+          onRemove();
+        }}
+        okText="Yes"
+        cancelText="No"
+      >
+        <Tooltip title="Remove Note">
+          <Button
+            type="text"
+            shape="circle"
+            size="small"
+            icon={<span>X</span>}
+          />
+        </Tooltip>
+      </Popconfirm>
     </div>
   );
 
@@ -89,6 +100,7 @@ export default function NoteCard({
         position: "relative",
       }}
       onBlur={() => {
+        console.log("m saving");
         saveNote();
       }}
     >
@@ -108,6 +120,7 @@ export default function NoteCard({
               darkenBgc={simpleStyle ? false : true}
               size={4}
               justify="center"
+              style={{ fontSize: "20px" }}
             />
           )}
           <SlateEditor

@@ -18,6 +18,7 @@ import {
   removeListFromSection,
 } from "../../../../_actions/post_actions";
 import { createCardInList } from "../../../../_actions/post_actions";
+import { fetchPost } from "../../../../api";
 const { Text } = Typography;
 
 export default function NoteList(props) {

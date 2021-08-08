@@ -39,7 +39,7 @@ export default function PostHeader(props) {
         { editType: "description", editValue: description },
       ],
     };
-
+    console.log(`description`, description);
     dispatch(editPost(variables));
   };
 
@@ -93,11 +93,14 @@ export default function PostHeader(props) {
     >
       <div style={{ marginTop: "0" }} onBlur={savePost}>
         <div style={{ margin: "0 50px" }}>
-          <TextEditor
-            content={description}
-            setContent={setDescription}
-            style={{ fontSize: "18px" }}
-          ></TextEditor>
+          <TitleEditor
+            // name={name}
+            // setName={setName}
+            title={description}
+            setTitle={setDescription}
+            placeHolder={"add description.."}
+            size={3}
+          />
         </div>
       </div>
     </PageHeader>

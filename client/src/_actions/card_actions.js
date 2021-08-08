@@ -6,6 +6,7 @@ import {
   UPDATE_CARD_IN_POST,
   GET_CARDS,
   CREATE_CARD,
+  DELETE_CARD,
   GET_CARD_TAGS,
   SAVE_NEW_NOTE_TAGS,
   SAVE_EXISTING_NOTE_TAGS,
@@ -16,16 +17,27 @@ export const getCards = (variables) => async (dispatch) => {
   try {
     const { data } = await api.getCards(variables);
     console.log(`data from getCards @ card_actions.js`, data);
-    dispatch({ type: GET_CARDS, payload: data });
+    dispatch({ type: GET_CARDS, payload: data.cards });
   } catch (error) {
     console.log(error.message);
   }
 };
+
+export const deleteCard = (cardId) => async (dispatch) => {
+  try {
+    const res = await api.deleteCard(cardId);
+    console.log(`res`, res);
+    dispatch({ type: DELETE_CARD, payload: cardId });
+  } catch (error) {
+    console.log(error.message);
+  }
+};
+
 export const editNote = (variables) => async (dispatch) => {
   try {
     const { data } = await api.editNote(variables);
     dispatch({ type: EDIT_NOTE, payload: data.cardInfo });
-    dispatch({ type: UPDATE_CARD_IN_POST, payload: data.cardInfo });
+    // dispatch({ type: UPDATE_CARD_IN_POST, payload: data.cardInfo });
   } catch (error) {
     console.log(error.message);
   }
@@ -64,6 +76,7 @@ export const createCard = (variables) => async (dispatch) => {
     if (data.success) {
       message.success("Card was Created");
     }
+    return data.card;
   } catch (error) {
     console.log(error.message);
   }

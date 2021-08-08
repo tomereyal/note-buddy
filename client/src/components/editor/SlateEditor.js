@@ -30,7 +30,6 @@ import { mathConfig } from "./sections/math_Config";
 //--------SERVER-RELATED-IMPORTS-----------------------//
 import axios from "axios";
 import {
-  editNote,
   saveNewNoteTags,
   saveExistingNoteTags,
 } from "../../_actions/card_actions";
@@ -454,7 +453,7 @@ export default function SlateEditor(props) {
             height: "100%",
             backgroundColor: "#DAE4FF",
             opacity: isCardHovered ? 1 : 0,
-            width: isCardHovered ? "40px" : "0",
+            width: isCardHovered ? "20px" : "0",
             transition: "linear 0.1s",
           }}
         >

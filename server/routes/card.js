@@ -16,12 +16,14 @@ router.get("/fetchCards", (req, res) => {
 router.post("/createCard", (req, res) => {
   const { postId, sectionId, listId, tags, order, flowData } = req.body;
 
-  const newCard = new Card({
-    order,
-    tags,
-    location: { post: postId, section: sectionId, list: listId },
-    flowData,
-  });
+  const newCard = postId
+    ? new Card({
+        order,
+        tags,
+        location: { post: postId, section: sectionId, list: listId },
+        flowData,
+      })
+    : new Card({});
   Card.create(newCard, (err, card) => {
     if (err) return res.status(400).json({ success: false, err });
 
@@ -35,6 +37,15 @@ router.get("/fetchTaggedCards/:tagName", (req, res) => {
     if (err) return res.status(400).send(err);
     console.log(`cards`, cards);
     res.status(200).json({ success: true, cards });
+  });
+});
+
+router.delete("/:id", (req, res) => {
+  const cardId = req.params.id;
+  Card.findByIdAndDelete(cardId, (err, cards) => {
+    if (err) return res.status(400).send(err);
+    console.log(`cards`, cards);
+    res.status(200).json({ success: true });
   });
 });
 

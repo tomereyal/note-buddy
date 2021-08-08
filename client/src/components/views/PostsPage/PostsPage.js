@@ -23,6 +23,7 @@ import {
 } from "@ant-design/icons";
 import { useParams, Link } from "react-router-dom";
 import CreatePostModule from "../CreatePostModule";
+import TitleEditor from "../../editor/TitleEditor/TitleEditor";
 
 const { Header, Content, Footer, Sider } = Layout;
 const { SubMenu } = Menu;
@@ -76,21 +77,23 @@ export default function PostsPage(props) {
     dispatch(deletePost(blogId));
   };
 
-  const addPost = async (postVariables) => {
+  const addPost = async (variables) => {
     if (folder) {
-      dispatch(createPostInFolder({ postVariables, folderId: folder._id }));
+      console.log(`variables`, variables);
+
+      dispatch(createPostInFolder(variables));
       dispatch(getPosts());
       return;
     }
 
     if (!folder) {
-      dispatch(createPost(postVariables));
+      dispatch(createPost(variables.postVariables));
     }
   };
 
   const renderCards = folder
     ? folder.blogs.map((blog, index) => {
-        if (blog.writer) {
+        if (blog) {
           return (
             <Col key={index} lg={8} md={12} xs={24}>
               <Card
@@ -117,12 +120,21 @@ export default function PostsPage(props) {
               >
                 <Meta
                   avatar={<Avatar src={blog.image} />}
-                  title={blog.name}
-                  description="This is the description"
+                  title={
+                    <TitleEditor
+                      title={blog.title}
+                      name={blog.name}
+                      isReadOnly={true}
+                    ></TitleEditor>
+                  }
+                  description={
+                    <TitleEditor
+                      title={blog.description}
+                      isReadOnly={true}
+                      size={5}
+                    ></TitleEditor>
+                  }
                 />
-                <div style={{ height: 70, marginTop: 10 }}>
-                  <div dangerouslySetInnerHTML={{ __html: blog.content }} />
-                </div>
               </Card>
             </Col>
           );

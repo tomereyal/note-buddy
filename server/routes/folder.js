@@ -19,6 +19,28 @@ router.post("/createFolder", (req, res) => {
   });
 });
 
+router.put("/:id", (req, res) => {
+  const folderId = req.params.id;
+  console.log(`req.body`, req.body);
+  Folder.findByIdAndUpdate(
+    folderId,
+    { $set: req.body },
+    { new: true },
+    function (err, folder) {
+      if (err) return res.json({ success: false, err });
+
+      Folder.find({ _id: folder._id })
+        .populate("writer") // populate the writer
+        .populate("blogs") //  populate the blogs
+        .populate("cards") //  populate the blogs
+        .exec((err, folder) => {
+          if (err) return res.status(400).send(err);
+          res.status(200).send({ success: true, folder });
+        });
+    }
+  );
+});
+
 router.post("/createPostInFolder", (req, res) => {
   const { body } = req;
   const { writer, folderId, name } = body;
@@ -54,10 +76,10 @@ router.get("/fetchFolders", (req, res) => {
   Folder.find()
     .populate("writer") // populate the writer
     .populate("blogs") //  populate the blogs
+    .populate("cards") //  populate the blogs
     .exec((err, folders) => {
       if (err) return res.status(400).send(err);
-
-      res.status(200).json({ success: true, folders: folders });
+      res.status(200).send({ success: true, folders: folders });
     });
 });
 

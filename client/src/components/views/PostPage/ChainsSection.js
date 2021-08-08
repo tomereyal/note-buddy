@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Button, Avatar, Tag, Space, Table, Select } from "antd";
+import { Button, Avatar, Tag, Space, Table, Select, Row, Col } from "antd";
 import { createChain, fetchChainsByIds } from "../../../api";
 import { createPost, editPost } from "../../../_actions/post_actions";
 import ContainerWithMenu from "../BasicComponents/ContainerWithMenu";
@@ -10,6 +10,7 @@ import TitleEditor from "../../editor/TitleEditor/TitleEditor";
 import { addStyles, EditableMathField, StaticMathField } from "react-mathquill";
 import NoteCard from "./Sections/NoteCard";
 import CreatePostModule from "../CreatePostModule";
+import { createPostInFolder } from "../../../_actions/folder_actions";
 
 addStyles();
 
@@ -20,10 +21,30 @@ export default function ChainsSection({
   const [post, setPost] = useState(initialPost);
   const { chains, image, _id } = post;
   const dispatch = useDispatch();
+  const folders = useSelector((state) => state.folders);
   const posts = useSelector((state) => state.posts);
+  const cards = useSelector((state) => state.cards);
   const postsNameAndId = posts.map(({ name, _id }) => {
     return { name, _id };
   });
+  const cardsNameAndId = cards
+    .map(({ name, _id }) => {
+      return { name, _id };
+    })
+    .filter((card) => card.name);
+
+  console.log(`cards`, cardsNameAndId);
+
+  const folderId = folders.length
+    ? folders.find(({ blogs }) => {
+        return (
+          blogs.findIndex(({ _id }) => {
+            console.log(`_id`, _id);
+            return post._id === _id;
+          }) !== -1
+        );
+      })._id
+    : "";
 
   useEffect(() => {
     setPost(initialPost);
@@ -57,15 +78,26 @@ export default function ChainsSection({
       getPostFromServer(_id);
     };
   };
+  const addNewConnector = (chainId, chainConnectors) => {
+    return async function (connectorId) {
+      const variables = {
+        id: chainId,
+        updates: { connectors: [...chainConnectors, connectorId] },
+      };
+      const { data } = await editChain(variables);
+      getPostFromServer(_id);
+    };
+  };
   const createNewHead = (chainId, chainHeads) => {
-    return async function (postVariables) {
-      const post = await dispatch(createPost(postVariables));
+    return async function (variablesFromModule) {
+      const post = await dispatch(createPostInFolder(variablesFromModule));
       console.log(`post returned from createpost`, post);
 
       const variables = {
         id: chainId,
-        updates: { heads: [...chainHeads, post._id] },
+        updates: { heads: [...chainHeads.map(({ _id }) => _id), post] },
       };
+      console.log(`variables`, variables);
       const { data } = await editChain(variables);
       getPostFromServer(_id);
     };
@@ -162,10 +194,16 @@ export default function ChainsSection({
         <ContainerWithMenu
           key={"heads" + row._id}
           menu={
-            <SelectWithToggle
-              options={postsNameAndId}
-              onSelect={addNewHead(row.chainId, heads)}
-            />
+            <div>
+              <SelectWithToggle
+                options={postsNameAndId}
+                onSelect={addNewHead(row.chainId, heads)}
+              />
+              <CreatePostModule
+                createPostFunction={createNewHead(row.chainId, heads)}
+                folderId={folderId}
+              />
+            </div>
           }
         >
           {heads?.map((head, index) => {
@@ -195,9 +233,6 @@ export default function ChainsSection({
               </div>
             );
           })}
-          <CreatePostModule
-            createPostFunction={createNewHead(row.chainId, heads)}
-          />
         </ContainerWithMenu>
       ),
     },
@@ -205,14 +240,18 @@ export default function ChainsSection({
       title: "From",
       dataIndex: "connectors",
       key: "connectors",
-      render: (connectors, row) => {
+      render: (connectors, row, type) => {
+        const arrowLatex =
+          type === "uniDirectional"
+            ? "\\longrightarrow "
+            : "\\longleftrightarrow";
         return (
           <ContainerWithMenu
             key={"connectors" + row._id}
             menu={
               <SelectWithToggle
-                options={postsNameAndId}
-                // onSelect={addNewHead(row.chainId, heads)}
+                options={cardsNameAndId}
+                onSelect={addNewConnector(row.chainId, connectors)}
               />
             }
           >
@@ -237,10 +276,17 @@ export default function ChainsSection({
                       }
                     >
                       <div style={{ width: "400px" }}>
-                        <NoteCard
-                          card={connector}
-                          simpleStyle={true}
-                        ></NoteCard>
+                        <a
+                          onClick={() => {
+                            console.log(`connector`, connector);
+                          }}
+                        >
+                          <TitleEditor
+                            title={connector.title}
+                            isReadOnly={true}
+                            darkenBgc={false}
+                          ></TitleEditor>
+                        </a>
                       </div>
                     </ContainerWithMenu>
                   </div>
@@ -249,30 +295,22 @@ export default function ChainsSection({
             ) : (
               <a onClick={createConnector(row.chainId)}>"create a connector"</a>
             )}
+            <Row justify="center">
+              <Col>
+                <Button
+                  size="large"
+                  style={{ zIndex: 1 }}
+                  onClick={changeChainType(row.chainId, type)}
+                >
+                  <StaticMathField>{arrowLatex}</StaticMathField>
+                </Button>
+              </Col>
+            </Row>
           </ContainerWithMenu>
         );
       },
     },
-    {
-      title: "Type",
-      dataIndex: "type",
-      key: "type",
-      render: (type, row) => {
-        const arrowLatex =
-          type === "uniDirectional"
-            ? "\\longrightarrow "
-            : "\\longleftrightarrow";
-        return (
-          <Button
-            size="large"
-            style={{ zIndex: 1 }}
-            onClick={changeChainType(row.chainId, type)}
-          >
-            <StaticMathField>{arrowLatex}</StaticMathField>
-          </Button>
-        );
-      },
-    },
+
     {
       title: "Outcome",
       key: "outcomes",

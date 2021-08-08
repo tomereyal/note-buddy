@@ -7,19 +7,31 @@ import {
   CREATE_POST,
   DELETE_POST_FROM_FOLDER,
   ADD_POST_TO_FOLDER,
+  EDIT_FOLDER,
 } from "./types";
 import { message } from "antd";
 
 export const getFolders = () => async (dispatch) => {
   try {
-    const { data } = await api.fetchFolders();
-  
+    let { data } = await api.fetchFolders();
+
     // const action = { type: "FETCH_ALL", payload: [] } _______ I put action object interface directly in dispatch
     dispatch({ type: FETCH_ALL_FOLDERS, payload: data.folders });
   } catch (error) {
     console.log(error.message);
   }
 };
+
+export const editFolder = (variables) => async (dispatch) => {
+  try {
+    const { data } = await api.editFolder(variables);
+    const [folder] = data.folder;
+    dispatch({ type: EDIT_FOLDER, payload: folder });
+  } catch (error) {
+    console.log(error.message);
+  }
+};
+
 export const createFolder = (folderVariables) => async (dispatch) => {
   try {
     const { data } = await api.createFolder(folderVariables);
@@ -46,7 +58,9 @@ export const deleteFolder = (folderId) => async (dispatch) => {
 
 export const createPostInFolder = (variables) => async (dispatch) => {
   try {
+    console.log(`variables`, variables);
     const { postVariables, folderId } = variables;
+    console.log(`postVariables actions`, postVariables);
     const postRes = await api.createPostInServer(postVariables);
     const newPost = postRes.data.postInfo;
     dispatch({ type: CREATE_POST, payload: newPost });
@@ -55,6 +69,7 @@ export const createPostInFolder = (variables) => async (dispatch) => {
     const folder = data;
     //we want to return the updated folder to reducer to update app folders state;
     dispatch({ type: ADD_POST_TO_FOLDER, payload: folder });
+    return newPostId;
   } catch (error) {}
 };
 

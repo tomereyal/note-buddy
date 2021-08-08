@@ -139,6 +139,7 @@ export const EditorPlugins = {
             n.type === "math-block",
         }
       );
+      // console.log(`math saved`, math);
 
       //previous element check for hebrew:
       const [prevNode, prevLocation] = Editor.previous(editor);
