@@ -25,6 +25,7 @@ import {
   useFocused,
 } from "slate-react";
 import { Leaf, MathBlock } from "../sections/EditorElements";
+import ContainerWithMenu from "../../views/BasicComponents/ContainerWithMenu";
 import EditorHoverToolbar from "../sections/EditorToolBar/EditorHoverToolbar";
 import EditorTitleToolbar, { Toolbar } from "./EditorTitleToolbar";
 import { EditorPlugins } from "../EditorPlugins";
@@ -68,7 +69,8 @@ export default function TitleEditor(props) {
     justify = "start",
     size = 3,
     darkenBgc = false,
-    bgc = "#ffffff",
+    bgc,
+    color = "",
     isReadOnly = false,
     isBold = false,
     style,
@@ -80,7 +82,8 @@ export default function TitleEditor(props) {
       : [
           {
             type: "card-title",
-            backgroundColor: bgc,
+            backgroundColor: bgc || "",
+            color: color || "",
             // placeHolder,
             justify,
             fontStyle: "",
@@ -91,16 +94,27 @@ export default function TitleEditor(props) {
         ]
   );
 
-  const [isTitleHovered, setIsTitleHovered] = useState(false);
-
   const renderElement = useCallback((props) => {
     const { children, attributes, element } = props;
     switch (element.type) {
       case "card-title":
-        return <CardTitle {...props} element={{ ...props.element, style }} />;
+        return (
+          <CardTitle
+            {...props}
+            element={{ ...props.element, color: color || "", style }}
+          />
+        );
       case "math-block":
         return (
-          <MathBlock {...props} element={{ ...props.element, isReadOnly }} />
+          <MathBlock
+            {...props}
+            element={{
+              ...props.element,
+              isReadOnly,
+              color: color || "",
+              bgc: bgc || "",
+            }}
+          />
         );
       default:
         return <DefaultElement {...props} />;
@@ -121,29 +135,16 @@ export default function TitleEditor(props) {
   }, []);
   ////////////////////
   const fontSize = getFontSize(size);
+
   return (
     <div
       style={{
         position: "relative",
         fontSize,
-        // display: "inline-block",
         fontWeight: isBold ? "bold" : "normal",
-        margin: 0,
+        margin: "0px 10px",
         padding: 0,
         // ...style,
-      }}
-      onMouseEnter={() => {
-        const [match] = Editor.nodes(editor, {
-          match: (n, path) =>
-            !Editor.isEditor(n) &&
-            SlateElement.isElement(n) &&
-            n.type === "card-title",
-        });
-
-        setIsTitleHovered(true);
-      }}
-      onMouseLeave={() => {
-        setIsTitleHovered(false);
       }}
       onDoubleClick={(e) => {
         e.stopPropagation();
@@ -161,16 +162,19 @@ export default function TitleEditor(props) {
           }
         }}
       >
-        {!isReadOnly && <EditorTitleToolbar isTitleHovered={isTitleHovered} />}
-
-        <Editable
-          renderElement={renderElement}
-          renderLeaf={renderLeaf}
-          onKeyDown={onKeyDown}
-          readOnly={props.isReadOnly}
-          // placeholder={<span>title</span>}
-          spellCheck
-        />
+        <ContainerWithMenu
+          leftMenu={!isReadOnly ? <EditorTitleToolbar /> : null}
+          style={{ padding: "0px 20px" }}
+        >
+          <Editable
+            renderElement={renderElement}
+            renderLeaf={renderLeaf}
+            onKeyDown={onKeyDown}
+            readOnly={props.isReadOnly}
+            placeholder={<span>{placeHolder}</span>}
+            spellCheck
+          />
+        </ContainerWithMenu>
       </Slate>
     </div>
   );
@@ -181,9 +185,10 @@ const CardTitle = ({ attributes, children, element }) => {
     placeHolder,
     size,
     justify,
-    backgroundColor = "",
+    backgroundColor,
     darkenBgc,
     fontStyle = "",
+    color,
     style,
   } = element;
   const selected = useSelected();
@@ -191,10 +196,10 @@ const CardTitle = ({ attributes, children, element }) => {
 
   //======COLOR=====
   let titleBgc = backgroundColor;
-  let color = "#000000"; //black in hex
+  let enhancedColor; //black in hex
   if (backgroundColor && darkenBgc) {
     titleBgc = tinycolor(backgroundColor).darken(3).toString();
-    color = tinycolor
+    enhancedColor = tinycolor
       .mostReadable(titleBgc, [titleBgc], { includeFallbackColors: true })
       .toHexString(); // "#ffffff"
   }
@@ -210,7 +215,7 @@ const CardTitle = ({ attributes, children, element }) => {
         alignItems: "center",
         justifyContent: justify,
         textAlign: justify,
-        color: color,
+        color: enhancedColor || color,
         width: "100%",
         height: "100%",
         padding: 0,
@@ -227,7 +232,7 @@ const CardTitle = ({ attributes, children, element }) => {
 };
 
 const DefaultElement = ({ attributes, children, element }) => {
-  const bcg = element.backgroundColor ? element.backgroundColor : defaultBgc;
+  const bcg = element.backgroundColor ? element.backgroundColor : "";
 
   return (
     <p

@@ -17,10 +17,9 @@ import {
   GoogleCircleFilled,
 } from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
-
+import TitleEditor from "../editor/TitleEditor/TitleEditor";
 import { fetchGoogleImage } from "../../api";
 import axios from "axios";
-
 const layout = {
   labelCol: {
     span: 4,
@@ -51,6 +50,9 @@ export default function CreatePostModule({
   const folders = useSelector((state) => state.folders);
   const posts = useSelector((state) => state.posts);
   const [name, setName] = useState("");
+  const [title, setTitle] = useState([]);
+  const [conditionTitle, setConditionTitle] = useState([]);
+  const [conditionName, setConditionName] = useState("");
   const [image, setImage] = useState("");
   const [googleImages, setGoogleImages] = useState({ name: "", images: [] });
   const [fetchedIcons, setFetchedIcons] = useState([]);
@@ -84,18 +86,33 @@ export default function CreatePostModule({
 
   const [form] = Form.useForm();
   const onFormFinish = async (formValues) => {
-    if (!formValues.name || !user.userData) {
+    console.log(`title`, title);
+    if (!name || !user.userData || !title) {
       return;
     }
     const userId = user.userData._id;
-    const postVariables = { name: formValues.name, image, writer: userId };
+
+    const postVariables = {
+      name: `${name} ${conditionName}`,
+      title,
+      image,
+      writer: userId,
+      conditions: conditionTitle,
+    };
     console.log(`postVariables`, postVariables);
-    createPostFunction({
-      postVariables,
-      folderId: folderId || folders[0]?._id,
-    });
+    if (folderId) {
+      createPostFunction({
+        postVariables,
+        folderId: folderId || folders[0]?._id,
+      });
+    } else {
+      createPostFunction(postVariables);
+    }
+
     form.resetFields();
-    setRandomIcon();
+    setName("");
+    setTitle([]);
+    setRandomIcon(fetchedIcons);
     setIsModalVisible(false);
   };
 
@@ -182,6 +199,26 @@ export default function CreatePostModule({
         okButtonProps={{ style: { visibility: "hidden" } }}
         cancelButtonProps={{ style: { visibility: "hidden" } }}
       >
+        <div
+          onBlur={(e) => {
+            checkForDuplicates(name);
+          }}
+        >
+          <TitleEditor
+            setTitle={setTitle}
+            title={title}
+            name={name}
+            placeHolder={"Write name here.."}
+            setName={setName}
+          ></TitleEditor>
+        </div>
+        <TitleEditor
+          title={conditionTitle}
+          setTitle={setConditionTitle}
+          name={conditionName}
+          setName={setConditionName}
+          placeHolder={"Write conditions here.."}
+        ></TitleEditor>
         <Form
           {...layout}
           form={form}
@@ -195,7 +232,7 @@ export default function CreatePostModule({
             }}
             icon={<GoogleCircleFilled />}
           ></Button>
-          <Form.Item
+          {/* <Form.Item
             name="name"
             label={`Name:`}
             rules={[
@@ -204,12 +241,6 @@ export default function CreatePostModule({
               },
             ]}
           >
-            {/* <AutoComplete
-              options={postOptions}
-              style={{ width: 200 }}
-              onSelect={onNameSelect}
-              onSearch={onNameSearch}
-            > */}
             <Input
               placeholder="name:"
               prefix={<UserOutlined className="site-form-item-icon" />}
@@ -225,8 +256,7 @@ export default function CreatePostModule({
                 checkForDuplicates(e.target.value);
               }}
             />
-            {/* </AutoComplete> */}
-          </Form.Item>
+          </Form.Item> */}
           <Form.Item
             name="dragger"
             valuePropName="fileList"

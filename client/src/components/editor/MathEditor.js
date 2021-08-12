@@ -12,6 +12,7 @@ export default function MathEditor({
   slateEditor,
   savedMath,
   bcg,
+
   mathFieldFocus,
   mathFieldSelected,
 }) {
@@ -122,7 +123,9 @@ export default function MathEditor({
       onDoubleClick={() => {
         mathField.select();
       }}
-      style={{ backgroundColor: mathFieldSelected ? "lightpink" : "" }}
+      style={{
+        backgroundColor: mathFieldSelected ? "lightpink" : "",
+      }}
     >
       <EditableMathField
         style={{ border: "none" }}

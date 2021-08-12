@@ -14,6 +14,17 @@ router.post("/createChain", (req, res) => {
     return res.status(200).json({ success: true, chain });
   });
 });
+router.post("/createExampleChain", (req, res) => {
+  const { postId } = req.body;
+  const newChain = new Chain({ outcomes: [postId] });
+
+  Chain.create(newChain, (err, chain) => {
+    console.log(`err`, err);
+    if (err) return res.status(400).json({ success: false, err });
+
+    return res.status(200).json({ success: true, chain });
+  });
+});
 
 router.post("/createCardInChain", (req, res) => {
   const { chainId } = req.body;

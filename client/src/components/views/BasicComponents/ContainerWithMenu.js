@@ -21,6 +21,7 @@ export default function ContainerWithMenu({
       onMouseLeave={() => {
         setIsElementHovered(false);
       }}
+      style={{ position: "relative" }}
       {...props}
     >
       {menu !== null && (

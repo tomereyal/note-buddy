@@ -6,7 +6,7 @@ import {
   useSlateStatic,
   ReactEditor,
 } from "slate-react";
-
+import ContainerWithMenu from "../../views/BasicComponents/ContainerWithMenu";
 import { EditorPlugins } from "../EditorPlugins";
 import TitleEditor from "../TitleEditor/TitleEditor";
 
@@ -30,16 +30,19 @@ addStyles();
 //----------------------------------------------------//
 const defaultBgc = "white";
 export const DefaultElement = ({ attributes, children, element }) => {
+  // const [fontSize, setFontSize] = useState(element.fontSize || "1rem");
   const bcg = element.backgroundColor ? element.backgroundColor : "";
   const style = element.style;
-  const justify = "start";
+  const fontSize = element.fontSize || "1rem";
+  const justify = element.justify || "start";
+  console.log(`fontSize  i getttt elementt ehre`, element.fontSize);
   return (
     <p
       style={{
         backgroundColor: bcg,
         margin: 0,
         padding: "0 16px",
-        fontSize: "1rem",
+        fontSize: fontSize,
         display: "flex",
         alignItems: "center",
         justifyContent: justify,
@@ -153,7 +156,7 @@ export const MathBlock = ({ attributes, children, element }) => {
   const selected = useSelected();
   const focused = useFocused();
   const editor = useSlateStatic();
-  const { math, backgroundColor = defaultBgc, isReadOnly } = element;
+  const { math, backgroundColor = defaultBgc, isReadOnly, color } = element;
   const bcg = backgroundColor;
   const [mathFieldFocus, setMathFieldFocus] = useState(false);
   const [mathFieldSelected, setMathFieldSelected] = useState(false);
@@ -191,7 +194,7 @@ export const MathBlock = ({ attributes, children, element }) => {
         // display: "inline-block",
         borderRadius: "4px",
         fontWeight: "bold",
-        color: "black",
+        color: color,
         backgroundColor: bcg,
         position: "relative",
         // boxShadow: selected && focused ? "0 0 0 2px #B4D5FF" : "none",

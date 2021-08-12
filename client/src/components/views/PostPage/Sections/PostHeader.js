@@ -19,12 +19,15 @@ export default function PostHeader(props) {
     title: initialTitle,
     image: initialImage,
     description: initialDescription,
+    conditions: initialConditions,
   } = post;
 
   const [name, setName] = useState(initialName);
   const [title, setTitle] = useState(initialTitle);
   const [image, setImage] = useState(initialImage);
   const [description, setDescription] = useState(initialDescription);
+  const [conditionTitle, setConditionTitle] = useState(initialConditions);
+  const [conditionName, setConditionName] = useState("");
 
   const dispatch = useDispatch();
   const HEIGHT_OF_NAVBAR = 70;
@@ -33,10 +36,11 @@ export default function PostHeader(props) {
     const variables = {
       postId: props.post._id,
       editArr: [
-        { editType: "name", editValue: name },
+        { editType: "name", editValue: `${name} ${conditionName}` },
         { editType: "title", editValue: title },
         { editType: "image", editValue: image },
         { editType: "description", editValue: description },
+        { editType: "conditions", editValue: conditionTitle },
       ],
     };
     console.log(`description`, description);
@@ -63,14 +67,33 @@ export default function PostHeader(props) {
             src={image}
             setImage={setImage}
           ></EditableAvatar>
-          <TitleEditor
-            name={name}
-            setName={setName}
-            title={title}
-            setTitle={setTitle}
-            placeHolder={"Title.."}
-            size={1}
-          />
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              padding: "0px 8px",
+            }}
+          >
+            <TitleEditor
+              name={name}
+              setName={setName}
+              title={title}
+              setTitle={setTitle}
+              placeHolder={"Title.."}
+              size={1}
+            />
+            <div style={{ width: "200px" }}>
+              <TitleEditor
+                title={conditionTitle}
+                setTitle={setConditionTitle}
+                name={conditionName}
+                setName={setConditionName}
+                placeHolder={"Write conditions here.."}
+                color={"red"}
+                size={5}
+              ></TitleEditor>
+            </div>
+          </div>
 
           <Tooltip title={"Hear pronunciation"}>
             <Button type="text" icon={<SoundOutlined />}></Button>

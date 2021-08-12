@@ -128,6 +128,7 @@ export default function NoteCard({
             key={card._id}
             setContent={setContent}
             content={content}
+            justify={"center"}
           />
         </Card>
       </ContainerWithMenu>

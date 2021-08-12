@@ -77,6 +77,36 @@ export const EditorPlugins = {
     return editor;
   },
 
+  changeFontSize(editor, change) {
+    const FONT_CHANGE_RATIO = change === "bigger" ? 0.2 : -0.2;
+    //GET FONT SIZE
+    const [match] = Editor.nodes(editor, {
+      match: (n) => n.type === "paragraph",
+      mode: "all",
+    });
+    const [element] = match;
+    const { fontSize } = element;
+
+    let fontSizeNum;
+    if (fontSize.slice(-3) === "rem") {
+      fontSizeNum = Number(fontSize.slice(0, -3)) + Number(FONT_CHANGE_RATIO);
+    } else if (fontSize.slice(-2) === "px") {
+      fontSizeNum = Number(fontSize.slice(0, -2)) + Number(FONT_CHANGE_RATIO);
+    }
+    if (fontSizeNum >= 2) {
+      fontSizeNum = 2;
+    }
+    if (fontSizeNum <= 0.5) {
+      fontSizeNum = 0.5;
+    }
+    if (!fontSizeNum) fontSizeNum = 1;
+    //SET FONT SIZE
+    Transforms.setNodes(
+      editor,
+      { fontSize: `${fontSizeNum.toFixed(1)}rem` },
+      { match: (n) => n.type === "paragraph" }
+    );
+  },
   toggleFormat(editor, format) {
     const isActive = EditorPlugins.isFormatActive(editor, format);
     Transforms.setNodes(

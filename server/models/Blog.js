@@ -45,13 +45,14 @@ const blogSchema = mongoose.Schema(
     image: { type: String, default: "" },
     audio: { type: String, default: "" },
     title: { type: [Schema.Types.Mixed], default: [] },
+    conditions: { type: [Schema.Types.Mixed], default: [] },
     content: { type: String },
     writer: { type: Schema.Types.ObjectId, ref: "User" },
     sections: { type: [sectionSchema], default: [] },
     description: { type: [Schema.Types.Mixed], default: [] },
     components: [{ type: Schema.Types.ObjectId, ref: "Blog", default: [] }],
     roles: { type: [roleSchema], default: [] }, // the roles of this object in other objects
-    examples: { type: [Schema.Types.Mixed], default: [] }, //add the reason why each item is an example
+    examples: [{ type: Schema.Types.ObjectId, ref: "Chain", default: [] }], //add the reason why each item is an example
     questions: { type: [Schema.Types.Mixed], default: [] },
     chains: [{ type: Schema.Types.ObjectId, ref: "Chain", default: [] }],
     // derivates: "e.g. if i (this blog name) am a "sin(alpha)" function THEN I have a limit"
@@ -99,6 +100,10 @@ blogSchema.methods.saveAndPopulate = function (cb) {
       })
       .populate({
         path: "chains",
+        model: "Chain",
+      })
+      .populate({
+        path: "examples",
         model: "Chain",
       })
       .execPopulate(cb);

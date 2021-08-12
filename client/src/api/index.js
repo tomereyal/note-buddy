@@ -56,6 +56,8 @@ export const removeCardFromList = (variables) =>
 //=========================================
 export const createChain = (variables) =>
   axios.post(`${CHAIN_SERVER}/createChain`, variables);
+export const createExampleChain = (variables) =>
+  axios.post(`${CHAIN_SERVER}/createExampleChain`, variables);
 export const fetchChainsByIds = (variables) =>
   axios.post(`${CHAIN_SERVER}/fetchChainsByIds`, variables);
 export const deleteChain = (chainId) =>

@@ -26,7 +26,7 @@ import EditorHoverToolbar, {
 } from "./sections/EditorToolBar/EditorHoverToolbar";
 import EditorMainToolbar from "./sections/EditorToolBar/EditorMainToolBar";
 import { mathConfig } from "./sections/math_Config";
-
+import ContainerWithMenu from "../views/BasicComponents/ContainerWithMenu";
 //--------SERVER-RELATED-IMPORTS-----------------------//
 import axios from "axios";
 import {
@@ -65,7 +65,7 @@ import TitleEditor from "./TitleEditor/TitleEditor";
  * @returns SlateEditor React Component
  */
 export default function SlateEditor(props) {
-  const { card = {}, content, setContent } = props;
+  const { card = {}, content, setContent, justify, fontSize = "1rem" } = props;
   const { location = {}, _id = "" } = card;
   const { post, section, list } = location;
   const cardData = {
@@ -81,6 +81,8 @@ export default function SlateEditor(props) {
       : [
           {
             type: "paragraph",
+            fontSize: fontSize || "1rem",
+            justify: justify || "start",
             backgroundColor: "FFFFFF",
             children: [{ text: "" }],
           },
@@ -197,7 +199,7 @@ export default function SlateEditor(props) {
       case "span":
         return <span {...attributes}>{children}</span>;
       default:
-        return <DefaultElement {...props} />;
+        return <DefaultElement {...props} element={{ ...element, justify }} />;
     }
   }, []);
 
@@ -305,6 +307,16 @@ export default function SlateEditor(props) {
           case "u": {
             event.preventDefault();
             EditorPlugins.toggleFormat(editor, "underlined");
+            break;
+          }
+          case "=": {
+            event.preventDefault();
+            EditorPlugins.changeFontSize(editor, "bigger");
+            break;
+          }
+          case "-": {
+            event.preventDefault();
+            EditorPlugins.changeFontSize(editor, "smaller");
             break;
           }
 
@@ -442,7 +454,6 @@ export default function SlateEditor(props) {
           setTarget(null);
         }}
       >
-        {" "}
         <EditorHoverToolbar />
         <div
           style={{

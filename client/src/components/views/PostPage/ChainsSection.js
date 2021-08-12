@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Button, Avatar, Tag, Space, Table, Select, Row, Col } from "antd";
-import { createChain, fetchChainsByIds } from "../../../api";
+import {
+  createChain,
+  createExampleChain,
+  fetchChainsByIds,
+} from "../../../api";
 import { createPost, editPost } from "../../../_actions/post_actions";
 import ContainerWithMenu from "../BasicComponents/ContainerWithMenu";
 import SelectWithToggle from "./Sections/SelectWithToggle";
@@ -11,17 +15,19 @@ import { addStyles, EditableMathField, StaticMathField } from "react-mathquill";
 import NoteCard from "./Sections/NoteCard";
 import CreatePostModule from "../CreatePostModule";
 import { createPostInFolder } from "../../../_actions/folder_actions";
+import { useHistory } from "react-router-dom";
 
 addStyles();
 
 export default function ChainsSection({
   post: initialPost = {},
   getPostFromServer,
+  isExample = false,
 }) {
   const [post, setPost] = useState(initialPost);
-  const { chains, image, _id } = post;
+  const { chains: generalChains, image, _id, examples } = post;
+  const chains = isExample ? examples : generalChains;
   const dispatch = useDispatch();
-  const folders = useSelector((state) => state.folders);
   const posts = useSelector((state) => state.posts);
   const cards = useSelector((state) => state.cards);
   const postsNameAndId = posts.map(({ name, _id }) => {
@@ -35,16 +41,7 @@ export default function ChainsSection({
 
   console.log(`cards`, cardsNameAndId);
 
-  const folderId = folders.length
-    ? folders.find(({ blogs }) => {
-        return (
-          blogs.findIndex(({ _id }) => {
-            console.log(`_id`, _id);
-            return post._id === _id;
-          }) !== -1
-        );
-      })._id
-    : "";
+  let history = useHistory();
 
   useEffect(() => {
     setPost(initialPost);
@@ -53,11 +50,16 @@ export default function ChainsSection({
 
   const addNewChain = async () => {
     const variables = { postId: _id };
-    const { data } = await createChain(variables);
+
+    const { data } = !isExample
+      ? await createChain(variables)
+      : await createExampleChain(variables);
     const { chain: newChain } = data;
+
+    const editField = isExample ? "examples" : "chains";
     const editVariables = {
       postId: _id,
-      editArr: [{ editType: "chains", editValue: [...chains, newChain] }],
+      editArr: [{ editType: editField, editValue: [...chains, newChain] }],
     };
     dispatch(editPost(editVariables)).then((err, suc) => {
       getPostFromServer(_id);
@@ -90,7 +92,9 @@ export default function ChainsSection({
   };
   const createNewHead = (chainId, chainHeads) => {
     return async function (variablesFromModule) {
-      const post = await dispatch(createPostInFolder(variablesFromModule));
+      // const post = await dispatch(createPostInFolder(variablesFromModule));
+      console.log(`variablesFromModule`, variablesFromModule);
+      const post = await dispatch(createPost(variablesFromModule));
       console.log(`post returned from createpost`, post);
 
       const variables = {
@@ -201,7 +205,6 @@ export default function ChainsSection({
               />
               <CreatePostModule
                 createPostFunction={createNewHead(row.chainId, heads)}
-                folderId={folderId}
               />
             </div>
           }
@@ -221,14 +224,31 @@ export default function ChainsSection({
                     </Button>
                   }
                 >
-                  <Avatar src={head.image}></Avatar>
-
-                  <TitleEditor
-                    isReadOnly={true}
-                    title={head.title}
-                    name={head.name}
-                    style={{ fontSize: "14px" }}
-                  />
+                  <div style={{ paddingLeft: "24px", display: "flex" }}>
+                    <Avatar
+                      src={head.image}
+                      onClick={() => {
+                        history.push(`/post/${head._id}`);
+                      }}
+                    ></Avatar>
+                    <div>
+                      <TitleEditor
+                        isReadOnly={true}
+                        title={head.title}
+                        name={head.name}
+                        style={{ fontSize: "14px" }}
+                      />
+                      {head.conditions ? (
+                        <TitleEditor
+                          isReadOnly={true}
+                          title={head.conditions}
+                          style={{ fontSize: "10px", color: "red" }}
+                        />
+                      ) : (
+                        ""
+                      )}
+                    </div>
+                  </div>
                 </ContainerWithMenu>
               </div>
             );
@@ -240,9 +260,9 @@ export default function ChainsSection({
       title: "From",
       dataIndex: "connectors",
       key: "connectors",
-      render: (connectors, row, type) => {
+      render: (connectors, row, index) => {
         const arrowLatex =
-          type === "uniDirectional"
+          row.type === "uniDirectional"
             ? "\\longrightarrow "
             : "\\longleftrightarrow";
         return (
@@ -255,52 +275,59 @@ export default function ChainsSection({
               />
             }
           >
-            {connectors.length ? (
-              connectors.map((connector, index) => {
-                return (
-                  <div style={{ position: "relative" }} key={connector._id}>
-                    <ContainerWithMenu
-                      key={connector._id + index}
-                      leftMenu={
-                        <Button
-                          size="small"
-                          shape="circle"
-                          onClick={removeConnector(
-                            row.chainId,
-                            connectors,
-                            connector._id
-                          )}
+            <Row justify="center">
+              <Col>
+                {connectors.length ? (
+                  connectors.map((connector, index) => {
+                    return (
+                      <div style={{ position: "relative" }} key={connector._id}>
+                        <ContainerWithMenu
+                          key={connector._id + index}
+                          leftMenu={
+                            <Button
+                              size="small"
+                              shape="circle"
+                              onClick={removeConnector(
+                                row.chainId,
+                                connectors,
+                                connector._id
+                              )}
+                            >
+                              X
+                            </Button>
+                          }
                         >
-                          X
-                        </Button>
-                      }
-                    >
-                      <div style={{ width: "400px" }}>
-                        <a
-                          onClick={() => {
-                            console.log(`connector`, connector);
-                          }}
-                        >
-                          <TitleEditor
-                            title={connector.title}
-                            isReadOnly={true}
-                            darkenBgc={false}
-                          ></TitleEditor>
-                        </a>
+                          <div style={{ width: "400px" }}>
+                            <a
+                              onClick={() => {
+                                console.log(`connector`, connector);
+                              }}
+                            >
+                              <NoteCard card={connector}></NoteCard>
+                              {/* <TitleEditor
+                                title={connector.title}
+                                isReadOnly={false}
+                                darkenBgc={false}
+                              ></TitleEditor> */}
+                            </a>
+                          </div>
+                        </ContainerWithMenu>
                       </div>
-                    </ContainerWithMenu>
-                  </div>
-                );
-              })
-            ) : (
-              <a onClick={createConnector(row.chainId)}>"create a connector"</a>
-            )}
+                    );
+                  })
+                ) : (
+                  <Button onClick={createConnector(row.chainId)}>
+                    "create a connector"
+                  </Button>
+                )}
+              </Col>
+            </Row>
             <Row justify="center">
               <Col>
                 <Button
-                  size="large"
+                  size="small"
                   style={{ zIndex: 1 }}
-                  onClick={changeChainType(row.chainId, type)}
+                  onClick={changeChainType(row.chainId, row.type)}
                 >
                   <StaticMathField>{arrowLatex}</StaticMathField>
                 </Button>
@@ -319,10 +346,12 @@ export default function ChainsSection({
         <ContainerWithMenu
           key={"outcomes" + row._id}
           menu={
-            <SelectWithToggle
-              options={postsNameAndId}
-              onSelect={addNewOutcome(row.chainId, outcomes)}
-            />
+            !isExample && (
+              <SelectWithToggle
+                options={postsNameAndId}
+                onSelect={addNewOutcome(row.chainId, outcomes)}
+              />
+            )
           }
         >
           {outcomes.length
@@ -332,17 +361,19 @@ export default function ChainsSection({
                     <ContainerWithMenu
                       key={outcome._id}
                       leftMenu={
-                        <Button
-                          size="small"
-                          shape="circle"
-                          onClick={removeOutcome(
-                            row.chainId,
-                            outcomes,
-                            outcome._id
-                          )}
-                        >
-                          X
-                        </Button>
+                        !isExample && (
+                          <Button
+                            size="small"
+                            shape="circle"
+                            onClick={removeOutcome(
+                              row.chainId,
+                              outcomes,
+                              outcome._id
+                            )}
+                          >
+                            X
+                          </Button>
+                        )
                       }
                     >
                       <Avatar src={outcome.image}></Avatar>

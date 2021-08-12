@@ -67,6 +67,8 @@ export default function EditorHoverToolbar() {
         <FormatButton format="bold" icon={<BoldOutlined />} />
         <FormatButton format="italic" icon={<ItalicOutlined />} />
         <FormatButton format="underlined" icon={<UnderlineOutlined />} />
+        <SizeButton change="bigger" icon={<span>+</span>} />
+        <SizeButton change="smaller" icon={<span>-</span>} />
         <BlockButton
           format="heading-one"
           icon={<FontSizeOutlined style={{ fontSize: "20px" }} />}
@@ -89,6 +91,20 @@ const FormatButton = ({ format, icon }) => {
       onMouseDown={(event) => {
         event.preventDefault();
         EditorPlugins.toggleFormat(editor, format);
+      }}
+    >
+      <Icon>{icon}</Icon>
+    </Button>
+  );
+};
+const SizeButton = ({ change, icon }) => {
+  const editor = useSlate();
+  return (
+    <Button
+      reversed
+      onMouseDown={(event) => {
+        event.preventDefault();
+        EditorPlugins.changeFontSize(editor, change);
       }}
     >
       <Icon>{icon}</Icon>

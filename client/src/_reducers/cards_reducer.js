@@ -14,7 +14,6 @@ export default function (cards = [], action) {
         return card._id === action.payload._id ? action.payload : card;
       });
     case GET_CARDS:
-      console.log(`action.payload`, action.payload);
       return action.payload;
     case DELETE_CARD:
       return cards.filter((card) => {

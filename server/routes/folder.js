@@ -45,6 +45,8 @@ router.post("/createPostInFolder", (req, res) => {
   const { body } = req;
   const { writer, folderId, name } = body;
   const blog = new Blog({ content: null, writer: writer, name: name });
+  //THIS METHOD IS WRONG
+  //post will not show up in blogs collection
   Folder.findByIdAndUpdate(
     { _id: folderId },
     { $push: { blogs: blog } },

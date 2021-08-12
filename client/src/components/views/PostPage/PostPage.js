@@ -20,9 +20,7 @@ function PostPage(props) {
   //<Route exact path={./this files location} component ={PostPage}></Route>
   //https://reactrouter.com/web/api/Route/component
   // Now this component has access to all the route props (match, location and history).
-
   const { postId } = useParams();
-  console.log(`postId`, postId);
   const posts = useSelector((state) => state.posts);
   const [post, setPost] = useState(null);
   const [sections, setSections] = useState([]);
@@ -89,13 +87,13 @@ function PostPage(props) {
           <TabPane
             tab={
               <span>
-                <img
+                {/* <img
                   height="20px"
                   width="20px"
                   src={
                     "https://img-premium.flaticon.com/svg/3534/3534076.svg?token=exp=1627468788~hmac=3908e9ef7a96c1961b81758402c60cfc"
                   }
-                />
+                /> */}
                 E.g
               </span>
             }
@@ -103,17 +101,22 @@ function PostPage(props) {
           >
             "Examples Section ... reasons why each is considered a type of this
             object"
+            <ChainsSection
+              post={post}
+              getPostFromServer={getPostFromServer}
+              isExample={true}
+            />
           </TabPane>
           <TabPane
             tab={
               <span>
-                <img
+                {/* <img
                   height="20px"
                   width="20px"
                   src={
                     "https://img-premium.flaticon.com/svg/2784/2784530.svg?token=exp=1627468531~hmac=bf3960fd6660658841969e0cb9ebfede"
                   }
-                />
+                /> */}
                 Q&A
               </span>
             }
@@ -124,13 +127,13 @@ function PostPage(props) {
           <TabPane
             tab={
               <span>
-                <img
+                {/* <img
                   height="20px"
                   width="20px"
                   src={
                     "https://img-premium.flaticon.com/svg/3830/3830031.svg?token=exp=1627469019~hmac=a055410c99ce39b4cc11433a2bf095ba"
                   }
-                />
+                /> */}
                 Interactions
               </span>
             }
@@ -141,13 +144,13 @@ function PostPage(props) {
           <TabPane
             tab={
               <span>
-                <img
+                {/* <img
                   height="20px"
                   width="20px"
                   src={
                     "https:img-premium.flaticon.com/svg/1180/1180929.svg?token=exp=1627428466~hmac=8f028cff04afe241f5501e0885d65b8c"
                   }
-                />
+                /> */}
                 Parts
               </span>
             }

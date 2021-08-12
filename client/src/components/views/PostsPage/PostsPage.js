@@ -162,7 +162,7 @@ export default function PostsPage(props) {
                 }}
               >
                 <CreatePostModule
-                  folder={folder}
+                  folderId={folder._id}
                   buttonElement={
                     <PlusSquareTwoTone style={{ fontSize: "60px" }} />
                   }

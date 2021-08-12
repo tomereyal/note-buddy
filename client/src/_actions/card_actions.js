@@ -63,7 +63,6 @@ export const saveExistingNoteTags = (variables) => async (dispatch) => {
 export const getCardTags = (variables) => async (dispatch) => {
   try {
     const { data } = await api.getCardTags(variables);
-    console.log(`data from getCardTags @ card_actions.js`, data);
     dispatch({ type: GET_CARD_TAGS, payload: data });
   } catch (error) {
     console.log(error.message);

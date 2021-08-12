@@ -59,6 +59,8 @@ router.post("/createPost", (req, res) => {
     writer: req.body.writer,
     image: req.body.image,
     components: req.body.components,
+    conditions: req.body.conditions,
+    title: req.body.title,
     roles: req.body.roles,
     sections: [defaultSection],
   });
@@ -118,13 +120,8 @@ router.get("/fetchPosts", (req, res) => {
       },
     })
     .populate({
-      path: "chains",
+      path: "examples",
       model: "Chain",
-      // populate: {
-      //   path: "lists",
-      //   model: "List",
-      //   populate: { path: "cards", model: "Card" },
-      // },
     })
     .exec((err, blogs) => {
       if (err) return res.status(400).send(err);
@@ -148,6 +145,30 @@ router.get("/fetchPost/:postId", (req, res) => {
       },
     })
     .populate({
+      path: "examples",
+      model: "Chain",
+      populate: {
+        path: "heads",
+        model: "Blog",
+      },
+    })
+    .populate({
+      path: "examples",
+      model: "Chain",
+      populate: {
+        path: "connectors",
+        model: "Card",
+      },
+    })
+    .populate({
+      path: "chains",
+      model: "Chain",
+      populate: {
+        path: "outcomes",
+        model: "Blog",
+      },
+    })
+    .populate({
       path: "chains",
       model: "Chain",
       populate: {
@@ -164,7 +185,7 @@ router.get("/fetchPost/:postId", (req, res) => {
       },
     })
     .populate({
-      path: "chains",
+      path: "examples",
       model: "Chain",
       populate: {
         path: "outcomes",

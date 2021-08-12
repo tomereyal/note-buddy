@@ -31,10 +31,7 @@ const { Option } = Select;
 
 //--------------------------------------------------------------------------------------
 
-export default function EditorTitleToolbar({
-  fontStyle = "Poppins",
-  isTitleHovered,
-}) {
+export default function EditorTitleToolbar({ fontStyle = "Poppins" }) {
   // const ref = useRef();
   const editor = useSlate();
   const { changeFontFamily } = EditorPlugins;
@@ -89,13 +86,9 @@ export default function EditorTitleToolbar({
   return (
     <div
       style={{
-        position: "absolute",
-        left: 0,
         zIndex: 10,
         height: "100%",
-        opacity: isTitleHovered ? 1 : 0,
-        width: isTitleHovered ? "18px" : "0",
-        transition: "linear 0.1s",
+        width: "18px",
         display: "flex",
         alignItems: "center",
       }}
@@ -115,6 +108,7 @@ export default function EditorTitleToolbar({
           }}
         >
           <EditOutlined
+            style={{ fontSize: "smaller" }}
             onClick={(e) => {
               e.preventDefault();
             }}
