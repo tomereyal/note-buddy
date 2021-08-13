@@ -19,6 +19,29 @@ const positionSchema = mongoose.Schema({
   y: { type: Number, default: 250 },
 });
 
+const subCardSchema = mongoose.Schema(
+  {
+    name: { type: String, default: "" },
+    title: { type: [Schema.Types.Mixed], default: [] },
+    content: { type: [Schema.Types.Mixed], default: [] },
+    tags: { type: [tagSchema], default: [] },
+    flowData: {
+      type: { type: String, enum: ["NODE", "EDGE"], default: "NODE" },
+      position: {
+        type: positionSchema,
+        default: {
+          x: 100,
+          y: 250,
+        },
+      },
+      source: { type: String, default: "" },
+      target: { type: String, default: "" },
+      animated: { type: Boolean, default: true },
+    },
+  },
+  { timestamps: true }
+);
+
 const cardSchema = mongoose.Schema(
   {
     name: { type: String, default: "" },
@@ -26,11 +49,7 @@ const cardSchema = mongoose.Schema(
     order: { type: Number, default: 0 },
     conditions: { type: Schema.Types.Array, default: [] },
     content: { type: [Schema.Types.Mixed], default: [] },
-    location: {
-      post: { type: Schema.Types.ObjectId, default: null },
-      section: { type: Schema.Types.ObjectId, default: null },
-      list: { type: Schema.Types.ObjectId, default: null },
-    },
+    subCards: [{ type: Schema.Types.ObjectId, ref: "Card", default: [] }],
     tags: { type: [tagSchema], default: [] },
     flowData: {
       type: { type: String, enum: ["NODE", "EDGE"], default: "NODE" },

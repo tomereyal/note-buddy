@@ -6,8 +6,6 @@ import {
   CREATE_SECTION_IN_POST,
   REMOVE_SECTION_FROM_POST,
   EDIT_POST,
-  SET_SECTION_BGC,
-  SET_SECTION_PATTERN,
   EDIT_SECTION,
   CREATE_LIST_IN_SECTION,
   REMOVE_LIST_FROM_SECTION,
@@ -15,9 +13,6 @@ import {
   CREATE_CARD_IN_LIST,
   ADD_CARD_TO_LIST,
   REMOVE_CARD_FROM_LIST,
-  EDIT_NOTE,
-  UPDATE_CARD_IN_POST,
-  CREATE_POST_CHAIN,
 } from "./types";
 
 export const getPosts = () => async (dispatch) => {
@@ -84,24 +79,6 @@ export const removeSectionFromPost = (variables) => async (dispatch) => {
   }
 };
 
-export const setSectionBgc = (variables) => async (dispatch) => {
-  try {
-    const { data } = await api.setSectionBgc(variables);
-
-    dispatch({ type: SET_SECTION_BGC, payload: data });
-  } catch (error) {
-    console.log(error.message);
-  }
-};
-
-export const setSectionPattern = (variables) => async (dispatch) => {
-  try {
-    const { data } = await api.setSectionPattern(variables);
-    dispatch({ type: SET_SECTION_PATTERN, payload: data });
-  } catch (error) {
-    console.log(error.message);
-  }
-};
 export const editSection = (variables) => async (dispatch) => {
   try {
     const { data } = await api.editSection(variables);

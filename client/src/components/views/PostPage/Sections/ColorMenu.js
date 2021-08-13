@@ -3,10 +3,7 @@ import { Popover, Button } from "antd";
 import Icon, { BgColorsOutlined } from "@ant-design/icons";
 import { TwitterPicker } from "react-color";
 import { useDispatch } from "react-redux";
-import {
-  setSectionBgc,
-  setSectionPattern,
-} from "../../../../_actions/post_actions";
+import { editSection } from "../../../../_actions/post_actions";
 
 export default function ColorMenu(props) {
   const { setBackgroundColor, setPattern, sectionId, postId } = props;
@@ -27,10 +24,10 @@ export default function ColorMenu(props) {
             const variables = {
               postId,
               sectionId,
-              backgroundColor: color.hex,
+              editArr: [{ editType: "backgroundColor", editValue: color.hex }],
             };
 
-            dispatch(setSectionBgc(variables));
+            dispatch(editSection(variables));
           }}
         ></TwitterPicker>
         <div
@@ -57,10 +54,12 @@ export default function ColorMenu(props) {
             const variables = {
               postId,
               sectionId,
-              backgroundPattern: pattern.content,
+
+              editArr: [
+                { editType: "backgroundPattern", editValue: pattern.content },
+              ],
             };
-            console.log(`variables`, variables);
-            dispatch(setSectionPattern(variables));
+            dispatch(editSection(variables));
           }}
         ></Button>
       </div>

@@ -22,6 +22,7 @@ function PostPage(props) {
   // Now this component has access to all the route props (match, location and history).
   const { postId } = useParams();
   const posts = useSelector((state) => state.posts);
+  const cards = useSelector((state) => state.cards);
   const [post, setPost] = useState(null);
   const [sections, setSections] = useState([]);
   const dispatch = useDispatch();
@@ -29,6 +30,9 @@ function PostPage(props) {
     const { data } = await fetchPost(postId);
     const { post: fetchedPost } = data;
     setPost(fetchedPost);
+    setSections(fetchedPost.sections);
+
+    return fetchPost;
   };
   useEffect(() => {
     if (!post || post._id !== postId) {
@@ -36,14 +40,21 @@ function PostPage(props) {
       // console.log(`initialPanes from useEffect`, initialPanes);
       // setTabState({ ...tabState, panes: initialPanes });
       dispatch(getCards());
+    } else {
+      getPostFromServer();
     }
 
+    // console.log(`post from postPage`, post);
+    // console.log(
+    //   `post from postPage but from redux`,
+    //   posts.find((p) => p._id === post._id)
+    // );
+
     //posts intially is an empty array, and it seems there is not immediate access to it on refresh
-  }, [props, post, posts, dispatch]);
+  }, [props, posts, cards.length]);
   //to make child rerender on change in parent, we will pass parent props to child
   //and put [props] as the childs useEffect dependency
 
-  console.log(`post`, post);
   const newTabIndex = 0;
   const [activeKey, setActiveKey] = useState("1");
 
@@ -76,12 +87,12 @@ function PostPage(props) {
         <PostHeader key={post._id} post={post}></PostHeader>
         <Tabs
           key={"tabs" + post._id}
-          type="editable-card"
+          type="card"
           onChange={onChange}
           activeKey={activeKey}
           // onEdit={onEdit}
         >
-          <TabPane tab={<span>Chains</span>} key={"1"}>
+          <TabPane tab={<span>Chains</span>} key={"2"}>
             <ChainsSection post={post} getPostFromServer={getPostFromServer} />
           </TabPane>
           <TabPane
@@ -97,10 +108,8 @@ function PostPage(props) {
                 E.g
               </span>
             }
-            key={"2"}
+            key={"1"}
           >
-            "Examples Section ... reasons why each is considered a type of this
-            object"
             <ChainsSection
               post={post}
               getPostFromServer={getPostFromServer}

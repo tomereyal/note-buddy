@@ -52,7 +52,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // support parsing of application/json type post data
 app.use(bodyParser.json());
 app.use(cookieParser());
-
+app.use(morgan("tiny"));
 //initialize a session..and connect it to the existing mongoose connection
 app.use(
   session({
@@ -118,7 +118,7 @@ if (process.env.NODE_ENV === "production") {
 }
 
 const port = process.env.PORT || 5000;
-app.use(morgan("combined"));
+
 /*The listen method starts our server.
  and it defines where (which port) we (the hosts middleware) will 
  listen to incoming requests from a client*/

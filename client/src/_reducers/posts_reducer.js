@@ -3,8 +3,6 @@ import {
   CREATE_POST,
   DELETE_POST,
   CREATE_SECTION_IN_POST,
-  SET_SECTION_BGC,
-  SET_SECTION_PATTERN,
   EDIT_SECTION,
   EDIT_POST,
   REMOVE_SECTION_FROM_POST,
@@ -42,14 +40,6 @@ export default function (posts = [], action) {
         return post._id == action.payload._id ? action.payload : post;
       });
     case REMOVE_SECTION_FROM_POST:
-      return posts.map((post) => {
-        return post._id == action.payload._id ? action.payload : post;
-      });
-    case SET_SECTION_BGC:
-      return posts.map((post) => {
-        return post._id == action.payload._id ? action.payload : post;
-      });
-    case SET_SECTION_PATTERN:
       return posts.map((post) => {
         return post._id == action.payload._id ? action.payload : post;
       });

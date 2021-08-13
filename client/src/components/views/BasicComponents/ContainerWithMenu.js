@@ -10,6 +10,7 @@ export default function ContainerWithMenu({
   menu = null,
   children,
   leftMenu = null,
+  noPadding = false,
   ...props
 }) {
   const [isElementHovered, setIsElementHovered] = useState(false);
@@ -28,8 +29,8 @@ export default function ContainerWithMenu({
         <div
           style={{
             position: "absolute",
-            right: 16,
-            top: 2,
+            right: !noPadding ? 16 : 0,
+            top: !noPadding ? 2 : 0,
             zIndex: 20,
             opacity: isElementHovered ? 100 : 0,
             transition: "opacity 100ms linear",

@@ -1,5 +1,5 @@
 import {
-  EDIT_NOTE,
+  EDIT_CARD,
   CREATE_CARD,
   GET_CARDS,
   SAVE_NEW_NOTE_TAGS,
@@ -9,7 +9,7 @@ import {
 
 export default function (cards = [], action) {
   switch (action.type) {
-    case EDIT_NOTE:
+    case EDIT_CARD:
       return cards.map((card) => {
         return card._id === action.payload._id ? action.payload : card;
       });

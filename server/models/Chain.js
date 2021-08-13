@@ -10,7 +10,8 @@ const chainSchema = Schema({
     enum: ["uniDirectional", "biDirectional"],
     default: "uniDirectional",
   },
-  connectors: [{ type: Schema.Types.ObjectId, ref: "Card", default: [] }],
+  connector: { type: Schema.Types.ObjectId, ref: "Card", default: null },
+  nodes: [{ type: Schema.Types.ObjectId, ref: "Card", default: [] }],
   outcomes: [{ type: Schema.Types.ObjectId, ref: "Blog", default: [] }],
 });
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Button, Card, Popconfirm, Tooltip } from "antd";
 import { useDispatch, useSelector } from "react-redux";
-import { deleteCard, editNote } from "../../../../_actions/card_actions";
+import { deleteCard, editCard } from "../../../../_actions/card_actions";
 import SlateEditor from "../../../editor/SlateEditor";
 import TitleEditor from "../../../editor/TitleEditor/TitleEditor";
 import { removeCardFromList } from "../../../../_actions/post_actions";
@@ -13,6 +13,7 @@ export default function NoteCard({
   withTitle = true,
   simpleStyle = false,
   index,
+  isDeletable = true,
   onRemove = () => {
     console.log(`remove me`);
   },
@@ -65,30 +66,31 @@ export default function NoteCard({
     };
     console.log(`content`, content);
     const variables = { id: card._id, updates };
-    dispatch(editNote(variables));
+    dispatch(editCard(variables));
   };
 
   const menu = (
     <div>
-      {" "}
-      <Popconfirm
-        placement="bottomRight"
-        title={"Delete Card Permanently"}
-        onConfirm={() => {
-          onRemove();
-        }}
-        okText="Yes"
-        cancelText="No"
-      >
-        <Tooltip title="Remove Note">
-          <Button
-            type="text"
-            shape="circle"
-            size="small"
-            icon={<span>X</span>}
-          />
-        </Tooltip>
-      </Popconfirm>
+      {isDeletable && (
+        <Popconfirm
+          placement="bottomRight"
+          title={"Delete Card Permanently"}
+          onConfirm={() => {
+            onRemove();
+          }}
+          okText="Yes"
+          cancelText="No"
+        >
+          <Tooltip title="Remove Note">
+            <Button
+              type="text"
+              shape="circle"
+              size="small"
+              icon={<span>X</span>}
+            />
+          </Tooltip>
+        </Popconfirm>
+      )}
     </div>
   );
 
@@ -107,7 +109,7 @@ export default function NoteCard({
       <ContainerWithMenu menu={menu}>
         <Card
           bodyStyle={{ padding: "2px" }}
-          style={{ width: "100%" }}
+          style={{ minWidth: "180px" }}
           hoverable={true}
         >
           {withTitle && (
@@ -116,11 +118,10 @@ export default function NoteCard({
               setTitle={setTitle}
               name={name}
               setName={setName}
-              bgc={"#ffffff"}
               darkenBgc={simpleStyle ? false : true}
-              size={4}
+              size={5}
               justify="center"
-              style={{ fontSize: "20px" }}
+              style={{ fontWeight: "bolder", backgroundColor: "transparent" }}
             />
           )}
           <SlateEditor

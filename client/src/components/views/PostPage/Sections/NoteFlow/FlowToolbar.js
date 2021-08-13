@@ -1,13 +1,16 @@
 import React, { useState, useCallback } from "react";
 import { useStoreState, useStoreActions } from "react-flow-renderer";
 import { addCardToList } from "../../../../../_actions/post_actions";
-import { createCard } from "../../../../../api";
+// import { createCard, editCard } from "../../../../../api";
+import { createCard, editCard } from "../../../../../_actions/card_actions";
 import { useDispatch } from "react-redux";
 import NoteFlowNode from "./NoteFlowNode";
+import { editChain } from "../../../../../api";
 
 /**
  * @param {array} elements array of currentnode elements
  * @param {array} setElements set method of currentnode elements state
+ * @param {Object}parentContainer
  * @returns FlowToolbar
  */
 
@@ -15,6 +18,7 @@ export default function FlowToolbar({
   postId,
   sectionId,
   listId,
+  parentContainer,
   elements,
   setElements,
 }) {
@@ -35,9 +39,6 @@ export default function FlowToolbar({
 
   const addNode = async () => {
     const variables = {
-      postId,
-      sectionId,
-      listId: listId,
       content: [],
       flowData: {
         type: "NODE",
@@ -47,13 +48,23 @@ export default function FlowToolbar({
           y: nodes[nodes.length - 1]?.position.y || 100,
         },
       },
-      tags: [],
     };
 
-    const { data } = await createCard(variables);
-    const newCard = data.card;
+    const newCard = await dispatch(createCard(variables));
 
-    dispatch(addCardToList({ postId, sectionId, listId, cardId: newCard._id }));
+
+    if (parentContainer && newCard) {
+      const update = parentContainer.nodes
+        ? { $push: { nodes: newCard._id } }
+        : { nodes: [newCard._id] };
+
+      const editVariables = {
+        id: parentContainer.chainId,
+        updates: update,
+      };
+      const updatedChain = await editChain(editVariables);
+      console.log(`updatedChain`, updatedChain);
+    }
   };
 
   return (

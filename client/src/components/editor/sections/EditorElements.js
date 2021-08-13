@@ -35,7 +35,6 @@ export const DefaultElement = ({ attributes, children, element }) => {
   const style = element.style;
   const fontSize = element.fontSize || "1rem";
   const justify = element.justify || "start";
-  console.log(`fontSize  i getttt elementt ehre`, element.fontSize);
   return (
     <p
       style={{
@@ -160,12 +159,10 @@ export const MathBlock = ({ attributes, children, element }) => {
   const bcg = backgroundColor;
   const [mathFieldFocus, setMathFieldFocus] = useState(false);
   const [mathFieldSelected, setMathFieldSelected] = useState(false);
-  console.log(`isReadOnly`, isReadOnly);
   useEffect(() => {
     if (selected && focused) {
       setMathFieldSelected(true);
 
-      console.log(`editor.selection`, editor.selection);
       const { anchor, focus } = editor.selection;
       const [node] = Editor.nodes(editor, {
         match: (n, path) => n.type === "math-block",

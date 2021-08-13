@@ -462,7 +462,7 @@ export default function SlateEditor(props) {
             top: 0,
             zIndex: 10,
             height: "100%",
-            backgroundColor: "#DAE4FF",
+            // backgroundColor: "#DAE4FF",
             opacity: isCardHovered ? 1 : 0,
             width: isCardHovered ? "20px" : "0",
             transition: "linear 0.1s",

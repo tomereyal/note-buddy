@@ -32,10 +32,6 @@ export const removeSectionFromPost = (variables) =>
   axios.post(`${POST_SERVER}/removeSectionFromPost`, variables);
 export const editSection = (variables) =>
   axios.post(`${POST_SERVER}/editSection`, variables);
-export const setSectionBgc = (variables) =>
-  axios.post(`${POST_SERVER}/setSectionBgc`, variables);
-export const setSectionPattern = (variables) =>
-  axios.post(`${POST_SERVER}/setSectionPattern`, variables);
 export const createListInSection = (variables) =>
   axios.post(`${POST_SERVER}/createListInSection`, variables);
 export const removeListFromSection = (variables) =>
@@ -62,8 +58,9 @@ export const fetchChainsByIds = (variables) =>
   axios.post(`${CHAIN_SERVER}/fetchChainsByIds`, variables);
 export const deleteChain = (chainId) =>
   axios.delete(`${CHAIN_SERVER}/deleteChain/${chainId}`);
-export const editChain = (variables) =>
-  axios.put(`${CHAIN_SERVER}/${variables.id}`, variables.updates);
+export const editChain = (variables) => {
+  return axios.put(`${CHAIN_SERVER}/${variables.id}`, variables.updates);
+};
 export const createCardInChain = (variables) =>
   axios.post(`${CHAIN_SERVER}/createCardInChain`, variables);
 //=========================================
@@ -76,9 +73,8 @@ export const deleteCard = (cardId) => axios.delete(`${CARD_SERVER}/${cardId}`);
 export const getCardTags = () => axios.get(`${CARD_SERVER}/fetchCardTags`);
 export const getTaggedCards = (tagName) =>
   axios.get(`${CARD_SERVER}/fetchTaggedCards/${tagName}`);
-export const editNote = (variables) =>
+export const editCard = (variables) =>
   axios.put(`${CARD_SERVER}/${variables.id}`, variables.updates);
-
 export const saveNewNoteTags = (variables) =>
   axios.post(`${CARD_SERVER}/saveNewNoteTags`, variables);
 export const saveExistingNoteTags = (variables) =>

@@ -101,7 +101,13 @@ export default function TitleEditor(props) {
         return (
           <CardTitle
             {...props}
-            element={{ ...props.element, color: color || "", style }}
+            element={{
+              ...props.element,
+              color: color || "",
+              darkenBgc,
+              size,
+              style,
+            }}
           />
         );
       case "math-block":
@@ -144,7 +150,6 @@ export default function TitleEditor(props) {
         fontWeight: isBold ? "bold" : "normal",
         margin: "0px 10px",
         padding: 0,
-        // ...style,
       }}
       onDoubleClick={(e) => {
         e.stopPropagation();
@@ -222,6 +227,8 @@ const CardTitle = ({ attributes, children, element }) => {
         margin: 0,
         // boxShadow: selected && focused ? "0 0 0 1px #F4F1F0" : "none",
         fontFamily: fontStyle,
+
+        fontSize: fontSize,
         ...style,
       }}
       {...attributes}

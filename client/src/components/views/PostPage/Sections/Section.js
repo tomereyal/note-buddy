@@ -24,8 +24,9 @@ import {
   DeleteRowOutlined,
   DownOutlined,
 } from "@ant-design/icons";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
+  createCardInList,
   createListInSection,
   createSectionInPost,
   editSection,
@@ -152,6 +153,23 @@ export default function Section(props) {
       </Menu.Item>
     </Menu>
   );
+
+  const addEdgeToDB = ({ listId, postId, sectionId }) => {
+    return async ({ target, source }) => {
+      const variables = {
+        postId,
+        sectionId,
+        listId,
+        flowData: {
+          type: "EDGE",
+          source,
+          target,
+        },
+      };
+
+      dispatch(createCardInList(variables));
+    };
+  };
 
   const childSwitchRenderer = (list, index, lists) => {
     const { type } = list;

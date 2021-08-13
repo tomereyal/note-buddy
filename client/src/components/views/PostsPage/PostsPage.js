@@ -13,7 +13,17 @@ import {
   addPostToFolder,
 } from "../../../_actions/folder_actions";
 
-import { Button, Layout, Card, Avatar, Col, Typography, Row, Menu } from "antd";
+import {
+  Button,
+  Layout,
+  Card,
+  Avatar,
+  Col,
+  Typography,
+  Row,
+  Menu,
+  Popconfirm,
+} from "antd";
 import {
   SettingOutlined,
   EditOutlined,
@@ -106,12 +116,18 @@ export default function PostsPage(props) {
                   history.push(`/post/${blog._id}`);
                 }}
                 actions={[
-                  <DeleteOutlined
-                    key="setting"
-                    onClick={() => {
+                  <Popconfirm
+                    placement="bottomLeft"
+                    title={"Delete Card Permanently"}
+                    key="delete"
+                    onConfirm={() => {
                       removePost(blog._id);
                     }}
-                  />,
+                    okText="Yes"
+                    cancelText="No"
+                  >
+                    <DeleteOutlined />
+                  </Popconfirm>,
                   <EditOutlined key="edit" />,
                   <Link to={`/post/${blog._id}`}>
                     <EllipsisOutlined key="ellipsis" />
@@ -171,6 +187,18 @@ export default function PostsPage(props) {
               </Col>
             </Row>
           </div>
+          <Row justify="end">
+            <Col style={{ margin: "10px" }}>
+              <Button
+                onClick={() => {
+                  console.log(`cards`);
+                  props.history.push(`/folder/cards/${folder._id}`);
+                }}
+              >
+                checkout cards
+              </Button>
+            </Col>
+          </Row>
         </Content>
       </Layout>
     )

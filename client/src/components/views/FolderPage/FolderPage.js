@@ -1,10 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  Route,
-  Switch,
-
-  useRouteMatch,
-} from "react-router-dom";
+import { Route, Switch, useRouteMatch } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import {
   createFolder,
@@ -118,6 +113,9 @@ export default function FolderPage(props) {
                 onChange: changeFolderName(folder._id),
                 tooltip: false,
               }}
+              onClick={(e) => {
+                props.history.push(`${url}/${folder._id}`);
+              }}
             >
               {folder.name}
             </Paragraph>
@@ -140,53 +138,25 @@ export default function FolderPage(props) {
               </Popconfirm>
             </span>
           ),
-          children: [
-            {
+          children: folder.blogs.map((blog) => {
+            return {
               title: (
-                <span
-                  onClick={(e) => {
-                    props.history.push(`${url}/${folder._id}`);
-                  }}
-                  style={{ width: "100%", zIndex: 5 }}
-                >
-                  Nodes
-                </span>
+                <BlogSubmenu
+                  key={blog._id + "1"}
+                  index={index}
+                  blog={blog}
+                  folderId={folder._id}
+                  history={props.history}
+                />
               ),
-              key: folder._id + "posts",
-
-              children: folder.blogs.map((blog) => {
-                return {
-                  title: (
-                    <BlogSubmenu
-                      key={blog._id + "1"}
-                      index={index}
-                      blog={blog}
-                      folderId={folder._id}
-                      history={props.history}
-                    />
-                  ),
-                  key: blog._id,
-                };
-              }),
-            },
-            {
-              key: folder._id + "cards",
-              title: (
-                <span
-                  style={{ width: "100%", zIndex: 5 }}
-                  onClick={() => {
-                    console.log(`cards`);
-                    props.history.push(`${url}/cards/${folder._id}`);
-                  }}
-                >
-                  Cards
-                </span>
-              ),
-            },
-          ],
+              key: blog._id,
+            };
+          }),
         };
       })
     : [];
+
+
   return (
     <Layout style={{ minHeight: "100vh" }}>
       {!folders.length ? (
@@ -209,6 +179,7 @@ export default function FolderPage(props) {
           onCollapse={() => {
             setCollapsed(!collapsed);
           }}
+          style={{ width: "300px" }}
         >
           <div>
             <Tree

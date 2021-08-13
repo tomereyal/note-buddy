@@ -2,6 +2,9 @@ const express = require("express");
 const router = express.Router();
 const { Blog, Section, List } = require("../models/Blog");
 const { Card, Tag } = require("../models/Card");
+const MongoClient = require("mongodb").MongoClient;
+const assert = require("assert");
+const { ObjectId } = require("mongodb");
 
 const { auth } = require("../middleware/auth");
 const multer = require("multer");
@@ -45,41 +48,13 @@ router.post("/uploadfiles", (req, res) => {
 });
 
 router.post("/createPost", (req, res) => {
-  let defaultCard = new Card({});
-  let defaultList = new List({
-    name: "new list",
-    cards: [defaultCard._id],
-  });
-  let defaultSection = new Section({
-    lists: [defaultList],
-    name: "Section 1",
-  });
-  let blog = new Blog({
-    name: req.body.name,
-    writer: req.body.writer,
-    image: req.body.image,
-    components: req.body.components,
-    conditions: req.body.conditions,
-    title: req.body.title,
-    roles: req.body.roles,
-    sections: [defaultSection],
-  });
-  defaultCard.location = {
-    post: blog._id,
-    section: defaultSection._id,
-    list: defaultList._id,
-  };
-  defaultCard.save((err, card) => {
+  const { name, writer, image, components, conditions, title, roles } =
+    req.body;
+  let blog = new Blog(req.body);
+  blog.saveAndPopulate((err, postInfo) => {
     if (err) return res.json({ success: false, err });
-    blog.saveAndPopulate((err, postInfo) => {
-      if (err) return res.json({ success: false, err });
-      return res.status(200).json({ success: true, postInfo });
-    });
+    return res.status(200).json({ success: true, postInfo });
   });
-
-  //search Folder collection for "folder-name" (req.body.folderName) and add it there.
-  //ALWAYS search Folder collection for "recent" folder and add it there.
-  //ALWAYS search Folder collection for "all blogs" folder and add it there.
 });
 
 router.delete("/deletePost/:postId", (req, res) => {
@@ -156,7 +131,15 @@ router.get("/fetchPost/:postId", (req, res) => {
       path: "examples",
       model: "Chain",
       populate: {
-        path: "connectors",
+        path: "connector",
+        model: "Card",
+      },
+    })
+    .populate({
+      path: "examples",
+      model: "Chain",
+      populate: {
+        path: "nodes",
         model: "Card",
       },
     })
@@ -180,7 +163,7 @@ router.get("/fetchPost/:postId", (req, res) => {
       path: "chains",
       model: "Chain",
       populate: {
-        path: "connectors",
+        path: "connector",
         model: "Card",
       },
     })
@@ -198,142 +181,75 @@ router.get("/fetchPost/:postId", (req, res) => {
     });
 });
 
-router.post("/editPost", (req, res) => {
+router.post("/editPost", async (req, res) => {
   const { postId, editArr } = req.body;
-
-  Blog.findById(postId, function (err, post) {
-    if (err) {
-      console.log(err);
-    }
-
+  try {
+    const post = await Blog.findById(postId);
     editArr.forEach(({ editType, editValue }) => {
       post[editType] = editValue;
     });
-    post.saveAndPopulate((err, result) => {
-      if (err) return res.json({ success: false, err });
-      res.status(200).json(result);
-    });
-  });
+    const result = await post.saveAndPopulate();
+    return res.status(200).json(result);
+  } catch (error) {
+    return res.json({ success: false, error });
+  }
 });
 
-router.post("/getList", (req, res) => {
-  const postId = req.body.postId;
-  const sectionId = req.body.sectionId;
-  const listId = req.body.listId;
-  Blog.findById(postId, function (err, post) {
-    if (err) {
-      console.log(err);
-    }
+router.post("/getList", async (req, res) => {
+  const { postId, sectionId, listId } = req.body;
+  try {
+    const post = await Blog.findById(postId);
     let queriedList = post.sections.id(sectionId).lists.id(listId);
-
-    post.save((err, result) => {
-      if (err) return res.json({ success: false, err });
-      res.status(200).json(queriedList);
-    });
-  });
+    res.status(200).json(queriedList);
+  } catch (error) {
+    return res.json({ success: false, err });
+  }
 });
 
-router.post("/createSectionInPost", (req, res) => {
-  const variables = req.body;
-  const { postId, name, order, backgroundPattern, backgroundColor } = variables;
-
-  const defaultCard = new Card({});
-  const defaultList = new List({
-    name: "new list",
-    order,
-    cards: [defaultCard._id],
-  });
+router.post("/createSectionInPost", async (req, res) => {
+  const { postId, name, order, backgroundPattern, backgroundColor } = req.body;
   const newSection = new Section({
     name,
     order,
-    lists: [defaultList],
     backgroundPattern,
     backgroundColor,
   });
-  defaultCard.location = {
-    post: postId,
-    section: newSection._id,
-    list: defaultList._id,
-  };
-  defaultCard.save((err, card) => {
-    if (err) return res.json({ success: false, err });
-    Blog.findOneAndUpdate(
+  try {
+    const updatedPost = await Blog.findOneAndUpdate(
       { _id: postId },
       {
         $push: {
           sections: { $each: [newSection], $position: order },
         },
       },
-      { new: true },
-      (err, updatedPost) => {
-        if (err) return res.json({ success: false, err });
-        updatedPost
-          .populate({
-            path: "sections",
-            model: "Section",
-            populate: {
-              path: "lists",
-              model: "List",
-              populate: { path: "cards", model: "Card" },
-            },
-          })
-          .execPopulate((err, updatedPost) => {
-            if (err) return res.json({ success: false, err });
-            res.status(200).json(updatedPost);
-          });
-      }
+      { new: true }
     );
-  });
+
+    const populatedPost = await updatedPost.saveAndPopulate();
+    res.status(200).json(populatedPost);
+  } catch (error) {
+    return res.json({ success: false, error });
+  }
 });
 
-router.post("/removeSectionFromPost", (req, res) => {
-  const sectionId = req.body.sectionId;
-  Card.deleteMany({ "location.section": sectionId }, function (err, result) {
-    if (err) console.log(`card remove from section err`, err);
-    // if (err) return res.json({ success: false, err });
-    Blog.findById(req.body.postId, (err, post) => {
-      if (err) return res.json({ success: false, err });
+router.post("/removeSectionFromPost", async (req, res) => {
+  const { postId, sectionId } = req.body;
 
-      post.sections = post.sections.filter((section) => {
-        return section._id != sectionId;
-      });
-      post.saveAndPopulate((err, blogInfo) => {
-        if (err) return res.json({ success: false, err });
-        res.status(200).json(blogInfo);
-      });
-    });
-  });
-});
-
-router.post("/setSectionBgc", (req, res) => {
-  const { postId, sectionId, backgroundColor } = req.body;
-  Blog.findById(postId, function (err, post) {
-    if (err) {
-      console.log(err);
-    }
-    let section = post.sections.id(sectionId);
-    post.sections.id(sectionId).backgroundColor = backgroundColor;
-    // section.backgroundColor = backgroundColor;
-    post.saveAndPopulate((err, result) => {
-      if (err) return res.json({ success: false, err });
-      res.status(200).json(result);
-    });
-  });
-});
-router.post("/setSectionPattern", (req, res) => {
-  const { postId, sectionId, backgroundPattern } = req.body;
-  Blog.findById(postId, function (err, post) {
-    if (err) {
-      console.log(err);
-    }
-    let section = post.sections.id(sectionId);
-    post.sections.id(sectionId).backgroundPattern = backgroundPattern;
-    // section.backgroundPattern = backgroundPattern;
-    post.save((err, result) => {
-      if (err) return res.json({ success: false, err });
-      res.status(200).json(result);
-    });
-  });
+  try {
+    const updatedPost = await Blog.findOneAndUpdate(
+      { _id: postId },
+      {
+        $pull: {
+          sections: { _id: sectionId },
+        },
+      },
+      { new: true }
+    );
+    const populatedPost = await updatedPost.saveAndPopulate();
+    res.status(200).json(populatedPost);
+  } catch (error) {
+    return res.json({ success: false, err });
+  }
 });
 
 router.post("/editSection", (req, res) => {
@@ -355,7 +271,7 @@ router.post("/editSection", (req, res) => {
   });
 });
 
-router.post("/createListInSection", (req, res) => {
+router.post("/createListInSection", async (req, res) => {
   const { postId, sectionId, order, type } = req.body;
   const defaultCard = new Card({});
   const newList = new List({
@@ -364,47 +280,32 @@ router.post("/createListInSection", (req, res) => {
     order,
     cards: [defaultCard._id],
   });
-  defaultCard.location = {
-    post: postId,
-    section: sectionId,
-    list: newList._id,
-  };
-  defaultCard.save((err, card) => {
-    if (err) return res.json({ success: false, err });
-    Blog.findById(postId, function (err, post) {
-      if (err) {
-        console.log(err);
-      }
 
-      let lists = post.sections.id(sectionId).lists;
-      lists.push(newList);
-      post.saveAndPopulate((err, result) => {
-        if (err) return res.json({ success: false, err });
-        res.status(200).json(result);
-      });
-    });
-  });
+  try {
+    const card = await defaultCard.save();
+    const post = await Blog.findById(postId);
+    let lists = post.sections.id(sectionId).lists;
+    lists.push(newList);
+    const result = post.saveAndPopulate();
+    res.status(200).json(result);
+  } catch (error) {
+    return res.json({ success: false, error });
+  }
 });
 
-router.post("/removeListFromSection", (req, res) => {
+router.post("/removeListFromSection", async (req, res) => {
   const { postId, sectionId, listId } = req.body;
-  Card.deleteMany({ "location.list": listId }, function (err, result) {
-    if (err) console.log(`card remove from list err`, err);
-    // if (err) return res.json({ success: false, err });
-    Blog.findById(postId, function (err, post) {
-      if (err) {
-        console.log(err);
-      }
-      let lists = post.sections.id(sectionId).lists;
-      post.sections.id(sectionId).lists = lists.filter((list) => {
-        return list._id != listId;
-      });
-      post.saveAndPopulate((err, result) => {
-        if (err) return res.json({ success: false, err });
-        res.status(200).json(result);
-      });
+  try {
+    const post = await Blog.findById(postId);
+    let lists = post.sections.id(sectionId).lists;
+    post.sections.id(sectionId).lists = lists.filter((list) => {
+      return list._id != listId;
     });
-  });
+    const result = await post.saveAndPopulate();
+    res.status(200).json(result);
+  } catch (error) {
+    return res.json({ success: false, err });
+  }
 });
 
 router.post("/editList", (req, res) => {
@@ -428,25 +329,56 @@ router.post("/editList", (req, res) => {
   });
 });
 
-router.post("/createCardInList", (req, res) => {
+router.post("/createCardInList", async (req, res) => {
   const { postId, sectionId, listId, order, flowData } = req.body;
   const newCard = new Card({
     order,
     flowData,
-    location: { post: postId, section: sectionId, list: listId },
   });
-  newCard.save((err, card) => {
-    if (err) return res.json({ success: false, err });
-    Blog.findById(postId, function (err, post) {
-      if (err) {
-        console.log(err);
-      }
-      post.sections.id(sectionId).lists.id(listId).cards.push(newCard._id);
-      post.saveAndPopulate((err, updatedPost) => {
-        if (err) return res.json({ success: false, err });
-        res.status(200).json(updatedPost);
-      });
-    });
+  try {
+    const card = await newCard.save();
+    const post = await Blog.findById(postId);
+    post.sections.id(sectionId).lists.id(listId).cards.push(card._id);
+    const updatedPost = await post.saveAndPopulate();
+    res.status(200).json(updatedPost);
+  } catch (error) {
+    return res.json({ success: false, error });
+  }
+});
+
+router.get("/getList/:listId", async (req, res) => {
+  const listId = req.params.listId;
+  try {
+    const filter = {
+      "sections.lists._id": new ObjectId("610d2b25a6a770111857ab13"),
+    };
+    const filter2 = {
+      _id: new ObjectId("610d2b25a6a770111857ab16"),
+    };
+    const projection = {
+      "sections.lists.cards": 1,
+    };
+    const [response] = await Blog.find(filter2).select(projection);
+    const cards = response.sections[0].lists[0].cards;
+    res.send(cards);
+  } catch (error) {
+    console.log(`error`, error);
+  }
+});
+
+router.post("/getList", (req, res) => {
+  const { postId, sectionId, listId } = req.body;
+
+  const postID = new ObjectId(postId);
+  const sectionID = new ObjectId(sectionId);
+  const listID = new ObjectId(listId);
+
+  Blog.findById(postID, function (err, post) {
+    if (err) {
+      console.log(err);
+    }
+    let cards = post.sections.id(sectionID).lists.id(listID).cards;
+    res.send(cards);
   });
 });
 
@@ -482,30 +414,6 @@ router.post("/removeCardFromList", (req, res) => {
         if (err) return res.json({ success: false, err });
         res.status(200).json(result);
       });
-    });
-  });
-});
-
-router.post("/editNote", (req, res) => {
-  const { postId, sectionId, listId, cardId, editArr } = req.body;
-  Card.findById(cardId, function (err, card) {
-    if (err) {
-      console.log(err);
-    }
-    editArr.forEach(({ editType, editValue }) => {
-      switch (editType) {
-        case "tags":
-          card[editType] = editValue.map((tag) => {
-            return new Tag({ name: tag.character });
-          });
-          break;
-        default:
-          card[editType] = editValue;
-      }
-    });
-    card.save((err, cardInfo) => {
-      if (err) return res.json({ success: false, err });
-      return res.status(200).json({ success: true, cardInfo });
     });
   });
 });

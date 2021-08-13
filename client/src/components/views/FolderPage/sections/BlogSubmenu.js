@@ -25,6 +25,11 @@ export default function BlogSubmenu(props) {
         display: "inline-flex",
         alignItems: "center",
         height: "100%",
+        minWidth: "100%",
+        width: "150px",
+        margin: 0,
+        padding: 0,
+        backgroundColor: "transparent",
         ...style,
       }}
     >
@@ -40,22 +45,12 @@ export default function BlogSubmenu(props) {
           display: "inline-flex",
           justifyContent: "center",
           alignItems: "center",
+          backgroundColor: "transparent",
+          fontSize: "12px",
+          padding: 0,
+          margin: 0,
         }}
       />
-      {/* 
-      <DeleteOutlined
-        style={{ zindex: "5", color: "red" }}
-        onClick={(e) => {
-          // e.preventDefault();
-
-          const variables = {
-            postId: blog._id,
-            folderId,
-          };
-          dispatch(deletePostFromFolder(variables));
-          dispatch(deletePost(blog._id));
-        }}
-      /> */}
     </div>
   );
 }

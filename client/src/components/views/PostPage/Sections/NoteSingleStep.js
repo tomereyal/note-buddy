@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Button, Card, Tooltip } from "antd";
 import { useDispatch, useSelector } from "react-redux";
-import { editNote } from "../../../../_actions/card_actions";
+import { editCard } from "../../../../_actions/card_actions";
 import SlateEditor from "../../../editor/SlateEditor";
 import TitleEditor from "../../../editor/TitleEditor/TitleEditor";
 import TextEditor from "../../../editor/TextEditor";
@@ -63,7 +63,7 @@ export default function NoteSingleStep({
       name,
     };
     const variables = { id: card._id, updates };
-    dispatch(editNote(variables));
+    dispatch(editCard(variables));
   };
   const removeCard = () => {
     const variables = cardData;
@@ -127,17 +127,15 @@ export default function NoteSingleStep({
               }
               style={{ paddingBottom: "10px" }}
               title={
-       
-                  <TitleEditor
-                    title={title}
-                    setTitle={setTitle}
-                    name={name}
-                    setName={setName}
-                    bgc={"#ffffff"}
-                    darkenBgc={false}
-                    size={4}
-                  />
-           
+                <TitleEditor
+                  title={title}
+                  setTitle={setTitle}
+                  name={name}
+                  setName={setName}
+                  bgc={"#ffffff"}
+                  darkenBgc={false}
+                  size={4}
+                />
               }
               description={
                 <SlateEditor

@@ -1,6 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Button, Avatar, Tag, Space, Table, Select, Row, Col } from "antd";
+import {
+  Button,
+  Avatar,
+  Tag,
+  Space,
+  Table,
+  Select,
+  Row,
+  Col,
+  Tooltip,
+} from "antd";
 import {
   createChain,
   createExampleChain,
@@ -16,7 +26,7 @@ import NoteCard from "./Sections/NoteCard";
 import CreatePostModule from "../CreatePostModule";
 import { createPostInFolder } from "../../../_actions/folder_actions";
 import { useHistory } from "react-router-dom";
-
+import NoteFlow from "./Sections/NoteFlow/NoteFlow";
 addStyles();
 
 export default function ChainsSection({
@@ -27,6 +37,7 @@ export default function ChainsSection({
   const [post, setPost] = useState(initialPost);
   const { chains: generalChains, image, _id, examples } = post;
   const chains = isExample ? examples : generalChains;
+
   const dispatch = useDispatch();
   const posts = useSelector((state) => state.posts);
   const cards = useSelector((state) => state.cards);
@@ -39,13 +50,10 @@ export default function ChainsSection({
     })
     .filter((card) => card.name);
 
-  console.log(`cards`, cardsNameAndId);
-
   let history = useHistory();
 
   useEffect(() => {
     setPost(initialPost);
-    console.log(`post from chainsSeciton`, initialPost);
   }, [initialPost]);
 
   const addNewChain = async () => {
@@ -70,6 +78,8 @@ export default function ChainsSection({
     getPostFromServer(_id);
   };
 
+  //======ROW CELL FUNCTIONS===========================
+
   const addNewHead = (chainId, chainHeads) => {
     return async function (newChainHeadId) {
       const variables = {
@@ -80,11 +90,11 @@ export default function ChainsSection({
       getPostFromServer(_id);
     };
   };
-  const addNewConnector = (chainId, chainConnectors) => {
+  const addNewConnector = (chainId) => {
     return async function (connectorId) {
       const variables = {
         id: chainId,
-        updates: { connectors: [...chainConnectors, connectorId] },
+        updates: { connectors: connectorId },
       };
       const { data } = await editChain(variables);
       getPostFromServer(_id);
@@ -99,9 +109,8 @@ export default function ChainsSection({
 
       const variables = {
         id: chainId,
-        updates: { heads: [...chainHeads.map(({ _id }) => _id), post] },
+        updates: { $push: { heads: post._id } },
       };
-      console.log(`variables`, variables);
       const { data } = await editChain(variables);
       getPostFromServer(_id);
     };
@@ -134,23 +143,22 @@ export default function ChainsSection({
       const variables = {
         id: chainId,
         updates: {
-          outcomes: chainOutcomes.filter(
-            (outcome) => outcome._id !== outcomeId
-          ),
+          $pull: { outcomes: outcomeId },
+          // outcomes: chainOutcomes.filter(
+          //   (outcome) => outcome._id !== outcomeId
+          // ),
         },
       };
       const { data } = await editChain(variables);
       getPostFromServer(_id);
     };
   };
-  const removeConnector = (chainId, chainConnector, connectorId) => {
+  const removeConnector = (chainId) => {
     return async function () {
       const variables = {
         id: chainId,
         updates: {
-          connectors: chainConnector.filter(
-            (connector) => connector._id !== connectorId
-          ),
+          connector: null,
         },
       };
       const { data } = await editChain(variables);
@@ -176,11 +184,6 @@ export default function ChainsSection({
     return async function () {
       const variables = {
         chainId,
-        // sectionId,
-        // listId: list._id,
-        // // order: index,
-        // content: [],
-        // tags: [],
       };
       const { data } = await createCardInChain(variables);
       const { card } = data;
@@ -189,244 +192,272 @@ export default function ChainsSection({
     };
   };
 
-  const columns = [
-    {
-      title: "Heads",
-      dataIndex: "heads",
-      key: "head",
-      render: (heads, row) => (
-        <ContainerWithMenu
-          key={"heads" + row._id}
-          menu={
-            <div>
-              <SelectWithToggle
-                options={postsNameAndId}
-                onSelect={addNewHead(row.chainId, heads)}
-              />
-              <CreatePostModule
-                createPostFunction={createNewHead(row.chainId, heads)}
-              />
-            </div>
-          }
-        >
-          {heads?.map((head, index) => {
-            return (
-              <div style={{ position: "relative" }} key={head._id}>
+  // =======ROW CELL RENDER FUNCTIONS ================
+
+  const renderHeads = (heads, row) => (
+    <ContainerWithMenu
+      key={"heads" + row._id}
+      menu={
+        <div>
+          <SelectWithToggle
+            options={postsNameAndId}
+            onSelect={addNewHead(row.chainId, heads)}
+          />
+          <CreatePostModule
+            createPostFunction={createNewHead(row.chainId, heads)}
+          />
+        </div>
+      }
+    >
+      {heads?.map((head, index) => {
+        return (
+          <div style={{ position: "relative" }} key={head._id}>
+            <ContainerWithMenu
+              key={head._id + index}
+              leftMenu={
+                <Button
+                  size="small"
+                  shape="circle"
+                  onClick={removeHead(row.chainId, heads, head._id)}
+                >
+                  X
+                </Button>
+              }
+            >
+              <div style={{ paddingLeft: "24px", display: "flex" }}>
+                <Avatar
+                  src={head.image}
+                  onClick={() => {
+                    history.push(`/post/${head._id}`);
+                  }}
+                ></Avatar>
+                <div>
+                  <TitleEditor
+                    isReadOnly={true}
+                    title={head.title}
+                    name={head.name}
+                    style={{
+                      fontSize: "14px",
+                      backgroundColor: "transparent",
+                    }}
+                  />
+                  {head.conditions ? (
+                    <TitleEditor
+                      isReadOnly={true}
+                      title={head.conditions}
+                      style={{
+                        fontSize: "10px",
+                        color: "red",
+                        backgroundColor: "transparent",
+                      }}
+                    />
+                  ) : (
+                    ""
+                  )}
+                </div>
+              </div>
+            </ContainerWithMenu>
+          </div>
+        );
+      })}
+    </ContainerWithMenu>
+  );
+
+  const renderConnector = (connector, row, index) => {
+    const arrowLatex =
+      row.type === "uniDirectional"
+        ? "\\longrightarrow "
+        : "\\longleftrightarrow";
+    return (
+      <ContainerWithMenu
+        key={"connector" + row._id}
+        menu={
+          <SelectWithToggle
+            options={cardsNameAndId}
+            onSelect={addNewConnector(row.chainId, connector)}
+          />
+        }
+      >
+        <Row justify="center">
+          <Col>
+            {connector ? (
+              <div style={{ position: "relative" }} key={connector._id}>
                 <ContainerWithMenu
-                  key={head._id + index}
+                  key={connector._id + index}
                   leftMenu={
                     <Button
                       size="small"
                       shape="circle"
-                      onClick={removeHead(row.chainId, heads, head._id)}
+                      onClick={removeConnector(row.chainId)}
                     >
                       X
                     </Button>
                   }
                 >
-                  <div style={{ paddingLeft: "24px", display: "flex" }}>
-                    <Avatar
-                      src={head.image}
-                      onClick={() => {
-                        history.push(`/post/${head._id}`);
-                      }}
-                    ></Avatar>
-                    <div>
-                      <TitleEditor
-                        isReadOnly={true}
-                        title={head.title}
-                        name={head.name}
-                        style={{ fontSize: "14px" }}
-                      />
-                      {head.conditions ? (
-                        <TitleEditor
-                          isReadOnly={true}
-                          title={head.conditions}
-                          style={{ fontSize: "10px", color: "red" }}
-                        />
-                      ) : (
-                        ""
-                      )}
-                    </div>
+                  <div style={{ width: "400px" }}>
+                    <a>
+                      <NoteCard
+                        card={connector}
+                        simpleStyle={true}
+                        isDeletable={false}
+                      ></NoteCard>
+                    </a>
                   </div>
                 </ContainerWithMenu>
               </div>
-            );
-          })}
-        </ContainerWithMenu>
-      ),
-    },
-    {
-      title: "From",
-      dataIndex: "connectors",
-      key: "connectors",
-      render: (connectors, row, index) => {
-        const arrowLatex =
-          row.type === "uniDirectional"
-            ? "\\longrightarrow "
-            : "\\longleftrightarrow";
-        return (
-          <ContainerWithMenu
-            key={"connectors" + row._id}
-            menu={
-              <SelectWithToggle
-                options={cardsNameAndId}
-                onSelect={addNewConnector(row.chainId, connectors)}
-              />
-            }
-          >
-            <Row justify="center">
-              <Col>
-                {connectors.length ? (
-                  connectors.map((connector, index) => {
-                    return (
-                      <div style={{ position: "relative" }} key={connector._id}>
-                        <ContainerWithMenu
-                          key={connector._id + index}
-                          leftMenu={
-                            <Button
-                              size="small"
-                              shape="circle"
-                              onClick={removeConnector(
-                                row.chainId,
-                                connectors,
-                                connector._id
-                              )}
-                            >
-                              X
-                            </Button>
-                          }
-                        >
-                          <div style={{ width: "400px" }}>
-                            <a
-                              onClick={() => {
-                                console.log(`connector`, connector);
-                              }}
-                            >
-                              <NoteCard card={connector}></NoteCard>
-                              {/* <TitleEditor
-                                title={connector.title}
-                                isReadOnly={false}
-                                darkenBgc={false}
-                              ></TitleEditor> */}
-                            </a>
-                          </div>
-                        </ContainerWithMenu>
-                      </div>
-                    );
-                  })
-                ) : (
-                  <Button onClick={createConnector(row.chainId)}>
-                    "create a connector"
-                  </Button>
-                )}
-              </Col>
-            </Row>
-            <Row justify="center">
-              <Col>
-                <Button
-                  size="small"
-                  style={{ zIndex: 1 }}
-                  onClick={changeChainType(row.chainId, row.type)}
-                >
-                  <StaticMathField>{arrowLatex}</StaticMathField>
+            ) : (
+              <Tooltip title="add card">
+                <Button size="small" onClick={createConnector(row.chainId)}>
+                  +
                 </Button>
-              </Col>
-            </Row>
-          </ContainerWithMenu>
-        );
-      },
-    },
+              </Tooltip>
+            )}
+          </Col>
+        </Row>
+        <Row justify="center" style={{ marginTop: "5px" }}>
+          <Col>
+            <Button
+              size="small"
+              style={{ zIndex: 1 }}
+              onClick={changeChainType(row.chainId, row.type)}
+            >
+              <StaticMathField>{arrowLatex}</StaticMathField>
+            </Button>
+          </Col>
+        </Row>
+      </ContainerWithMenu>
+    );
+  };
 
-    {
-      title: "Outcome",
-      key: "outcomes",
-      dataIndex: "outcomes",
-      render: (outcomes, row, index) => (
-        <ContainerWithMenu
-          key={"outcomes" + row._id}
-          menu={
-            !isExample && (
-              <SelectWithToggle
-                options={postsNameAndId}
-                onSelect={addNewOutcome(row.chainId, outcomes)}
-              />
-            )
-          }
-        >
-          {outcomes.length
-            ? outcomes.map((outcome) => {
-                return (
-                  <div style={{ position: "relative" }} key={outcome._id}>
-                    <ContainerWithMenu
-                      key={outcome._id}
-                      leftMenu={
-                        !isExample && (
-                          <Button
-                            size="small"
-                            shape="circle"
-                            onClick={removeOutcome(
-                              row.chainId,
-                              outcomes,
-                              outcome._id
-                            )}
-                          >
-                            X
-                          </Button>
-                        )
-                      }
-                    >
-                      <Avatar src={outcome.image}></Avatar>
-                      <TitleEditor
-                        isReadOnly={true}
-                        title={outcome.title}
-                        name={outcome.name}
-                        style={{ fontSize: "14px" }}
-                      />
-                    </ContainerWithMenu>
-                  </div>
-                );
-              })
-            : "No outcome added.."}
-        </ContainerWithMenu>
-      ),
-    },
-    {
-      title: "",
-      key: "action",
-      render: (row) => (
-        <Space size="small">
-          <a
-            onClick={() => {
-              const { chainId } = row;
-              deleteChainOnClick(chainId);
-            }}
-          >
-            X
-          </a>
-        </Space>
-      ),
-    },
-  ];
+  const renderOutcomes = (outcomes, row, index) => (
+    <ContainerWithMenu
+      key={"outcomes" + row._id}
+      menu={
+        !isExample && (
+          <SelectWithToggle
+            options={postsNameAndId}
+            onSelect={addNewOutcome(row.chainId, outcomes)}
+          />
+        )
+      }
+    >
+      {outcomes.length
+        ? outcomes.map((outcome) => {
+            return (
+              <div style={{ position: "relative" }} key={outcome._id}>
+                <ContainerWithMenu
+                  key={outcome._id}
+                  leftMenu={
+                    !isExample && (
+                      <Button
+                        size="small"
+                        shape="circle"
+                        onClick={removeOutcome(
+                          row.chainId,
+                          outcomes,
+                          outcome._id
+                        )}
+                      >
+                        X
+                      </Button>
+                    )
+                  }
+                >
+                  <Avatar src={outcome.image}></Avatar>
+                  <TitleEditor
+                    isReadOnly={true}
+                    title={outcome.title}
+                    name={outcome.name}
+                    style={{
+                      fontSize: "14px",
+                      backgroundColor: "transparent",
+                    }}
+                  />
+                </ContainerWithMenu>
+              </div>
+            );
+          })
+        : "No outcome added.."}
+    </ContainerWithMenu>
+  );
+
+  const renderActions = (row) => (
+    <Space size="small">
+      <a
+        onClick={() => {
+          const { chainId } = row;
+          deleteChainOnClick(chainId);
+        }}
+      >
+        X
+      </a>
+    </Space>
+  );
 
   const data = chains.map((chain, index) => {
     return {
       key: index,
       heads: chain.heads,
-      connectors: chain.connectors,
+      connector: chain.connector,
       type: chain.type,
+      nodes: chain.nodes,
       outcomes: chain.outcomes,
       chainId: chain._id,
     };
   });
 
+  const columns = [
+    {
+      title: isExample ? "Examples" : "If",
+      dataIndex: "heads",
+      key: "head",
+      render: renderHeads,
+    },
+    {
+      title: "Since",
+      dataIndex: "connector",
+      key: "connector",
+      render: renderConnector,
+    },
+
+    {
+      title: isExample ? "Is a" : "then",
+      key: "outcomes",
+      dataIndex: "outcomes",
+      render: renderOutcomes,
+    },
+    {
+      title: "",
+      key: "action",
+      render: renderActions,
+    },
+  ];
+
+  const expandable = (chain) => {
+    const { connector } = chain;
+    console.log(`chain`, chain);
+    return <NoteFlow parentContainer={chain} cards={chain.nodes}></NoteFlow>;
+  };
+
   return (
     <div>
-      <Table columns={columns} dataSource={data} pagination={false} />
+      <Table
+        columns={columns}
+        dataSource={data}
+        pagination={false}
+        expandable={{
+          expandedRowRender: expandable,
+          rowExpandable: (chain) => chain.connector,
+        }}
+      />
       <div style={{ padding: "6px 4px" }}>
-        <Button onClick={addNewChain}>
-          Add Chain to <Avatar size={20} src={image}></Avatar>
-        </Button>
+        <Row justify="center">
+          <Col>
+            <Button onClick={addNewChain}>
+              Add Chain to <Avatar size={20} src={image}></Avatar>
+            </Button>
+          </Col>
+        </Row>
       </div>
     </div>
   );

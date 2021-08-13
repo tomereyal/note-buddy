@@ -2,15 +2,21 @@ const express = require("express");
 const router = express.Router();
 const axios = require("axios");
 const { Card, Tag } = require("../models/Card");
+const { ObjectId } = require("mongodb");
 //=================================
 //             Card
 //=================================
 
 router.get("/fetchCards", (req, res) => {
-  Card.find().exec((err, cards) => {
-    if (err) return res.status(400).send(err);
-    res.status(200).json({ success: true, cards });
-  });
+  Card.find()
+    .populate({
+      path: "subCards",
+      model: "Card",
+    })
+    .exec((err, cards) => {
+      if (err) return res.status(400).send(err);
+      res.status(200).json({ success: true, cards });
+    });
 });
 
 router.post("/createCard", (req, res) => {
@@ -40,13 +46,24 @@ router.get("/fetchTaggedCards/:tagName", (req, res) => {
   });
 });
 
-router.delete("/:id", (req, res) => {
+router.delete("/:id", async (req, res) => {
   const cardId = req.params.id;
-  Card.findByIdAndDelete(cardId, (err, cards) => {
-    if (err) return res.status(400).send(err);
-    console.log(`cards`, cards);
-    res.status(200).json({ success: true });
-  });
+  console.log(`cardId`, cardId);
+  const filter = {
+    $or: [
+      { _id: cardId },
+      { "flowData.source": cardId },
+      { "flowData.target": cardId },
+    ],
+  };
+
+  try {
+    const response = await Card.deleteMany(filter);
+    console.log(`response`, response);
+    res.status(200).send({ success: true, response });
+  } catch (error) {
+    return res.status(400).send(error);
+  }
 });
 
 router.put("/:id", (req, res) => {

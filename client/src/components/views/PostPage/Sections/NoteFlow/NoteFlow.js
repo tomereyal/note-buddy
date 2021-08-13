@@ -1,31 +1,30 @@
 import React, { useState, useEffect } from "react";
-import ReactFlow, {
-  useStoreState,
-  ReactFlowProvider,
-  addEdge,
-  removeElements,
-} from "react-flow-renderer";
-import { useDispatch } from "react-redux";
-import { editNote } from "../../../../../_actions/card_actions";
+import ReactFlow, { ReactFlowProvider, addEdge } from "react-flow-renderer";
+import { useDispatch, useSelector } from "react-redux";
+import { createCard, editCard } from "../../../../../_actions/card_actions";
 import {
   createCardInList,
-  editList,
   removeListFromSection,
 } from "../../../../../_actions/post_actions";
 import "react-flow-renderer/dist/style.css";
 import NoteFlowNode from "./NoteFlowNode";
 import FlowToolbar from "./FlowToolbar";
-import TitleEditor from "../../../../editor/TitleEditor/TitleEditor";
-import { Button, Row, Tooltip } from "antd";
+
+import { Button, Tooltip } from "antd";
 import ContainerWithMenu from "../../../BasicComponents/ContainerWithMenu";
-import { DeleteColumnOutlined } from "@ant-design/icons";
-import { Col } from "antd";
+import { editChain } from "../../../../../api";
 
-const onElementClick = (event, element) => console.log("click", element);
+/**
+ *
+ * @param {ObjectId} listId
+ * @param {Array} cards
+ * @param {Object} parentContainer
+ * @returns
+ */
 
-export default function NoteFlow({ postId, sectionId, list }) {
+export default function NoteFlow({ cards, parentContainer }) {
   const dispatch = useDispatch();
-
+  const allCards = useSelector((state) => state.cards);
   const [rfInstance, setRfInstance] = useState(null);
   const onLoad = (reactFlowInstance) => {
     console.log("rfInstance:", reactFlowInstance);
@@ -34,6 +33,7 @@ export default function NoteFlow({ postId, sectionId, list }) {
   };
 
   const mapCardsToNode = (cards) => {
+    if (!cards) return;
     return cards.map((card) => {
       const { _id, flowData } = card;
       const { type, source, target, animated, position } = flowData;
@@ -56,16 +56,18 @@ export default function NoteFlow({ postId, sectionId, list }) {
           ),
         },
         position,
+        style: { width: "auto", minWidth: "200px", padding: 0, margin: 0 },
       };
     });
   };
-  const initElements = mapCardsToNode(list.cards);
+  const initElements = mapCardsToNode(cards);
   const [elements, setElements] = useState(initElements);
 
   useEffect(() => {
-    setElements(mapCardsToNode(list.cards));
+    if (!cards) return;
+    setElements(mapCardsToNode(cards));
     if (rfInstance) rfInstance.fitView();
-  }, [list]);
+  }, [parentContainer, cards, allCards]);
 
   const onConnect = (params) => {
     console.log(`params`, params);
@@ -73,11 +75,20 @@ export default function NoteFlow({ postId, sectionId, list }) {
     setElements((els) => addEdge({ ...params, animated: true }, els));
   };
 
-  const addEdgeToDB = ({ target, source }) => {
+  const addEdgeToDB = async (source, target) => {
+    // const variables = {
+    //   postId,
+    //   sectionId,
+    //   listId: list._id,
+    //   flowData: {
+    //     type: "EDGE",
+    //     source,
+    //     target,
+    //   },
+    // };
+
     const variables = {
-      postId,
-      sectionId,
-      listId: list._id,
+      content: [],
       flowData: {
         type: "EDGE",
         source,
@@ -85,10 +96,24 @@ export default function NoteFlow({ postId, sectionId, list }) {
       },
     };
 
-    dispatch(createCardInList(variables));
+    const { data } = await createCard(variables);
+    const newCard = data.card;
+
+    if (parentContainer && parentContainer.nodes) {
+      const editVariables = {
+        id: parentContainer._id,
+        updates: { nodes: [...parentContainer.nodes, newCard._id] },
+      };
+      // dispatch(editChain(editVariables));
+      const updatedChain = await editChain(editVariables);
+      console.log(`updatedChain`, updatedChain);
+    }
+
+    //else if its in a list editList..
   };
-  const saveNodePosition = (node) => {
-    const card = list.cards.find(({ _id }) => _id === node.id);
+
+  const saveNodePosition = async (node) => {
+    const card = cards.find(({ _id }) => _id === node.id);
     const position = rfInstance
       .getElements()
       .find(({ id }) => id === card._id).position;
@@ -97,16 +122,16 @@ export default function NoteFlow({ postId, sectionId, list }) {
       flowData: { ...card.flowData, position },
     };
     const variables = { id: card._id, updates };
-    dispatch(editNote(variables));
+    const updatedCard = await dispatch(editCard(variables));
   };
 
   const removeList = () => {
-    const variables = {
-      postId,
-      sectionId,
-      listId: list._id,
-    };
-    dispatch(removeListFromSection(variables));
+    // const variables = {
+    //   postId,
+    //   sectionId,
+    //   listId: list._id,
+    // };
+    // dispatch(removeListFromSection(variables));
   };
 
   const menu = (
@@ -148,10 +173,8 @@ export default function NoteFlow({ postId, sectionId, list }) {
           <FlowToolbar
             elements={elements}
             setElements={setElements}
-            postId={postId}
-            sectionId={sectionId}
-            listId={list._id}
             rfInstance={rfInstance}
+            parentContainer={parentContainer}
           />
         </ReactFlowProvider>
       </div>

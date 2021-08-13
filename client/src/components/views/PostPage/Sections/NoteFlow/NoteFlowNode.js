@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { Button, Card, Tooltip } from "antd";
 import { useDispatch, useSelector } from "react-redux";
-import { editNote } from "../../../../../_actions/card_actions";
+import { editCard } from "../../../../../_actions/card_actions";
 import SlateEditor from "../../../../editor/SlateEditor";
 import { useStoreState, useStoreActions } from "react-flow-renderer";
 import {
   deleteCardFromList,
   removeCardFromList,
 } from "../../../../../_actions/post_actions";
+import { deleteCard } from "../../../../../_actions/card_actions";
 import { DeleteFilled } from "@ant-design/icons";
+import ContainerWithMenu from "../../../BasicComponents/ContainerWithMenu";
 
 export default function NoteFlowNode({ card: initialCard, index }) {
   const dispatch = useDispatch();
@@ -17,40 +19,22 @@ export default function NoteFlowNode({ card: initialCard, index }) {
   const transform = useStoreState((store) => store.transform);
   const [card, setCard] = useState(initialCard ? initialCard : {});
   const {
-    location,
     _id,
     content: initialContent,
     title: initialTitle,
     name: initialName,
   } = card;
-  const { post, section, list } = location;
-  const cardData = {
-    postId: post,
-    sectionId: section,
-    listId: list,
-    cardId: _id,
-  };
 
   const [title, setTitle] = useState(initialTitle);
   const [name, setName] = useState(initialName);
   const [content, setContent] = useState(initialContent);
-  const [position, setPosition] = useState();
   const [isShown, setIsShown] = useState(true);
-  const [isCardHovered, setIsCardHovered] = useState(false);
 
   const removeCard = () => {
-    const variables = cardData;
-    //DELETE ATTACHED EDGES
-    const edgesToDelete = edges
-      .filter(({ source, target }) => source === _id || target === _id)
-      .map(({ id }) => id);
-    if (edgesToDelete.length) {
-      variables.cardIdArr = [card._id, ...edgesToDelete];
-    }
-    console.log(`card._id`, card._id);
-    console.log(`edgesToDelete`, edgesToDelete);
-    console.log(`removinggg`, variables);
-    dispatch(removeCardFromList(variables));
+
+    console.log(`removinggg`, card._id);
+
+    dispatch(deleteCard(card._id));
   };
 
   useEffect(() => {
@@ -69,14 +53,26 @@ export default function NoteFlowNode({ card: initialCard, index }) {
       name,
     };
     const variables = { id: card._id, updates };
-    dispatch(editNote(variables));
+    dispatch(editCard(variables));
   };
+
+  const menu = (
+    <Tooltip title="Remove Note">
+      <a
+        onClick={() => {
+          removeCard();
+        }}
+      >
+        <DeleteFilled style={{ fontSize: "10px", color: "black" }} />
+      </a>
+    </Tooltip>
+  );
 
   return (
     isShown && (
       <div
         style={{
-          height: "100%",
+          minHeight: "100%",
         }}
         onBlur={() => {
           console.log("card blurred so saving..");
@@ -84,40 +80,21 @@ export default function NoteFlowNode({ card: initialCard, index }) {
         }}
         id={card._id}
       >
-        <Card
-          bodyStyle={{ padding: "2px" }}
-          style={{ width: "100%" }}
-          hoverable={true}
-          onMouseEnter={() => {
-            setIsCardHovered(true);
-          }}
-          onMouseLeave={() => {
-            setIsCardHovered(false);
-          }}
-        >
-          {isCardHovered && (
-            <div style={{ position: "absolute", zIndex: 100 }}>
-              <Tooltip title="Remove Note">
-                <Button
-                  type="danger"
-                  shape="circle"
-                  size="small"
-                  icon={<DeleteFilled />}
-                  onClick={() => {
-                    removeCard();
-                  }}
-                />
-              </Tooltip>
-            </div>
-          )}
-          <SlateEditor
-            card={card}
-            key={card._id}
-            style={{ width: "100%" }}
-            setContent={setContent}
-            content={content}
-          ></SlateEditor>
-        </Card>
+        <ContainerWithMenu menu={menu} noPadding={true}>
+          <Card
+            bodyStyle={{ padding: 0 }}
+            // style={{ width: "100%" }}
+            hoverable={true}
+          >
+            <SlateEditor
+              card={card}
+              key={card._id}
+              style={{ minWidth: "100%" }}
+              setContent={setContent}
+              content={content}
+            ></SlateEditor>
+          </Card>
+        </ContainerWithMenu>
       </div>
     )
   );

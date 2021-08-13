@@ -36,7 +36,7 @@ router.post("/createCardInChain", (req, res) => {
 
     Chain.findByIdAndUpdate(
       chainId,
-      { $push: { connectors: card } },
+      { connector: card },
       { new: true },
       (err, chain) => {
         if (err) return res.status(400).json({ success: false, err });
@@ -62,12 +62,14 @@ router.put("/:id", (req, res) => {
   //I had an issue that client was sending only an objectId of the card and the card was null..
   // i needed to populate after every post update by creating a custom static method on the blogSchema..
   const chainId = req.params.id;
+  console.log(`the chain is updating`, chainId, req.body);
   Chain.findByIdAndUpdate(
     chainId,
-    { $set: req.body },
+    req.body,
     { new: true },
     function (err, chain) {
       if (err) return res.json({ success: false, err });
+      console.log(`chain`, chain);
       return res.status(200).json({ success: true, chain });
     }
   );
@@ -86,6 +88,14 @@ router.post("/fetchChainsByIds", (req, res) => {
     })
     .populate({
       path: "connector",
+      model: "Card",
+    })
+    .populate({
+      path: "connector.cards.subCards",
+      model: "Card",
+    })
+    .populate({
+      path: "nodes",
       model: "Card",
     })
     .exec((err, chains) => {
