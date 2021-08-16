@@ -27,7 +27,20 @@ import CreatePostModule from "../CreatePostModule";
 import { createPostInFolder } from "../../../_actions/folder_actions";
 import { useHistory } from "react-router-dom";
 import NoteFlow from "./Sections/NoteFlow/NoteFlow";
+import {
+  SortableContainer,
+  SortableElement,
+  sortableHandle,
+} from "react-sortable-hoc";
+import { MenuOutlined } from "@ant-design/icons";
+import { arrayMoveImmutable } from "array-move";
 addStyles();
+
+const DragHandle = sortableHandle(() => (
+  <MenuOutlined style={{ cursor: "grab", color: "#999" }} />
+));
+const SortableItem = SortableElement((props) => <tr {...props} />);
+const MySortableContainer = SortableContainer((props) => <tbody {...props} />);
 
 export default function ChainsSection({
   post: initialPost = {},
@@ -194,7 +207,7 @@ export default function ChainsSection({
 
   // =======ROW CELL RENDER FUNCTIONS ================
 
-  const renderHeads = (heads, row) => (
+  const renderHeads = (heads, row, index) => (
     <ContainerWithMenu
       key={"heads" + row._id}
       menu={
@@ -403,10 +416,18 @@ export default function ChainsSection({
       nodes: chain.nodes,
       outcomes: chain.outcomes,
       chainId: chain._id,
+      index,
     };
   });
 
   const columns = [
+    {
+      title: "Sort",
+      dataIndex: "sort",
+      width: 30,
+      className: "drag-visible",
+      render: () => <DragHandle />,
+    },
     {
       title: isExample ? "Examples" : "If",
       dataIndex: "heads",
@@ -439,16 +460,56 @@ export default function ChainsSection({
     return <NoteFlow parentContainer={chain} cards={chain.nodes}></NoteFlow>;
   };
 
+  //=========DRAG AND DROP============================================
+  const [dataSource, setDataSource] = useState(data);
+  console.log(`dataSource`, dataSource);
+  const onSortEnd = ({ oldIndex, newIndex }) => {
+    if (oldIndex !== newIndex) {
+      const newData = arrayMoveImmutable(
+        [].concat(dataSource),
+        oldIndex,
+        newIndex
+      ).filter((el) => !!el);
+      console.log("Sorted items: ", newData);
+      setDataSource(newData);
+    }
+  };
+
+  const DraggableContainer = (props) => (
+    <SortableContainer
+      useDragHandle
+      disableAutoscroll
+      helperClass="row-dragging"
+      onSortEnd={onSortEnd}
+      {...props}
+    />
+  );
+
+  const DraggableBodyRow = ({ className, style, ...restProps }) => {
+    // function findIndex base on Table rowKey props and should always be a right array index
+    const index = dataSource.findIndex(
+      (x) => x.index === restProps["data-row-key"]
+    );
+    return <SortableItem index={index} {...restProps} />;
+  };
+
   return (
     <div>
       <Table
         columns={columns}
-        dataSource={data}
+        dataSource={dataSource}
+        rowKey="index"
         pagination={false}
         expandable={{
           expandedRowRender: expandable,
           rowExpandable: (chain) => chain.connector,
         }}
+        // components={{
+        //   body: {
+        //     wrapper: DraggableContainer,
+        //     row: DraggableBodyRow,
+        //   },
+        // }}
       />
       <div style={{ padding: "6px 4px" }}>
         <Row justify="center">
