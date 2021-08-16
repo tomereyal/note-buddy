@@ -1,32 +1,27 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   Button,
   Avatar,
-  Tag,
   Space,
   Table,
-  Select,
   Row,
   Col,
   Tooltip,
+  Popconfirm,
 } from "antd";
-import {
-  createChain,
-  createExampleChain,
-  fetchChainsByIds,
-} from "../../../api";
+import { createChain, createExampleChain } from "../../../api";
 import { createPost, editPost } from "../../../_actions/post_actions";
 import ContainerWithMenu from "../BasicComponents/ContainerWithMenu";
 import SelectWithToggle from "./Sections/SelectWithToggle";
 import { deleteChain, editChain, createCardInChain } from "../../../api";
 import TitleEditor from "../../editor/TitleEditor/TitleEditor";
-import { addStyles, EditableMathField, StaticMathField } from "react-mathquill";
+import { addStyles, StaticMathField } from "react-mathquill";
 import NoteCard from "./Sections/NoteCard";
 import CreatePostModule from "../CreatePostModule";
-import { createPostInFolder } from "../../../_actions/folder_actions";
 import { useHistory } from "react-router-dom";
 import NoteFlow from "./Sections/NoteFlow/NoteFlow";
+
 addStyles();
 
 export default function ChainsSection({
@@ -51,6 +46,20 @@ export default function ChainsSection({
     .filter((card) => card.name);
 
   let history = useHistory();
+
+  const data = chains.map((chain, index) => {
+    return {
+      key: index,
+      heads: chain.heads,
+      connector: chain.connector,
+      type: chain.type,
+      nodes: chain.nodes,
+      outcomes: chain.outcomes,
+      chainId: chain._id,
+    };
+  });
+
+  // const [data, setData] = useState(initialData);
 
   useEffect(() => {
     setPost(initialPost);
@@ -94,13 +103,13 @@ export default function ChainsSection({
     return async function (connectorId) {
       const variables = {
         id: chainId,
-        updates: { connectors: connectorId },
+        updates: { connector: connectorId },
       };
       const { data } = await editChain(variables);
       getPostFromServer(_id);
     };
   };
-  const createNewHead = (chainId, chainHeads) => {
+  const createNewHead = (chainId) => {
     return async function (variablesFromModule) {
       // const post = await dispatch(createPostInFolder(variablesFromModule));
       console.log(`variablesFromModule`, variablesFromModule);
@@ -110,6 +119,22 @@ export default function ChainsSection({
       const variables = {
         id: chainId,
         updates: { $push: { heads: post._id } },
+      };
+      const { data } = await editChain(variables);
+      getPostFromServer(_id);
+    };
+  };
+
+  const createNewOutcome = (chainId) => {
+    return async function (variablesFromModule) {
+      // const post = await dispatch(createPostInFolder(variablesFromModule));
+      console.log(`variablesFromModule`, variablesFromModule);
+      const post = await dispatch(createPost(variablesFromModule));
+      console.log(`post returned from createpost`, post);
+
+      const variables = {
+        id: chainId,
+        updates: { $push: { outcomes: post._id } },
       };
       const { data } = await editChain(variables);
       getPostFromServer(_id);
@@ -203,9 +228,7 @@ export default function ChainsSection({
             options={postsNameAndId}
             onSelect={addNewHead(row.chainId, heads)}
           />
-          <CreatePostModule
-            createPostFunction={createNewHead(row.chainId, heads)}
-          />
+          <CreatePostModule createPostFunction={createNewHead(row.chainId)} />
         </div>
       }
     >
@@ -294,7 +317,7 @@ export default function ChainsSection({
                     </Button>
                   }
                 >
-                  <div style={{ width: "400px" }}>
+                  <div>
                     <a>
                       <NoteCard
                         card={connector}
@@ -334,10 +357,15 @@ export default function ChainsSection({
       key={"outcomes" + row._id}
       menu={
         !isExample && (
-          <SelectWithToggle
-            options={postsNameAndId}
-            onSelect={addNewOutcome(row.chainId, outcomes)}
-          />
+          <div>
+            <SelectWithToggle
+              options={postsNameAndId}
+              onSelect={addNewOutcome(row.chainId, outcomes)}
+            />
+            <CreatePostModule
+              createPostFunction={createNewOutcome(row.chainId)}
+            />
+          </div>
         )
       }
     >
@@ -363,7 +391,12 @@ export default function ChainsSection({
                     )
                   }
                 >
-                  <Avatar src={outcome.image}></Avatar>
+                  <Avatar
+                    src={outcome.image}
+                    onClick={() => {
+                      history.push(`/post/${outcome._id}`);
+                    }}
+                  ></Avatar>
                   <TitleEditor
                     isReadOnly={true}
                     title={outcome.title}
@@ -373,6 +406,19 @@ export default function ChainsSection({
                       backgroundColor: "transparent",
                     }}
                   />
+                  {outcome.conditions ? (
+                    <TitleEditor
+                      isReadOnly={true}
+                      title={outcome.conditions}
+                      style={{
+                        fontSize: "10px",
+                        color: "red",
+                        backgroundColor: "transparent",
+                      }}
+                    />
+                  ) : (
+                    ""
+                  )}
                 </ContainerWithMenu>
               </div>
             );
@@ -383,28 +429,17 @@ export default function ChainsSection({
 
   const renderActions = (row) => (
     <Space size="small">
-      <a
-        onClick={() => {
+      <Popconfirm
+        title={"delete chain?"}
+        onConfirm={() => {
           const { chainId } = row;
           deleteChainOnClick(chainId);
         }}
       >
-        X
-      </a>
+        <a>X</a>
+      </Popconfirm>
     </Space>
   );
-
-  const data = chains.map((chain, index) => {
-    return {
-      key: index,
-      heads: chain.heads,
-      connector: chain.connector,
-      type: chain.type,
-      nodes: chain.nodes,
-      outcomes: chain.outcomes,
-      chainId: chain._id,
-    };
-  });
 
   const columns = [
     {
@@ -414,18 +449,19 @@ export default function ChainsSection({
       render: renderHeads,
     },
     {
-      title: "Since",
+      title: isExample ? "Explanation" : "Since",
       dataIndex: "connector",
       key: "connector",
+      width: "50px",
       render: renderConnector,
     },
-
     {
       title: isExample ? "Is a" : "then",
       key: "outcomes",
       dataIndex: "outcomes",
       render: renderOutcomes,
     },
+
     {
       title: "",
       key: "action",
@@ -450,6 +486,7 @@ export default function ChainsSection({
           rowExpandable: (chain) => chain.connector,
         }}
       />
+
       <div style={{ padding: "6px 4px" }}>
         <Row justify="center">
           <Col>

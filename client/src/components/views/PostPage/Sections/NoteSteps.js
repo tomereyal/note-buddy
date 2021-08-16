@@ -186,7 +186,7 @@ export default function NoteSteps(props) {
           direction={direction}
           current={list.cards.length}
         >
-          {list.cards.map((card, index, cards) => {
+          {/* {list.cards.map((card, index, cards) => {
             return (
               <NoteSingleStep
                 key={index + card._id}
@@ -198,7 +198,7 @@ export default function NoteSteps(props) {
                 // setList={setList}
               ></NoteSingleStep>
             );
-          })}
+          })} */}
         </Steps>
       </ContainerWithMenu>
     </>
