@@ -86,7 +86,7 @@ export const saveExistingNoteTags = (variables) =>
 //=========================================
 export const fetchFolders = () => axios.get(`${FOLDER_SERVER}/fetchFolders`);
 export const editFolder = (variables) =>
-  axios.put(`${FOLDER_SERVER}/${variables.folderId}`, variables.updates);
+  axios.put(`${FOLDER_SERVER}/`, variables);
 export const createFolder = (folderVariables) =>
   axios.post(`${FOLDER_SERVER}/createFolder`, folderVariables);
 export const deleteFolder = (folderId) =>
@@ -99,6 +99,19 @@ export const renameFolder = (folderName) =>
   axios.post(`${FOLDER_SERVER}/renameFolder`, folderName);
 export const deletePostFromFolder = (variables) =>
   axios.post(`${FOLDER_SERVER}/deletePostFromFolder`, variables);
+export const addSubFolder = (variables) =>
+  axios.put(
+    `${FOLDER_SERVER}/createSubFolder/${variables.id}`,
+    variables.updates
+  );
+// export const removeSubFolder = (variables) =>
+//   axios.put(`${FOLDER_SERVER}/removeSubFolder/${variables.id}`, variables.updates);
+// export const editSubFolders = (variables) =>
+//   axios.put(
+//     `${FOLDER_SERVER}/editSubFolder/${variables.id}`,
+//     variables.updates
+//   );
+
 //-----------------------------------------
 
 //=========================================

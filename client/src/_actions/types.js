@@ -51,6 +51,10 @@ export const DELETE_FOLDER = "DELETE_FOLDER";
 export const DELETE_POST_FROM_FOLDER = "DELETE_POST_FROM_FOLDER";
 export const ADD_POST_TO_FOLDER = "ADD_POST_TO_FOLDER";
 export const MOVE_TO_TRASH_FOLDER = "MOVE_TO_TRASH_FOLDER";
+export const ADD_SUBFOLDER = "ADD_SUBFOLDER";
+export const REMOVE_SUBFOLDER = "REMOVE_SUBFOLDER";
+export const EDIT_SUBFOLDERS = "EDIT_SUBFOLDERS";
+
 //-----------------------------------------
 
 //=========================================

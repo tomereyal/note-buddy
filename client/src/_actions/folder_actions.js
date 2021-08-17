@@ -8,6 +8,9 @@ import {
   DELETE_POST_FROM_FOLDER,
   ADD_POST_TO_FOLDER,
   EDIT_FOLDER,
+  ADD_SUBFOLDER,
+  REMOVE_SUBFOLDER,
+  EDIT_SUBFOLDERS,
 } from "./types";
 import { message } from "antd";
 
@@ -25,12 +28,41 @@ export const getFolders = () => async (dispatch) => {
 export const editFolder = (variables) => async (dispatch) => {
   try {
     const { data } = await api.editFolder(variables);
+    console.log(`data`, data);
+    const folder = data.folder;
+    dispatch({ type: EDIT_FOLDER, payload: folder });
+  } catch (error) {
+    console.log(error);
+  }
+};
+export const addSubFolder = (variables) => async (dispatch) => {
+  try {
+    const { data } = await api.addSubFolder(variables);
     const [folder] = data.folder;
     dispatch({ type: EDIT_FOLDER, payload: folder });
   } catch (error) {
-    console.log(error.message);
+    console.log(error);
   }
 };
+// export const removeSubFolder = (variables) => async (dispatch) => {
+//   try {
+//     const { data } = await api.removeSubFolder(variables);
+//     const [folder] = data.folder;
+//     dispatch({ type: EDIT_FOLDER, payload: folder });
+//   } catch (error) {
+//     console.log(error.message);
+//   }
+// };
+// export const editSubFolders = (variables) => async (dispatch) => {
+//   try {
+//     const { data } = await api.export const editSubFolders = (variables) => async (dispatch) => {
+// (variables);
+//     const [folder] = data.folder;
+//     dispatch({ type: EDIT_FOLDER, payload: folder });
+//   } catch (error) {
+//     console.log(error.message);
+//   }
+// };
 
 export const createFolder = (folderVariables) => async (dispatch) => {
   try {

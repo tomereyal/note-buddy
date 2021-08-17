@@ -20,14 +20,16 @@ export default function SelectWithToggle({ options, onSelect }) {
         setToggleSelect(false);
       }}
       optionFilterProp="children"
-      filterOption={(input, option) =>
-        option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
-      }
-      filterSort={(optionA, optionB) =>
-        optionA.children
+      filterOption={(input, option) => {
+        if (!option.children) return;
+        return option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0;
+      }}
+      filterSort={(optionA, optionB) => {
+        if (!optionA.children || !optionB.children) return;
+        return optionA.children
           .toLowerCase()
-          .localeCompare(optionB.children.toLowerCase())
-      }
+          .localeCompare(optionB.children.toLowerCase());
+      }}
     >
       {options.map(({ name, _id }) => {
         return (

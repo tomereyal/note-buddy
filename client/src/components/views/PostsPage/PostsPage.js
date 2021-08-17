@@ -1,44 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { useHistory } from "react-router";
-import {
-  createPost,
-  getPosts,
-  deletePost,
-} from "../../../_actions/post_actions";
-import {
-  getFolders,
-  deletePostFromFolder,
-  createPostInFolder,
-  addPostToFolder,
-} from "../../../_actions/folder_actions";
+import { DragDropContext } from "react-beautiful-dnd";
+import { getFolders, addSubFolder } from "../../../_actions/folder_actions";
+import { Button, Layout, Col, Typography, Row, Input } from "antd";
+import { useParams } from "react-router-dom";
+import SubFolderList from "./Parts/SubFolderList";
+import { editFolder } from "../../../_actions/folder_actions";
 
-import {
-  Button,
-  Layout,
-  Card,
-  Avatar,
-  Col,
-  Typography,
-  Row,
-  Menu,
-  Popconfirm,
-} from "antd";
-import {
-  SettingOutlined,
-  EditOutlined,
-  EllipsisOutlined,
-  PlusSquareTwoTone,
-  DeleteOutlined,
-} from "@ant-design/icons";
-import { useParams, Link } from "react-router-dom";
-import CreatePostModule from "../CreatePostModule";
-import TitleEditor from "../../editor/TitleEditor/TitleEditor";
-
-const { Header, Content, Footer, Sider } = Layout;
-const { SubMenu } = Menu;
+const { Content } = Layout;
 const { Title } = Typography;
-const { Meta } = Card;
 
 export default function PostsPage(props) {
   const folders = useSelector((state) => state.folders);
@@ -52,10 +22,7 @@ export default function PostsPage(props) {
   });
 
   const [folder, setFolder] = useState(initFolder ? initFolder : null);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-
-  const history = useHistory();
-
+  const subFolders = folder?.subFolders;
   const dispatch = useDispatch();
   // const folderId = props.folder._id;
 
@@ -75,115 +42,113 @@ export default function PostsPage(props) {
       });
       setFolder(folder_);
     }
-  }, [folderId, folders, dispatch, folder, posts]);
+  }, [folderId, folders, dispatch, posts]);
 
-  const removePost = (blogId) => {
-    if (!blogId) {
-      //also validate if the user is logged in..
-      return;
-    }
-    const postVariables = { folderId: folderId, postId: blogId };
-    dispatch(deletePostFromFolder(postVariables));
-    dispatch(deletePost(blogId));
+  const addNewSubFolder = (name) => {
+    const variables = { id: folder._id, updates: { name } };
+    console.log(`variables`, variables);
+    dispatch(addSubFolder(variables));
   };
 
-  const addPost = async (variables) => {
-    if (folder) {
-      console.log(`variables`, variables);
+  //DRAG AND DROP =========
+  const onDragEnd = (result) => {
+    const { destination, source, draggableId } = result;
+    if (!destination) return;
+    const { droppableId: dId, index: dIndex } = destination;
+    const { droppableId: sId, index: sIndex } = source;
 
-      dispatch(createPostInFolder(variables));
-      dispatch(getPosts());
+    if (!isPositionChanged({ dId, sId, dIndex, sIndex })) return;
+
+    const startSubFolderIndex = subFolders.findIndex((sb) => sb._id === sId);
+    const startSubFolder = subFolders[startSubFolderIndex];
+    const endSubFolderIndex = subFolders.findIndex((sb) => sb._id === dId);
+    const endSubFolder = subFolders[endSubFolderIndex];
+    const post = startSubFolder.blogs.find((post) => post._id === draggableId);
+
+    if (startSubFolder === endSubFolder) {
+      const newBlogsArr = Array.from(startSubFolder.blogs);
+      newBlogsArr.splice(sIndex, 1);
+      newBlogsArr.splice(dIndex, 0, post);
+      const newSubFolder = { ...startSubFolder, blogs: newBlogsArr };
+      const newSubFoldersArr = subFolders.map((sf) =>
+        sf._id === newSubFolder._id ? newSubFolder : sf
+      );
+      console.log(`newSubFoldersArr`, newSubFoldersArr);
+
+      setFolder((prev) => {
+        return { ...prev, subFolders: newSubFoldersArr };
+      });
+      dispatch(
+        editFolder({
+          query: { _id: folder._id },
+          updates: { subFolders: newSubFoldersArr },
+        })
+      );
       return;
     }
 
-    if (!folder) {
-      dispatch(createPost(variables.postVariables));
-    }
-  };
+    //take away post from starting subFolder
+    const sourceBlogs = Array.from(startSubFolder.blogs);
+    sourceBlogs.splice(sIndex, 1);
+    const newStart = { ...startSubFolder, blogs: sourceBlogs };
 
-  const renderCards = folder
-    ? folder.blogs.map((blog, index) => {
-        if (blog) {
-          return (
-            <Col key={index} lg={8} md={12} xs={24}>
-              <Card
-                hoverable
-                style={{ width: 270, marginTop: 16 }}
-                onClick={() => {
-                  console.log(`blog`, blog);
-                }}
-                onDoubleClick={() => {
-                  history.push(`/post/${blog._id}`);
-                }}
-                actions={[
-                  <Popconfirm
-                    placement="bottomLeft"
-                    title={"Delete Card Permanently"}
-                    key="delete"
-                    onConfirm={() => {
-                      removePost(blog._id);
-                    }}
-                    okText="Yes"
-                    cancelText="No"
-                  >
-                    <DeleteOutlined />
-                  </Popconfirm>,
-                  <EditOutlined key="edit" />,
-                  <Link to={`/post/${blog._id}`}>
-                    <EllipsisOutlined key="ellipsis" />
-                  </Link>,
-                ]}
-              >
-                <Meta
-                  avatar={<Avatar src={blog.image} />}
-                  title={
-                    <TitleEditor
-                      title={blog.title}
-                      name={blog.name}
-                      isReadOnly={true}
-                    ></TitleEditor>
-                  }
-                  description={
-                    <TitleEditor
-                      title={blog.description}
-                      isReadOnly={true}
-                      size={5}
-                    ></TitleEditor>
-                  }
-                />
-              </Card>
-            </Col>
-          );
-        }
+    //add post to ending subFolder
+    const destinationBlogs = Array.from(endSubFolder.blogs);
+    destinationBlogs.splice(dIndex, 0, post);
+    const newEnd = { ...endSubFolder, blogs: destinationBlogs };
+
+    const newSubFolders = subFolders.map((sb, index) => {
+      if (index === startSubFolderIndex) return newStart;
+      else if (index === endSubFolderIndex) return newEnd;
+      else return sb;
+    });
+    console.log(`newSubFolders`, newSubFolders);
+
+    setFolder((prev) => {
+      return { ...prev, subFolders: newSubFolders };
+    });
+    dispatch(
+      editFolder({
+        query: { _id: folder._id },
+        updates: { subFolders: newSubFolders },
       })
-    : null;
+    );
+    return;
+  };
+
+  const isPositionChanged = ({ dId, sId, dIndex, sIndex }) => {
+    return !(dId === sId && dIndex === sIndex);
+  };
 
   return (
     folder && (
       <Layout>
         <Content>
           <div style={{ width: "80%", margin: "1rem auto" }}>
-            {/* <Title level={2}>Blog Lists</Title> */}
+            <Title level={2}>{folder.name}</Title>
+            <DragDropContext onDragEnd={onDragEnd}>
+              <div>
+                {folder.subFolders?.map((subFolder, i) => {
+                  return (
+                    <SubFolderList
+                      key={subFolder._id + i}
+                      subFolder={subFolder}
+                      folderId={folder._id}
+                    />
+                  );
+                })}
+              </div>
+            </DragDropContext>
             <Row justify="space-around" gutter={[32, 16]}>
-              {folder && renderCards}
-              <Col
-                lg={8}
-                md={12}
-                xs={24}
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  flexDirection: "column",
-                }}
-              >
-                <CreatePostModule
-                  folderId={folder._id}
-                  buttonElement={
-                    <PlusSquareTwoTone style={{ fontSize: "60px" }} />
-                  }
-                  createPostFunction={addPost}
-                />
+              <Col>
+                <Input
+                  placeholder={"create a new subfolder"}
+                  onPressEnter={(e) => {
+                    const name = e.target.value;
+                    if (!name) return;
+                    addNewSubFolder(name);
+                  }}
+                ></Input>
               </Col>
             </Row>
           </div>

@@ -3,10 +3,8 @@ import {
   CREATE_FOLDER,
   DELETE_FOLDER,
   EDIT_FOLDER,
-  CREATE_POST_IN_FOLDER,
   ADD_POST_TO_FOLDER,
   DELETE_POST_FROM_FOLDER,
-  MOVE_TO_TRASH_FOLDER,
 } from "../_actions/types";
 
 export default function (folders = [], action) {

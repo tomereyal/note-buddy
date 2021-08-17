@@ -95,7 +95,7 @@ export default function FolderPage(props) {
 
   const changeFolderName = (folderId) => {
     return function (name) {
-      const variables = { folderId, updates: { name } };
+      const variables = { id: folderId, updates: { name } };
 
       dispatch(editFolder(variables));
     };
@@ -155,7 +155,6 @@ export default function FolderPage(props) {
         };
       })
     : [];
-
 
   return (
     <Layout style={{ minHeight: "100vh" }}>

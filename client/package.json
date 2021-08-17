@@ -19,6 +19,7 @@
     "quill-mention": "^3.0.3",
     "react": "^16.8.6",
     "react-app-polyfill": "^1.0.6",
+    "react-beautiful-dnd": "^13.1.0",
     "react-color": "^2.19.3",
     "react-dom": "^16.8.6",
     "react-flow-renderer": "^9.6.6",
