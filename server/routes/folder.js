@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { Folder } = require("../models/Folder");
+const { Folder, SubFolder } = require("../models/Folder");
 const { Blog } = require("../models/Blog");
 
 //=================================
@@ -19,26 +19,45 @@ router.post("/createFolder", (req, res) => {
   });
 });
 
-router.put("/:id", (req, res) => {
+router.put("/", (req, res) => {
+  // const folderId = req.params.id;
+  console.log(`req.body`, req.body);
+  const { query, updates } = req.body;
+  Folder.findOneAndUpdate(query, updates, { new: true })
+    .populate("writer") // populate the writer
+    .populate("blogs") //  populate the blogs
+    .populate("cards") //  populate the blogs
+    .populate({
+      path: "subFolders",
+      model: "SubFolder",
+      populate: {
+        path: "blogs",
+        model: "Blog",
+      },
+    }) //  populate the blogs
+    .exec((err, folder) => {
+      if (err) return res.status(400).send(err);
+      res.status(200).send({ success: true, folder });
+    });
+});
+router.put("/createSubFolder/:id", (req, res) => {
   const folderId = req.params.id;
   console.log(`req.body`, req.body);
+  const { name } = req.body;
+  const newSubFolder = new SubFolder({ name });
+  console.log(`newSubFolder`, newSubFolder);
   Folder.findByIdAndUpdate(
     folderId,
-    { $set: req.body },
-    { new: true },
-    function (err, folder) {
-      if (err) return res.json({ success: false, err });
-
-      Folder.find({ _id: folder._id })
-        .populate("writer") // populate the writer
-        .populate("blogs") //  populate the blogs
-        .populate("cards") //  populate the blogs
-        .exec((err, folder) => {
-          if (err) return res.status(400).send(err);
-          res.status(200).send({ success: true, folder });
-        });
-    }
-  );
+    { $push: { subFolders: newSubFolder } },
+    { new: true }
+  )
+    .populate("writer") // populate the writer
+    .populate("blogs") //  populate the blogs
+    .populate("cards") //  populate the blogs
+    .exec((err, folder) => {
+      if (err) return res.status(400).send(err);
+      res.status(200).send({ success: true, folder });
+    });
 });
 
 router.post("/createPostInFolder", (req, res) => {
@@ -79,6 +98,14 @@ router.get("/fetchFolders", (req, res) => {
     .populate("writer") // populate the writer
     .populate("blogs") //  populate the blogs
     .populate("cards") //  populate the blogs
+    .populate({
+      path: "subFolders",
+      model: "SubFolder",
+      populate: {
+        path: "blogs",
+        model: "Blog",
+      },
+    })
     .exec((err, folders) => {
       if (err) return res.status(400).send(err);
       res.status(200).send({ success: true, folders: folders });

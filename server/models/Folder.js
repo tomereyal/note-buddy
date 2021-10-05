@@ -6,9 +6,14 @@ require("./Card");
 
 const subFolderSchema = Schema({
   name: { type: String },
-  blogs: [{ type: Schema.Types.ObjectId, ref: "Blog" }],
+  blogs: [{ type: Schema.Types.ObjectId, ref: "Blog", default: [] }],
   writer: { type: Schema.Types.ObjectId, ref: "User" },
 });
+// const listSchema = Schema({
+//   name: { type: String },
+//   blogs: [{ type: Schema.Types.ObjectId, ref: "Blog" }],
+//   writer: { type: Schema.Types.ObjectId, ref: "User" },
+// });
 
 const folderSchema = mongoose.Schema(
   {
@@ -59,4 +64,5 @@ folderSchema.pre("remove", async function (next) {
 });
 
 const Folder = mongoose.model("Folder", folderSchema);
-module.exports = { Folder };
+const SubFolder = mongoose.model("SubFolder", subFolderSchema);
+module.exports = { Folder, SubFolder };

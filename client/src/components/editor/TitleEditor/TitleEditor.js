@@ -1,4 +1,3 @@
-// Import React dependencies.
 
 import React, {
   useEffect,
